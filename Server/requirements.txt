@@ -1,0 +1,4 @@
+flask
+gunicorn
+pymemcache
+mysql-connector-python
