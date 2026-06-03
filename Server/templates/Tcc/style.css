@@ -1,0 +1,246 @@
+/* --- CONFIGURAÇÃO DE CORES EXCLUSIVAS DO USUÁRIO --- */
+:root {
+    --cor-fundo: #fffcc9;           /* Amarelo claro/creme */
+    --cor-texto-principal: #000000;    /* Letras estritamente pretas */
+    --cor-secundaria: #4d4141;        /* Tom alaranjado/pêssego */
+    --cor-card-fundo: #ffffff;        /* Branco para contraste nos blocos de texto */
+    
+    --fonte-titulo: 'Rubik Mono One', sans-serif;
+    --fonte-corpo: 'Montserrat', sans-serif;
+}
+
+/* --- RESET E PADRÕES --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto-principal);
+    font-family: var(--fonte-corpo);
+    line-height: 1.6;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* --- HEADER / MENU (Protótipo) --- */
+header {
+    background-color: var(--cor-secundaria);
+    border-bottom: 3px solid var(--cor-texto-principal);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* --- HEADER / MENU (Protótipo) --- */
+.nav-menu a {
+    font-size: 1.1rem;       /* Aumentado de 0.9rem para 1.1rem */
+    font-weight: 700;        /* Deixou o texto ligeiramente mais negrito */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding-bottom: 3px;
+    border-bottom: 2px solid transparent;
+}
+
+/* --- SEÇÃO DE CONSCIENTIZAÇÃO (Seus Textos) --- */
+.conscientizacao h1 {
+    font-family: var(--fonte-titulo);
+    font-size: 2.8rem;       /* Aumentado significativamente de 2rem para 2.8rem */
+    line-height: 1.2;
+    margin-bottom: 35px;
+    text-transform: uppercase;
+    letter-spacing: -1px;    /* Ajuste para títulos grandes não ficarem muito espalhados */
+}
+
+.conscientizacao p {
+    font-size: 1.35rem;      /* Aumentado de 1.1rem para 1.35rem para uma leitura muito mais confortável */
+    margin-bottom: 25px;
+    font-weight: 400;
+    text-align: justify;
+    line-height: 1.7;        /* Aumentado o espaçamento entre linhas para acompanhar o tamanho da letra */
+}
+
+/* --- GRID DE CARDS DAS SEÇÕES DO MENU --- */
+.card h3 {
+    font-size: 1.5rem;       /* Aumentado de 1.25rem para 1.5rem */
+    margin-bottom: 12px;
+    font-weight: 700;
+}
+
+.card p {
+    font-size: 1.1rem;       /* Aumentado de 0.95rem para 1.1rem */
+    line-height: 1.6;
+}
+
+/* --- MARQUEE / FAIXA DE ALERTA --- */
+.alerta-ticker {
+    background-color: var(--cor-texto-principal);
+    color: var(--cor-fundo);
+    padding: 20px 0;         /* Aumentado o preenchimento para acomodar a letra maior */
+    text-align: center;
+    font-family: var(--fonte-titulo);
+    font-size: 1.4rem;       /* Aumentado de 1.1rem para 1.4rem */
+    letter-spacing: 2px;
+}
+
+/* --- FOOTER / RODAPÉ --- */
+footer p {
+    color: #ffffff; 
+    font-weight: 600;
+    font-size: 1.1rem;       /* Aumentado de 0.95rem para 1.1rem */
+}
+
+.btn-github {
+    background-color: var(--cor-fundo);
+    border: 2px solid var(--cor-texto-principal);
+    padding: 8px 16px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    border-radius: 4px;
+}
+
+.btn-github:hover {
+    background-color: var(--cor-texto-principal);
+    color: var(--cor-fundo);
+}
+
+/* --- CONTAINER DO BANNER --- */
+
+
+
+
+/* --- CONTAINER DO BANNER (AGORA DE PONTA A PONTA) --- */
+
+
+.container-banner {
+    width: 100%;
+    max-width: 100%; /* Remove o limite de 1200px */
+    margin: 0;
+    padding: 0;
+}
+
+.banner img {
+    width: 100%;
+    height: auto;
+    display: block;
+    /* Removeu-se as bordas, sombras e arredondamento para colar perfeitamente nas extremidades da tela */
+}
+
+/* --- SEÇÃO DE CONSCIENTIZAÇÃO (Seus Textos) --- */
+.conscientizacao {
+    padding: 60px 0 30px 0;
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.conscientizacao h1 {
+    font-family: var(--fonte-titulo);
+    font-size: 2rem;
+    line-height: 1.3;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+}
+
+.conscientizacao p {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    font-weight: 400;
+    text-align: justify;
+}
+
+/* --- GRID DE CARDS DAS SEÇÕES DO MENU --- */
+.grid-secoes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    padding: 40px 0 80px 0;
+}
+
+.card {
+    background-color: var(--cor-card-fundo);
+    border: 2px solid var(--cor-texto-principal);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 4px 4px 0px var(--cor-texto-principal);
+    transition: all 0.2s;
+}
+
+.card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px var(--cor-texto-principal);
+}
+
+.card-tag {
+    background-color: var(--cor-secundaria);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border: 1px solid var(--cor-texto-principal);
+    display: inline-block;
+    margin-bottom: 15px;
+    border-radius: 3px;
+}
+
+.card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.card p {
+    font-size: 0.95rem;
+}
+
+/* --- MARQUEE / FAIXA DE ALERTA --- */
+.alerta-ticker {
+    background-color: var(--cor-texto-principal);
+    color: var(--cor-fundo);
+    padding: 15px 0;
+    text-align: center;
+    font-family: var(--fonte-titulo);
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+}
+
+/* --- FOOTER / RODAPÉ --- */
+footer {
+    background-color: var(--cor-secundaria);
+    padding: 25px 0;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-top: 3px solid var(--cor-texto-principal);
+}
+
+/* --- RESPONSIVIDADE (Telas menores e celulares) --- */
+@media (max-width: 992px) {
+    .grid-secoes {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none; /* Esconde o menu de texto no mobile para não quebrar */
+    }
+    .conscientizacao h1 {
+        font-size: 1.5rem;
+    }
+}

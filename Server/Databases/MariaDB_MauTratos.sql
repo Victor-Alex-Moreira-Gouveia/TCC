@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS meu_banco_dados;
-USE meu_banco_dados;
+CREATE DATABASE IF NOT EXISTS MausTratosDB;
+USE MausTratosDB;
 
 -- Tabela de usuários
 CREATE TABLE usuarios (

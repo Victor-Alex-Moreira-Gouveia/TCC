@@ -12,7 +12,7 @@ DB_CONFIG = {
     'port': int(os.getenv('DATABASE_PORT', 3306)),
     'user': os.getenv('DATABASE_USER', 'root'),
     'password': os.getenv('DATABASE_PASSWORD', '19032007'),
-    'database': os.getenv('DATABASE_NAME', 'Datausers')
+    'database': os.getenv('DATABASE_NAME', 'MausTratosDB')
 }
 
 MEMCACHED_HOST = os.getenv('MEMCACHED_HOST', 'memcached')
