@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Backend da aplicação (Flask)
   server:
@@ -41,9 +39,9 @@ services:
     ports:
       - "3307:3306"
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - mariadb_data:/var/lib/mysql:z
       # Linha adicionada para carregar o SQL automaticamente:
-      - ./Server/Databases/MariaDB_MauTratos.sql:/docker-entrypoint-initdb.d/MariaDB_MauTratos.sql
+      - ./Server/Databases/MariaDB_MauTratos.sql:/docker-entrypoint-initdb.d/MariaDB_MauTratos.sql:z
     networks:
       - app-network
 
