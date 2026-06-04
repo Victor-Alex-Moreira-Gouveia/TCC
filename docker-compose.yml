@@ -1,51 +1,58 @@
-version: '3.8'
-
 services:
   # Backend da aplicação (Flask)
   server:
     build: ./Server
     container_name: flask_server
     ports:
-      - "8080:8080"
+      - "${APP_PORT}:${APP_PORT}"
     environment:
-      - FLASK_ENV=production
-      - DATABASE_HOST=mariadb
-      - DATABASE_PORT=3306
-      - DATABASE_USER=root
-      - DATABASE_PASSWORD=19032007
-      - DATABASE_NAME=MausTratosDB
-      - MEMCACHED_HOST=memcached
-      - MEMCACHED_PORT=11211
+      - FLASK_ENV=${APP_ENV}
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - CACHE_HOST=${CACHE_HOST}
+      - CACHE_PORT=${CACHE_PORT}
     depends_on:
-      - mariadb
-      - memcached
+      mariadb:
+        condition: service_healthy
+      memcached:
+        condition: service_started
     networks:
       - app-network
+    restart: on-failure:3
 
   # Banco de dados de cache
   memcached:
     image: memcached:alpine
     container_name: cache_memcached
     ports:
-      - "11211:11211"
+      - "${CACHE_PORT}:${CACHE_PORT}"
     networks:
       - app-network
+    restart: unless-stopped
 
   # Banco de dados relacional
   mariadb:
     image: mariadb:latest
     container_name: db_mariadb
     environment:
-      - MARIADB_ROOT_PASSWORD=19032007
-      - MARIADB_DATABASE=MausTratosDB
+      - MARIADB_ROOT_PASSWORD=${DATABASE_PASSWORD}
+      - MARIADB_DATABASE=${DATABASE_NAME}
     ports:
       - "3307:3306"
     volumes:
-      - mariadb_data:/var/lib/mysql
-      # Linha adicionada para carregar o SQL automaticamente:
-      - ./Server/Databases/MariaDB_MauTratos.sql:/docker-entrypoint-initdb.d/MariaDB_MauTratos.sql
+      - mariadb_data:/var/lib/mysql:z
+      - ./Server/Databases/MariaDB_MauTratos.sql:/docker-entrypoint-initdb.d/MariaDB_MauTratos.sql:z
     networks:
       - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   mariadb_data:

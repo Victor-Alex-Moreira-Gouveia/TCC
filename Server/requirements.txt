@@ -2,3 +2,4 @@ flask
 gunicorn
 pymemcache
 mysql-connector-python
+python-dotenv
