@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste CRUD — ONGs</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #111; color: #eee; margin: 0; padding: 1.5rem; }
+    h1 { color: #e07b39; }
+    a { color: #e07b39; }
+    .section { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; }
+    h2 { margin-top: 0; color: #ccc; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+    label { display: block; font-size: 0.85rem; color: #aaa; margin-bottom: 2px; }
+    input { width: 100%; padding: 0.4rem 0.6rem; background: #2a2a2a; border: 1px solid #444; color: #eee; border-radius: 4px; margin-bottom: 0.6rem; }
+    .hint { font-size: 0.75rem; color: #666; margin-bottom: 0.6rem; }
+    button { padding: 0.4rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+    .btn-green { background: #28a745; color: #fff; }
+    .btn-blue  { background: #007bff; color: #fff; }
+    .btn-red   { background: #dc3545; color: #fff; }
+    .btn-gray  { background: #555; color: #fff; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #333; }
+    th { color: #aaa; }
+    pre { background: #0d0d0d; padding: 0.8rem; border-radius: 4px; font-size: 0.78rem; overflow-x: auto; max-height: 200px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <p><a href="/test">← Voltar ao índice</a></p>
+  <h1>🏛️ CRUD — ONGs</h1>
+
+  <div class="section">
+    <h2>➕ Criar ONG (POST)</h2>
+    <label>Nome da Instituição *</label>
+    <input id="c-nome" placeholder="ex: Instituto Animais Unidos">
+    <label>Endereço Físico <small>(ou preencha Site)</small></label>
+    <input id="c-end" placeholder="ex: Rua das Flores, 123 - SP">
+    <label>Site <small>(ou preencha Endereço)</small></label>
+    <input id="c-site" placeholder="ex: https://animaisunidos.org.br">
+    <label>Chave PIX *</label>
+    <input id="c-pix" placeholder="CPF, CNPJ, e-mail, tel ou UUID">
+    <p class="hint">⚠️ Preencha ao menos Endereço Físico OU Site.</p>
+    <button class="btn-green" onclick="createOng()">Criar</button>
+  </div>
+
+  <div class="section">
+    <h2>📋 Listar ONGs (GET)</h2>
+    <button class="btn-blue" onclick="loadOngs()">Carregar / Atualizar</button>
+    <br><br>
+    <table id="tbl-ongs">
+      <thead><tr><th>ID</th><th>Nome</th><th>Endereço</th><th>Site</th><th>PIX</th><th>Ações</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>✏️ Atualizar ONG (PUT)</h2>
+    <label>ID da ONG *</label>
+    <input id="u-id" type="number" placeholder="ex: 1">
+    <label>Novo Nome (opcional)</label>
+    <input id="u-nome" placeholder="Deixe vazio para não alterar">
+    <label>Novo Endereço (opcional)</label>
+    <input id="u-end" placeholder="Deixe vazio para não alterar">
+    <label>Novo Site (opcional)</label>
+    <input id="u-site" placeholder="Deixe vazio para não alterar">
+    <label>Nova Chave PIX (opcional)</label>
+    <input id="u-pix" placeholder="Deixe vazio para não alterar">
+    <button class="btn-blue" onclick="updateOng()">Atualizar</button>
+  </div>
+
+  <div class="section">
+    <h2>📄 Log de Respostas</h2>
+    <button class="btn-gray" onclick="clearLog()">Limpar</button>
+    <pre id="log">— aguardando ações —</pre>
+  </div>
+
+<script>
+  const BASE = '/api/ongs';
+
+  function log(msg) {
+    document.getElementById('log').textContent =
+      (typeof msg === 'string' ? msg : JSON.stringify(msg, null, 2));
+  }
+
+  async function apiFetch(url, opts = {}) {
+    const r = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...opts });
+    if (r.status === 204) return { success: true, message: 'Deletado (204)' };
+    return r.json();
+  }
+
+  async function createOng() {
+    const body = {
+      nome_instituicao: document.getElementById('c-nome').value,
+      endereco_fisico:  document.getElementById('c-end').value  || null,
+      site:             document.getElementById('c-site').value || null,
+      pix_doacao:       document.getElementById('c-pix').value,
+    };
+    const res = await apiFetch(BASE, { method: 'POST', body: JSON.stringify(body) });
+    log(res);
+    if (res.success) loadOngs();
+  }
+
+  async function loadOngs() {
+    const res = await apiFetch(BASE);
+    log(res);
+    const tbody = document.querySelector('#tbl-ongs tbody');
+    tbody.innerHTML = '';
+    (res.data || []).forEach(o => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${o.id}</td>
+        <td>${o.nome_instituicao}</td>
+        <td>${o.endereco_fisico || '—'}</td>
+        <td>${o.site ? `<a href="${o.site}" target="_blank">${o.site}</a>` : '—'}</td>
+        <td>${o.pix_doacao}</td>
+        <td>
+          <button class="btn-blue" onclick="fillUpdate(${o.id},'${e(o.nome_instituicao)}','${e(o.endereco_fisico)}','${e(o.site)}','${e(o.pix_doacao)}')">✏️</button>
+          <button class="btn-red" onclick="deleteOng(${o.id})">🗑️</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function e(s) { return (s || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+  function fillUpdate(id, nome, end, site, pix) {
+    document.getElementById('u-id').value   = id;
+    document.getElementById('u-nome').value = nome;
+    document.getElementById('u-end').value  = end === 'null' ? '' : end;
+    document.getElementById('u-site').value = site === 'null' ? '' : site;
+    document.getElementById('u-pix').value  = pix;
+  }
+
+  async function updateOng() {
+    const id = document.getElementById('u-id').value;
+    if (!id) { log('Informe o ID'); return; }
+    const body = {};
+    const nome = document.getElementById('u-nome').value.trim();
+    const end  = document.getElementById('u-end').value.trim();
+    const site = document.getElementById('u-site').value.trim();
+    const pix  = document.getElementById('u-pix').value.trim();
+    if (nome) body.nome_instituicao = nome;
+    if (end !== '') body.endereco_fisico = end || null;
+    if (site !== '') body.site = site || null;
+    if (pix) body.pix_doacao = pix;
+    const res = await apiFetch(`${BASE}/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+    log(res);
+    if (res.success) loadOngs();
+  }
+
+  async function deleteOng(id) {
+    if (!confirm(`Deletar ONG ID ${id}?`)) return;
+    const res = await apiFetch(`${BASE}/${id}`, { method: 'DELETE' });
+    log(res);
+    loadOngs();
+  }
+
+  function clearLog() { document.getElementById('log').textContent = '— aguardando ações —'; }
+
+  loadOngs();
+</script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste CRUD — Usuários</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #111; color: #eee; margin: 0; padding: 1.5rem; }
+    h1 { color: #e07b39; }
+    a { color: #e07b39; }
+    .section { background: #1e1e1e; border: 1px solid #333; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; }
+    h2 { margin-top: 0; color: #ccc; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+    label { display: block; font-size: 0.85rem; color: #aaa; margin-bottom: 2px; }
+    input { width: 100%; padding: 0.4rem 0.6rem; background: #2a2a2a; border: 1px solid #444; color: #eee; border-radius: 4px; margin-bottom: 0.6rem; }
+    button { padding: 0.4rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+    .btn-green { background: #28a745; color: #fff; }
+    .btn-blue  { background: #007bff; color: #fff; }
+    .btn-red   { background: #dc3545; color: #fff; }
+    .btn-gray  { background: #555; color: #fff; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #333; }
+    th { color: #aaa; }
+    pre { background: #0d0d0d; padding: 0.8rem; border-radius: 4px; font-size: 0.78rem; overflow-x: auto; max-height: 200px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <p><a href="/test">← Voltar ao índice</a></p>
+  <h1>👤 CRUD — Usuários</h1>
+
+  <!-- CREATE -->
+  <div class="section">
+    <h2>➕ Criar Usuário (POST)</h2>
+    <label>Nome de Usuário</label>
+    <input id="c-nome" placeholder="ex: João Silva">
+    <label>E-mail</label>
+    <input id="c-email" placeholder="ex: joao@email.com" type="email">
+    <label>Senha (mín. 8 chars)</label>
+    <input id="c-senha" type="password" placeholder="••••••••">
+    <button class="btn-green" onclick="createUsuario()">Criar</button>
+  </div>
+
+  <!-- READ LIST -->
+  <div class="section">
+    <h2>📋 Listar Usuários (GET)</h2>
+    <button class="btn-blue" onclick="loadUsuarios()">Carregar / Atualizar</button>
+    <br><br>
+    <table id="tbl-usuarios">
+      <thead><tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Ações</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- UPDATE -->
+  <div class="section">
+    <h2>✏️ Atualizar Usuário (PUT)</h2>
+    <label>ID do usuário</label>
+    <input id="u-id" type="number" placeholder="ex: 1">
+    <label>Novo Nome (opcional)</label>
+    <input id="u-nome" placeholder="Deixe vazio para não alterar">
+    <label>Novo E-mail (opcional)</label>
+    <input id="u-email" placeholder="Deixe vazio para não alterar">
+    <label>Nova Senha (opcional)</label>
+    <input id="u-senha" type="password" placeholder="Deixe vazio para não alterar">
+    <button class="btn-blue" onclick="updateUsuario()">Atualizar</button>
+  </div>
+
+  <!-- LOG -->
+  <div class="section">
+    <h2>📄 Log de Respostas</h2>
+    <button class="btn-gray" onclick="clearLog()">Limpar</button>
+    <pre id="log">— aguardando ações —</pre>
+  </div>
+
+<script>
+  const BASE = '/api/usuarios';
+
+  function log(msg) {
+    document.getElementById('log').textContent =
+      (typeof msg === 'string' ? msg : JSON.stringify(msg, null, 2));
+  }
+
+  async function apiFetch(url, opts = {}) {
+    const r = await fetch(url, {
+      headers: { 'Content-Type': 'application/json' },
+      ...opts
+    });
+    if (r.status === 204) return { success: true, message: 'Deletado com sucesso (204)' };
+    return r.json();
+  }
+
+  async function createUsuario() {
+    const body = {
+      nome_usuario: document.getElementById('c-nome').value,
+      email: document.getElementById('c-email').value,
+      senha: document.getElementById('c-senha').value,
+    };
+    const res = await apiFetch(BASE, { method: 'POST', body: JSON.stringify(body) });
+    log(res);
+    if (res.success) loadUsuarios();
+  }
+
+  async function loadUsuarios() {
+    const res = await apiFetch(BASE);
+    log(res);
+    const tbody = document.querySelector('#tbl-usuarios tbody');
+    tbody.innerHTML = '';
+    (res.data || []).forEach(u => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${u.id}</td>
+        <td>${u.nome_usuario}</td>
+        <td>${u.email}</td>
+        <td>
+          <button class="btn-blue" onclick="fillUpdate(${u.id},'${u.nome_usuario}','${u.email}')">✏️</button>
+          <button class="btn-red" onclick="deleteUsuario(${u.id})">🗑️</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function fillUpdate(id, nome, email) {
+    document.getElementById('u-id').value = id;
+    document.getElementById('u-nome').value = nome;
+    document.getElementById('u-email').value = email;
+    document.getElementById('u-senha').value = '';
+  }
+
+  async function updateUsuario() {
+    const id = document.getElementById('u-id').value;
+    if (!id) { log('Informe o ID do usuário'); return; }
+    const body = {};
+    const nome  = document.getElementById('u-nome').value.trim();
+    const email = document.getElementById('u-email').value.trim();
+    const senha = document.getElementById('u-senha').value.trim();
+    if (nome)  body.nome_usuario = nome;
+    if (email) body.email = email;
+    if (senha) body.senha = senha;
+    const res = await apiFetch(`${BASE}/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+    log(res);
+    if (res.success) loadUsuarios();
+  }
+
+  async function deleteUsuario(id) {
+    if (!confirm(`Deletar usuário ID ${id}?`)) return;
+    const res = await apiFetch(`${BASE}/${id}`, { method: 'DELETE' });
+    log(res);
+    loadUsuarios();
+  }
+
+  function clearLog() { document.getElementById('log').textContent = '— aguardando ações —'; }
+
+  loadUsuarios();
+</script>
+</body>
+</html>

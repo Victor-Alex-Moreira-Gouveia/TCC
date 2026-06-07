@@ -2,3 +2,6 @@ flask
 gunicorn
 pymemcache
 mysql-connector-python
+werkzeug
+pytest
+requests
