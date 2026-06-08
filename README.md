@@ -89,7 +89,7 @@
 **Projeto**: TCC - Vozes que não podem gritar
 **Desenvolvedores:**
   - Victor Alex Moreira Gouveia
-  - Taila Fonceca
-  - Sophia
-  - Julia
-  - Marilise
+  - Taila Fonseca de Souza
+  - Sophia Santos Castellini
+  - Julia de Souza Alves
+  - Marilisy Barbosa Oliveira
