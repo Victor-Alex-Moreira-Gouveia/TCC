@@ -7,6 +7,7 @@
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <style>
         body{
@@ -127,33 +128,39 @@
 
             <div class="collapse navbar-collapse justify-content-end" id="menu">
 
-                <ul class="navbar-nav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                
+                <li class="nav-item">
+                    <a class="btn btn-outline-warning" href="/test/noticias">Notícias</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-outline-warning" href="/test/ajuda">Pedir Ajuda</a>
+                </li>
 
+                {% if session.get('role') == 'admin' %}
                     <li class="nav-item">
-                        <a class="btn btn-outline-warning" href="#">
-                            Notícias
+                        <a class="btn btn-dark text-warning fw-bold" href="/test/usuarios">
+                            <i class="bi bi-speedometer2"></i> Painel Admin
+                        </a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a class="btn btn-danger text-white border-0" href="/test/logout">
+                            <i class="bi bi-box-arrow-right"></i> Sair
                         </a>
                     </li>
 
+                {% else %}
                     <li class="nav-item">
-                        <a class="btn btn-outline-warning" href="#">
-                            Ajudar
+                        <span class="text-muted small me-2">Usuário: {{ session.get('usuario_nome') }}</span>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a class="btn btn-warning text-dark fw-bold" href="/test/login">
+                            <i class="bi bi-person-lock"></i> Login
                         </a>
                     </li>
+                {% endif %}
 
-                    <li class="nav-item">
-                        <a class="btn btn-outline-warning" href="#">
-                            ONGs
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="btn btn-outline-warning" href="#">
-                            Leis
-                        </a>
-                    </li>
-
-                </ul>
+            </ul>
 
             </div>
 
@@ -162,9 +169,8 @@
 
     <!-- BANNER -->
     <section class="hero">
-        <img src="./anta taila.png" alt="Combate aos Maus-Tratos aos Animais">
+        <img src="{{ url_for('static', filename='anta_taila.png') }}" alt="Combate aos Maus-Tratos aos Animais">
     </section>
-
     <!-- TEXTO -->
     <section class="conscientizacao">
         <div class="container">
@@ -188,6 +194,7 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='Usuario/script.js') }}"></script>
 
 </body>
 </html>

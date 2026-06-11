@@ -2,13 +2,15 @@ import os
 import re
 import math
 import time
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, session, redirect, url_for
 import mysql.connector
 from mysql.connector import IntegrityError, DatabaseError
 from pymemcache.client.base import Client
 from werkzeug.security import generate_password_hash
+import random
 
 app = Flask(__name__)
+app.secret_key = "admin1234@"
 
 # ---------------------------------------------------------------------------
 # Configurações vindas do ambiente (Docker Compose)
@@ -24,6 +26,15 @@ DB_CONFIG = {
 MEMCACHED_HOST = os.getenv('MEMCACHED_HOST', 'memcached')
 MEMCACHED_PORT = int(os.getenv('MEMCACHED_PORT', 11211))
 
+# Gerador de usuário temporário automático para visitantes anônimos
+@app.before_request
+def garantir_usuario_temporario():
+    # Se a pessoa não está logada (nem como admin, nem como comum)
+    if 'usuario_id' not in session:
+        numero_aleatorio = random.randint(10000, 99999)
+        session['usuario_id'] = f"anon#{numero_aleatorio}"
+        session['usuario_nome'] = "Visitante Anônimo"
+        session['role'] = "guest" # Convidado/Anônimo
 
 # ---------------------------------------------------------------------------
 # Helpers de banco de dados e resposta
@@ -127,29 +138,80 @@ def health_check():
 
 
 # ---------------------------------------------------------------------------
-# Páginas de teste (renderização de templates)
+# Páginas do Sistema (Renderização de templates com travas de segurança)
 # ---------------------------------------------------------------------------
 
+# Página Inicial (Qualquer um pode acessar, até o anônimo/guest)
 @app.route('/test')
 def test_index():
-    return render_template('Tcc/test_index.html')
+    return render_template('Tcc/index.html')
 
+# Painel de Usuários - APENAS ADMIN
 @app.route('/test/usuarios')
 def test_usuarios():
-    return render_template('Tcc/test_usuarios.html')
+    if session.get('role') != 'admin':
+        return redirect('/test/login')
+    return render_template('Tcc/Usuario/usuarios.html')
 
+# Painel de Notícias - APENAS ADMIN
 @app.route('/test/noticias')
 def test_noticias():
-    return render_template('Tcc/test_noticias.html')
+    if session.get('role') != 'admin':
+        return redirect('/test/login')
+    return render_template('Tcc/Noticias/noticias.html')
 
+# Painel de ONGs - APENAS ADMIN
 @app.route('/test/ongs')
 def test_ongs():
-    return render_template('Tcc/test_ongs.html')
+    if session.get('role') != 'admin':
+        return redirect('/test/login')
+    return render_template('Tcc/ONGs/ongs.html')
 
+# Painel de Ajuda - APENAS ADMIN
 @app.route('/test/ajuda')
 def test_ajuda():
-    return render_template('Tcc/test_ajuda.html')
+    if session.get('role') != 'admin':
+        return redirect('/test/login')
+    return render_template('Tcc/Ajuda/ajuda.html')
 
+# Tela de Login (Leva para o template que você criou na pasta Tcc/Login)
+@app.route('/test/login', methods=['GET'])
+def tela_login():
+    # Se o admin já estiver logado e tentar entrar no login, joga ele direto pro index
+    if session.get('role') == 'admin':
+        return redirect('/test')
+    return render_template('Tcc/Login/login.html')
+
+# Rota para deslogar do sistema
+@app.route('/test/logout')
+def logout():
+    session.clear()
+    return redirect('/test/login')
+
+# ===========================================================================
+# Login Usuários
+# ===========================================================================
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    dados = request.get_json()
+    email = dados.get('email')
+    senha = dados.get('senha')
+
+    if not email or not senha:
+        return jsonify({"status": "erro", "mensagem": "Preencha todos os campos."}), 400
+
+    # Verificação simples e direta para o Admin
+    if email == "admin@sistema.com" and senha == "admin123": # Altere para a senha que desejar
+        session['usuario_id'] = "admin"
+        session['usuario_nome'] = "Administrador"
+        session['role'] = "admin" # Define a string que as rotas acima validam
+        return jsonify({"status": "sucesso", "redirect": "/test"}), 200
+
+    # Se não for o admin, você pode futuramente colocar aqui a sua validação 
+    # com o banco de dados para os usuários comuns se o seu TCC exigir.
+    
+    return jsonify({"status": "erro", "mensagem": "E-mail ou senha incorretos."}), 401
 
 # ===========================================================================
 # CRUD — Usuarios
@@ -395,18 +457,37 @@ def create_noticia():
     if errors:
         return error_response("Validação falhou", "VALIDATION_ERROR", errors, 400)
 
+    # -------------------------------------------------------------------------
+    # MODIFICAÇÃO: Captura o autor da sessão (Admin ou Usuário Temporário)
+    # -------------------------------------------------------------------------
+    # Se por algum motivo a sessão falhar, define o padrão como "Visitante Anônimo"
+    autor_nome = session.get('usuario_nome', 'Visitante Anônimo')
+    
+    # Formata o corpo da notícia injetando uma assinatura elegante ao final do texto
+    corpo_com_autor = f"{corpo}\n\n— Publicado por: {autor_nome}"
+    # -------------------------------------------------------------------------
+
     try:
         conn = get_db()
         cur = conn.cursor(dictionary=True)
-        cur.execute("INSERT INTO noticias (titulo, corpo) VALUES (%s, %s)", (titulo, corpo))
+        
+        # Agora inserimos o 'corpo_com_autor' no lugar do corpo puro original
+        cur.execute(
+            "INSERT INTO noticias (titulo, corpo) VALUES (%s, %s)", 
+            (titulo, corpo_com_autor)
+        )
         conn.commit()
+        
         new_id = cur.lastrowid
         cur.execute("SELECT id, titulo, corpo, data_hora FROM noticias WHERE id = %s", (new_id,))
         row = cur.fetchone()
+        
         if row.get('data_hora'):
             row['data_hora'] = row['data_hora'].isoformat()
+            
         cur.close()
         conn.close()
+        
         return success_response(row, "Criado com sucesso", 201)
     except DatabaseError as e:
         return error_response("Erro interno do servidor", "DB_ERROR", str(e), 500)
