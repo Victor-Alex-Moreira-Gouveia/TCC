@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vozes que não podem gritar — Leis e Proteção</title>
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { 
+            background-color: #fffcc9; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+        }
+        .laws-card { 
+            background: white; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(122, 75, 0, 0.08); 
+            padding: 40px; 
+            border: 1px solid rgba(122, 75, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        .text-brand { 
+            color: #7a4b00; 
+            font-weight: bold; 
+        }
+        .back-link {
+            color: #7a4b00;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: #5c3900;
+        }
+        .law-highlight {
+            border-left: 4px solid #7a4b00;
+            padding-left: 15px;
+            margin: 20px 0;
+            background-color: #fcfbf4;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MENU SIMPLES -->
+    <nav class="navbar navbar-expand-lg bg-white shadow-sm mb-5">
+        <div class="container">
+            <a class="navbar-brand text-brand" href="/test">
+                🐾 Vozes que não podem gritar
+            </a>
+            <a href="/test" class="back-link d-flex align-items-center gap-1">
+                <i class="bi bi-arrow-left-short fs-4"></i> Voltar ao Início
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+
+                <!-- CABEÇALHO -->
+                <div class="laws-card text-center py-5">
+                    <h1 class="display-5 text-brand fw-bold mb-3">Legislação e Proteção Animal</h1>
+                    <p class="lead text-muted max-width-auto">Conheça as principais leis brasileiras que protegem os animais domésticos, domesticados ou silvestres de maus-tratos e abusos.</p>
+                    <div class="d-flex justify-content-center gap-2 mt-4">
+                        <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-3 py-2">Maus-tratos é Crime!</span>
+                        <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">Lei Federal nº 9.605/98</span>
+                        <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">Lei Federal nº 14.064/20</span>
+                    </div>
+                </div>
+
+                <!-- CONTEÚDO LEI 1 -->
+                <div class="laws-card">
+                    <h2 class="h3 fw-bold text-brand mb-4 d-flex align-items-center gap-2">
+                        <i class="bi bi-book-half"></i> Lei Sansão (Lei nº 14.064/2020)
+                    </h2>
+                    
+                    <p>A <strong>Lei nº 14.064/2020</strong> alterou a Lei de Crimes Ambientais (nº 9.605/1998) para aumentar as penas cominadas ao crime de maus-tratos praticado contra <strong>cães e gatos</strong>.</p>
+                    
+                    <div class="law-highlight">
+                        <h4 class="h6 fw-bold text-brand mb-1">O que mudou?</h4>
+                        <p class="mb-0 text-secondary">A pena para maus-tratos de cães ou gatos passou a ser de <strong>2 a 5 anos de reclusão</strong>, além de multa e a proibição da guarda do animal.</p>
+                    </div>
+
+                    <p class="text-secondary mt-3">Anteriormente, a punição para maus-tratos contra qualquer animal era de detenção de 3 meses a 1 ano e multa. Com o advento da Lei Sansão, a agressão e o abandono de cães e gatos tornaram-se crimes com severidade de punição muito maior, permitindo a prisão em flagrante do agressor.</p>
+                    
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <h5 class="h6 fw-bold text-brand"><i class="bi bi-exclamation-triangle-fill text-danger"></i> O que é considerado maus-tratos?</h5>
+                                <ul class="small text-secondary ps-3 mb-0">
+                                    <li>Abandonar em vias públicas ou locais isolados.</li>
+                                    <li>Manter preso a correntes curtas ou sem mobilidade.</li>
+                                    <li>Privar de água limpa, alimentação e cuidados médicos.</li>
+                                    <li>Agredir fisicamente ou ferir intencionalmente.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <h5 class="h6 fw-bold text-brand"><i class="bi bi-shield-fill text-success"></i> Como a Lei protege?</h5>
+                                <ul class="small text-secondary ps-3 mb-0">
+                                    <li>Permite autuação e prisão em flagrante pela polícia.</li>
+                                    <li>Penalidade de reclusão cumprida em regime fechado/semiaberto.</li>
+                                    <li>O agressor perde definitivamente o direito de guarda.</li>
+                                    <li>Pena aumentada em até 1/3 se ocorrer morte do animal.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTEÚDO LEI 2 -->
+                <div class="laws-card">
+                    <h2 class="h3 fw-bold text-brand mb-4 d-flex align-items-center gap-2">
+                        <i class="bi bi-file-earmark-text-fill"></i> Lei de Crimes Ambientais (Lei nº 9.605/1998)
+                    </h2>
+                    
+                    <p>A base de toda a proteção jurídica de animais e flora no Brasil provém da <strong>Lei nº 9.605 de 12 de Fevereiro de 1998</strong>. Em seu Artigo 32, a lei tipifica criminalmente os abusos e agressões contra qualquer tipo de fauna.</p>
+                    
+                    <div class="law-highlight">
+                        <h4 class="h6 fw-bold text-brand mb-1">Artigo 32 da Lei nº 9.605/98:</h4>
+                        <p class="mb-0 text-secondary"><em>"Praticar ato de abuso, maus-tratos, ferir ou mutilar animais silvestres, domésticos ou domesticados, nativos ou exóticos."</em></p>
+                    </div>
+
+                    <p class="text-secondary">Essa lei abrange não apenas cães e gatos, mas também cavalos, bois, aves, répteis e animais silvestres. A pena padrão para estes casos (com exceção de cães e gatos que entram na Lei Sansão) é de <strong>detenção de 3 meses a 1 ano, e multa</strong>.</p>
+                </div>
+
+                <!-- COMO DENUNCIAR -->
+                <div class="laws-card">
+                    <h2 class="h3 fw-bold text-brand mb-4 d-flex align-items-center gap-2">
+                        <i class="bi bi-telephone-fill text-success"></i> Como agir e denunciar?
+                    </h2>
+                    
+                    <p class="text-secondary">Se você presenciar maus-tratos a qualquer animal, não se cale. A denúncia é a principal ferramenta para salvar vidas. Você pode agir das seguintes formas:</p>
+                    
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item px-0 py-3 bg-transparent">
+                            <h5 class="h6 fw-bold text-brand mb-1">📞 1. Polícia Militar (190)</h5>
+                            <p class="small text-secondary mb-0">Para ocorrências em andamento ou urgências. A polícia militar tem o dever de comparecer ao local para verificar a denúncia em flagrante.</p>
+                        </div>
+                        <div class="list-group-item px-0 py-3 bg-transparent">
+                            <h5 class="h6 fw-bold text-brand mb-1">💻 2. Delegacia Eletrônica de Proteção Animal (DEPA)</h5>
+                            <p class="small text-secondary mb-0">Disponível em diversos estados (como São Paulo e Minas Gerais), permitindo o registro de boletins de ocorrência pela internet com envio de fotos e vídeos.</p>
+                        </div>
+                        <div class="list-group-item px-0 py-3 bg-transparent">
+                            <h5 class="h6 fw-bold text-brand mb-1">🏛️ 3. Ministério Público</h5>
+                            <p class="small text-secondary mb-0">Pode ser acionado diretamente pelo cidadão para abertura de inquéritos e ações civis públicas contra agressores ou locais com condições insalubres.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <a href="/test/ajuda/pedir" class="btn btn-brand">Denunciar / Pedir Ajuda na Comunidade</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- RODAPÉ -->
+    <footer>
+        <p class="mb-0">
+            © 2026 - Proteja • Respeite • Ame
+        </p>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vozes que não podem gritar — Pedir Ajuda</title>
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { 
+            background-color: #fffcc9; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+        }
+        .help-card { 
+            background: white; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(122, 75, 0, 0.08); 
+            padding: 40px; 
+            border: 1px solid rgba(122, 75, 0, 0.05);
+        }
+        .btn-brand { 
+            background-color: #7a4b00; 
+            color: #fff; 
+            border-radius: 30px; 
+            font-weight: 600; 
+            border: none; 
+            padding: 12px 24px; 
+            transition: all 0.2s ease-in-out; 
+        }
+        .btn-brand:hover { 
+            background-color: #5c3900; 
+            color: #fff; 
+            transform: translateY(-1px);
+        }
+        .text-brand { 
+            color: #7a4b00; 
+            font-weight: bold; 
+        }
+        .form-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6c757d;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .form-control {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            background-color: #f8f9fa;
+        }
+        .form-control:focus {
+            background-color: #fff;
+            border-color: #7a4b00;
+            box-shadow: 0 0 0 0.25rem rgba(122, 75, 0, 0.15);
+        }
+        .back-link {
+            color: #7a4b00;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: #5c3900;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MENU SIMPLES -->
+    <nav class="navbar navbar-expand-lg bg-white shadow-sm mb-5">
+        <div class="container">
+            <a class="navbar-brand text-brand" href="/test">
+                🐾 Vozes que não podem gritar
+            </a>
+            <a href="/test" class="back-link d-flex align-items-center gap-1">
+                <i class="bi bi-arrow-left-short fs-4"></i> Voltar ao Início
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                
+                <div class="help-card">
+                    <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                        <div class="p-3 bg-light text-brand fs-3 rounded-4 d-inline-flex">
+                            <i class="bi bi-megaphone-fill"></i>
+                        </div>
+                        <div>
+                            <h2 class="h3 fw-bold text-brand m-0">Pedir Ajuda / Denúncia</h2>
+                            <p class="text-muted small mb-0">Registre um caso de maus-tratos ou solicite apoio comunitário para resgates.</p>
+                        </div>
+                    </div>
+
+                    <!-- Identificador de Usuário -->
+                    <div class="alert alert-info py-2 px-3 mb-4 d-flex align-items-center justify-content-between" style="border-radius: 8px;">
+                        <span class="small text-secondary-emphasis">
+                            <i class="bi bi-shield-fill-check"></i> Você está enviando como: 
+                            <strong class="text-brand">
+                                {% if session.get('role') == 'guest' %}
+                                    Anônimo (${{ session.get('usuario_id') }})
+                                {% else %}
+                                    ${{ session.get('usuario_nome') }}
+                                {% endif %}
+                            </strong>
+                        </span>
+                        <span class="badge bg-light text-secondary small border">
+                            {% if session.get('role') == 'guest' %}Visitante{% else %}Cadastrado{% endif %}
+                        </span>
+                    </div>
+
+                    <div id="alert-message" class="alert d-none" role="alert"></div>
+
+                    <form id="formAjuda">
+                        <div class="mb-3">
+                            <label class="form-label">Título do Caso <span class="text-danger">*</span></label>
+                            <input type="text" id="titulo" class="form-control" required placeholder="Ex: Cão abandonado com ferimentos na Rua Flores">
+                            <div class="form-text">Resuma o caso ou o pedido de ajuda em poucas palavras.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Descrição / Relato do Caso <span class="text-danger">*</span></label>
+                            <textarea id="corpo" class="form-control" rows="5" required placeholder="Descreva os detalhes da ocorrência, endereço aproximado, condições do animal, etc."></textarea>
+                            <div class="form-text">Forneça o máximo de informações possível para facilitar o resgate ou averiguação.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Chave PIX de Apoio <span class="text-danger">*</span></label>
+                            <input type="text" id="pix" class="form-control" required placeholder="CNPJ, E-mail, CPF, Telefone ou Chave Aleatória">
+                            <div class="form-text">Insira uma chave PIX para que a comunidade possa apoiar financeiramente com custos de ração ou veterinário.</div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-3">
+                            <a href="/test" class="btn btn-light rounded-pill px-4 fw-semibold text-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-brand">Enviar Solicitação</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- RODAPÉ -->
+    <footer class="mt-auto">
+        <p class="mb-0">
+            © 2026 - Proteja • Respeite • Ame
+        </p>
+    </footer>
+
+    <script>
+        document.getElementById('formAjuda').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const alertMsg = document.getElementById('alert-message');
+            alertMsg.classList.add('d-none');
+            alertMsg.classList.remove('alert-danger', 'alert-success');
+
+            const titulo = document.getElementById('titulo').value.trim();
+            const corpo = document.getElementById('corpo').value.trim();
+            const pix_doacao = document.getElementById('pix').value.trim();
+
+            try {
+                const response = await fetch('/api/ajuda', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ titulo, corpo, pix_doacao })
+                });
+
+                const dados = await response.json();
+
+                if (response.ok) {
+                    alertMsg.textContent = "Pedido de ajuda / denúncia enviado com sucesso! A comunidade foi notificada.";
+                    alertMsg.classList.add('alert-success');
+                    alertMsg.classList.remove('d-none');
+                    document.getElementById('formAjuda').reset();
+                    
+                    // Rola a página até o topo do card para ver o alerta de sucesso
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    let msg = dados.error || "Erro ao enviar pedido de ajuda.";
+                    if (dados.details) {
+                        const errors = Object.values(dados.details).join(' | ');
+                        msg += ` (${errors})`;
+                    }
+                    alertMsg.textContent = msg;
+                    alertMsg.classList.add('alert-danger');
+                    alertMsg.classList.remove('d-none');
+                }
+            } catch (error) {
+                alertMsg.textContent = "Erro de conexão com o servidor.";
+                alertMsg.classList.add('alert-danger');
+                alertMsg.classList.remove('d-none');
+            }
+        });
+    </script>
+</body>
+</html>

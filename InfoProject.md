@@ -335,3 +335,40 @@ python main.py
 gunicorn -w 4 -b 0.0.0.0:8080 main:app
 ```
 
+---
+
+## 🔄 Novos Fluxos do Usuário e Sessões (Implementados)
+
+### 1️⃣ Cadastro de Usuário Comum
+- **Rota Frontend**: `/test/cadastro` (renderiza `templates/Tcc/Login/cadastro.html`)
+- **Funcionamento**: Formulário estilizado com Bootstrap 5 que coleta: Nome de Usuário, E-mail e Senha. Faz disparo via Fetch (POST) para a API `/api/usuarios`.
+- **Segurança**: A senha é criptografada no backend usando o algoritmo de hashing seguro `pbkdf2:sha256` da biblioteca `werkzeug.security` antes de ser salva na tabela `usuarios`.
+
+### 2️⃣ Login Híbrido (Banco de Dados / Admin)
+- **Rota Frontend**: `/test/login` (renderiza `templates/Tcc/Login/login.html`)
+- **API Backend**: `/api/login` (POST)
+- **Funcionamento**: 
+  - Se o e-mail for `admin@sistema.com` e a senha coincidir com a chave estática do administrador, o acesso é concedido com a role `admin`.
+  - Se for qualquer outro e-mail, é realizada uma consulta na tabela `usuarios` do MariaDB buscando por e-mail. A senha digitada é validada com a senha armazenada (hash) usando a função `check_password_hash`.
+  - Em caso de sucesso, as variáveis de sessão `session['usuario_id']`, `session['usuario_nome']` e `session['role'] = 'user'` são definidas, redirecionando o usuário comum ao Index público.
+
+### 3️⃣ Sistema de Sessão Convidado (Guest)
+- **Implementação**: Controlado globalmente no backend através de um interceptor `@app.before_request`.
+- **Funcionamento**: Sempre que um visitante não autenticado acessa o site, o sistema gera automaticamente um identificador temporário (ex: `anon#12345` a partir de um valor randômico entre 10000 e 99999) e define `session['role'] = 'guest'` e `session['usuario_nome'] = 'Visitante Anônimo'`.
+
+### 4️⃣ Visualização Pública no Index e script `home.js`
+- **Rota Frontend**: `/test` (renderiza `templates/Tcc/index.html`)
+- **Funcionamento**: O arquivo `index.html` inclui dois containers dinâmicos para notícias e ONGs parceiras. Ao carregar a página (`DOMContentLoaded`), o script modular `static/Publico/home.js` faz chamadas assíncronas (Fetch GET) para `/api/noticias` e `/api/ongs`.
+- **Integração com PIX**: Cada card de ONG rende uma interface com chave PIX doadora e botão de "Copiar" que salva o valor na área de transferência com retorno visual animado.
+
+### 5️⃣ Pedido de Ajuda e Denúncia
+- **Rota Frontend**: `/test/ajuda/pedir` (renderiza `templates/Tcc/Ajuda/pedir_ajuda.html`)
+- **API Backend**: `/api/ajuda` (POST)
+- **Funcionamento**: Permite registrar denúncias (Título, Corpo do relato e PIX de apoio).
+- **Atribuição do Autor**: O backend lê a sessão ativa. Se for um visitante anônimo (`role == 'guest'`), grava o ID temporário `anon#XXXXX` na coluna `autor`. Se o usuário estiver logado (`role == 'user'`), grava o seu nome real.
+
+### 6️⃣ Página de Leis de Maus-Tratos (Estática)
+- **Rota Frontend**: `/test/leis` (renderiza `templates/Tcc/Leis/leis.html`)
+- **Funcionamento**: Conteúdo informativo sobre a **Lei Sansão (Lei Federal nº 14.064/20)**, a **Lei de Crimes Ambientais (Lei nº 9.605/98)**, e canais de denúncia públicos (190 PM, DEPA, etc.).
+
+

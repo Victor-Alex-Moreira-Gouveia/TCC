@@ -6,7 +6,7 @@ from flask import Flask, jsonify, request, render_template, session, redirect, u
 import mysql.connector
 from mysql.connector import IntegrityError, DatabaseError
 from pymemcache.client.base import Client
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 import random
 
 app = Flask(__name__)
@@ -43,6 +43,25 @@ def garantir_usuario_temporario():
 def get_db():
     """Retorna uma nova conexão com o MariaDB."""
     return mysql.connector.connect(**DB_CONFIG)
+
+
+def init_db_schema():
+    """Garante a estrutura correta do banco de dados (coluna autor em ajuda)."""
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("SHOW COLUMNS FROM ajuda LIKE 'autor'")
+        if not cur.fetchone():
+            cur.execute("ALTER TABLE ajuda ADD COLUMN autor VARCHAR(150) NOT NULL DEFAULT 'anon'")
+            conn.commit()
+            print("Migração automática: Coluna 'autor' inserida na tabela 'ajuda'.")
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"Alerta de migração (inicialização rápida): {e}")
+
+# Executa migração de startup
+init_db_schema()
 
 
 def success_response(data, message="Operação realizada com sucesso", status=200, pagination=None):
@@ -174,13 +193,31 @@ def test_ajuda():
         return redirect('/test/login')
     return render_template('Tcc/Ajuda/ajuda.html')
 
+# Solicitação Pública de Ajuda (Qualquer um pode acessar)
+@app.route('/test/ajuda/pedir', methods=['GET'])
+def public_pedir_ajuda():
+    return render_template('Tcc/Ajuda/pedir_ajuda.html')
+
+# Página Estática de Leis (Qualquer um pode acessar)
+@app.route('/test/leis', methods=['GET'])
+def pagina_leis():
+    return render_template('Tcc/Leis/leis.html')
+
 # Tela de Login (Leva para o template que você criou na pasta Tcc/Login)
 @app.route('/test/login', methods=['GET'])
 def tela_login():
-    # Se o admin já estiver logado e tentar entrar no login, joga ele direto pro index
-    if session.get('role') == 'admin':
+    # Se o usuário já estiver logado e tentar entrar no login, joga direto pro index
+    if session.get('role') in ('admin', 'user'):
         return redirect('/test')
     return render_template('Tcc/Login/login.html')
+
+# Tela de Cadastro
+@app.route('/test/cadastro', methods=['GET'])
+def tela_cadastro():
+    # Se o usuário já estiver logado e tentar cadastrar, joga direto pro index
+    if session.get('role') in ('admin', 'user'):
+        return redirect('/test')
+    return render_template('Tcc/Login/cadastro.html')
 
 # Rota para deslogar do sistema
 @app.route('/test/logout')
@@ -202,14 +239,28 @@ def api_login():
         return jsonify({"status": "erro", "mensagem": "Preencha todos os campos."}), 400
 
     # Verificação simples e direta para o Admin
-    if email == "admin@sistema.com" and senha == "admin123": # Altere para a senha que desejar
+    if email == "admin@sistema.com" and senha == "admin123":
         session['usuario_id'] = "admin"
         session['usuario_nome'] = "Administrador"
-        session['role'] = "admin" # Define a string que as rotas acima validam
+        session['role'] = "admin"
         return jsonify({"status": "sucesso", "redirect": "/test"}), 200
 
-    # Se não for o admin, você pode futuramente colocar aqui a sua validação 
-    # com o banco de dados para os usuários comuns se o seu TCC exigir.
+    # Busca do usuário comum no banco de dados
+    try:
+        conn = get_db()
+        cur = conn.cursor(dictionary=True)
+        cur.execute("SELECT id, nome_usuario, email, senha FROM usuarios WHERE email = %s", (email,))
+        user = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        if user and check_password_hash(user['senha'], senha):
+            session['usuario_id'] = user['id']
+            session['usuario_nome'] = user['nome_usuario']
+            session['role'] = "user"
+            return jsonify({"status": "sucesso", "redirect": "/test"}), 200
+    except Exception as e:
+        return jsonify({"status": "erro", "mensagem": f"Erro interno do servidor: {str(e)}"}), 500
     
     return jsonify({"status": "erro", "mensagem": "E-mail ou senha incorretos."}), 401
 
@@ -791,7 +842,7 @@ def get_ajuda_list():
         cur.execute("SELECT COUNT(*) AS total FROM ajuda")
         total = cur.fetchone()['total']
         cur.execute(
-            "SELECT id, titulo, corpo, pix_doacao FROM ajuda LIMIT %s OFFSET %s",
+            "SELECT id, titulo, corpo, pix_doacao, autor FROM ajuda LIMIT %s OFFSET %s",
             (limit, offset)
         )
         rows = cur.fetchall()
@@ -807,7 +858,7 @@ def get_ajuda(aid):
     try:
         conn = get_db()
         cur = conn.cursor(dictionary=True)
-        cur.execute("SELECT id, titulo, corpo, pix_doacao FROM ajuda WHERE id = %s", (aid,))
+        cur.execute("SELECT id, titulo, corpo, pix_doacao, autor FROM ajuda WHERE id = %s", (aid,))
         row = cur.fetchone()
         cur.close()
         conn.close()
@@ -841,16 +892,22 @@ def create_ajuda():
     if errors:
         return error_response("Validação falhou", "VALIDATION_ERROR", errors, 400)
 
+    # Lógica de definição do autor com base na sessão
+    if session.get('role') == 'guest':
+        autor_nome = session.get('usuario_id', 'anon')
+    else:
+        autor_nome = session.get('usuario_nome', 'Visitante Anônimo')
+
     try:
         conn = get_db()
         cur = conn.cursor(dictionary=True)
         cur.execute(
-            "INSERT INTO ajuda (titulo, corpo, pix_doacao) VALUES (%s, %s, %s)",
-            (titulo, corpo, pix)
+            "INSERT INTO ajuda (titulo, corpo, pix_doacao, autor) VALUES (%s, %s, %s, %s)",
+            (titulo, corpo, pix, autor_nome)
         )
         conn.commit()
         new_id = cur.lastrowid
-        cur.execute("SELECT id, titulo, corpo, pix_doacao FROM ajuda WHERE id = %s", (new_id,))
+        cur.execute("SELECT id, titulo, corpo, pix_doacao, autor FROM ajuda WHERE id = %s", (new_id,))
         row = cur.fetchone()
         cur.close()
         conn.close()
@@ -906,6 +963,14 @@ def update_ajuda(aid):
             updates.append("pix_doacao = %s")
             params.append(pix)
 
+    if 'autor' in data:
+        autor = (data['autor'] or '').strip()
+        if not autor:
+            errors['autor'] = 'Não pode ser vazio'
+        else:
+            updates.append("autor = %s")
+            params.append(autor)
+
     if errors:
         cur.close()
         conn.close()
@@ -920,7 +985,7 @@ def update_ajuda(aid):
         params.append(aid)
         cur.execute(f"UPDATE ajuda SET {', '.join(updates)} WHERE id = %s", params)
         conn.commit()
-        cur.execute("SELECT id, titulo, corpo, pix_doacao FROM ajuda WHERE id = %s", (aid,))
+        cur.execute("SELECT id, titulo, corpo, pix_doacao, autor FROM ajuda WHERE id = %s", (aid,))
         updated = cur.fetchone()
         cur.close()
         conn.close()
