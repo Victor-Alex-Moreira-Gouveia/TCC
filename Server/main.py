@@ -8,23 +8,10 @@ from mysql.connector import IntegrityError, DatabaseError
 from pymemcache.client.base import Client
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
+from config.config import *
 
 app = Flask(__name__)
 app.secret_key = "admin1234@"
-
-# ---------------------------------------------------------------------------
-# Configurações vindas do ambiente (Docker Compose)
-# ---------------------------------------------------------------------------
-DB_CONFIG = {
-    'host': os.getenv('DATABASE_HOST', 'mariadb'),
-    'port': int(os.getenv('DATABASE_PORT', 3306)),
-    'user': os.getenv('DATABASE_USER', 'root'),
-    'password': os.getenv('DATABASE_PASSWORD', '19032007'),
-    'database': os.getenv('DATABASE_NAME', 'MausTratosDB')
-}
-
-MEMCACHED_HOST = os.getenv('MEMCACHED_HOST', 'memcached')
-MEMCACHED_PORT = int(os.getenv('MEMCACHED_PORT', 11211))
 
 # Gerador de usuário temporário automático para visitantes anônimos
 @app.before_request
@@ -39,26 +26,6 @@ def garantir_usuario_temporario():
 # ---------------------------------------------------------------------------
 # Helpers de banco de dados e resposta
 # ---------------------------------------------------------------------------
-
-def get_db():
-    """Retorna uma nova conexão com o MariaDB."""
-    return mysql.connector.connect(**DB_CONFIG)
-
-
-def init_db_schema():
-    """Garante a estrutura correta do banco de dados (coluna autor em ajuda)."""
-    try:
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SHOW COLUMNS FROM ajuda LIKE 'autor'")
-        if not cur.fetchone():
-            cur.execute("ALTER TABLE ajuda ADD COLUMN autor VARCHAR(150) NOT NULL DEFAULT 'anon'")
-            conn.commit()
-            print("Migração automática: Coluna 'autor' inserida na tabela 'ajuda'.")
-        cur.close()
-        conn.close()
-    except Exception as e:
-        print(f"Alerta de migração (inicialização rápida): {e}")
 
 # Executa migração de startup
 init_db_schema()
@@ -122,17 +89,6 @@ def validate_pix(pix: str):
 # ---------------------------------------------------------------------------
 # Health check
 # ---------------------------------------------------------------------------
-
-def test_mariadb():
-    try:
-        conn = get_db()
-        if conn.is_connected():
-            conn.close()
-            return True, "Conexão com MariaDB: OK"
-    except Exception as e:
-        return False, f"Erro MariaDB: {str(e)}"
-
-
 def test_memcached():
     try:
         client = Client((MEMCACHED_HOST, MEMCACHED_PORT))
@@ -282,6 +238,8 @@ def get_usuarios():
             (limit, offset)
         )
         rows = cur.fetchall()
+        # Fim de reptição
+        
         cur.close()
         conn.close()
         return success_response(rows, pagination=build_pagination(total, page, limit))
@@ -461,6 +419,7 @@ def get_noticias():
             (limit, offset)
         )
         rows = cur.fetchall()
+        
         # Serializar datetime para string
         for r in rows:
             if r.get('data_hora'):
@@ -642,6 +601,8 @@ def get_ongs():
             (limit, offset)
         )
         rows = cur.fetchall()
+        
+        
         cur.close()
         conn.close()
         return success_response(rows, pagination=build_pagination(total, page, limit))

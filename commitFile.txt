@@ -1,0 +1,7 @@
+Refatoração: Reeorganização de estrura de diretórios
+
+- Adição do arquivo .ENV
+- Centralização das variaveis de ambiente em um único arquivo .env na raiz do projeto
+- Tentativa de implementação de arquitetura MVP
+- Adição de arquivos de script para auxílio no processo de inicialização, reinicialização, e interrupção do projeto atravez do docker-compose
+- Adição do arquivo em /config/config.py, para centralização de operações relacionado ao banco de dados
