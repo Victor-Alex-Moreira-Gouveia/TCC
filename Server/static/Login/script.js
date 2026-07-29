@@ -26,3 +26,18 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
         alertErro.classList.remove('d-none');
     }
 });
+
+document.getElementById('toggleSenha').addEventListener('click', function () {
+    const inputSenha = document.getElementById('senha');
+    const iconeOlho = document.getElementById('iconeOlho');
+
+    if (inputSenha.type === 'password') {
+        inputSenha.type = 'text';
+        iconeOlho.classList.remove('bi-eye-slash');
+        iconeOlho.classList.add('bi-eye'); // Mostra o olho aberto (senha visível)
+    } else {
+        inputSenha.type = 'password';
+        iconeOlho.classList.remove('bi-eye');
+        iconeOlho.classList.add('bi-eye-slash'); // Mostra o olho cortado (senha oculta)
+    }
+});
