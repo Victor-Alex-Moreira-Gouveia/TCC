@@ -5,4 +5,3 @@ mysql-connector-python
 werkzeug
 pytest
 requests
-python-dotenv

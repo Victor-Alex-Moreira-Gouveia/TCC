@@ -4,7 +4,7 @@ services:
     build: ./Server
     container_name: flask_server
     ports:
-      - "8080:8080"
+      - "${APP_PORT}:${APP_PORT}"
     environment:
       FLASK_ENV: "production"
       DATABASE_HOST: "${DATABASE_HOST}"
@@ -17,19 +17,23 @@ services:
     env_file:
       - .env
     depends_on:
-      - mariadb
-      - memcached
+      mariadb:
+        condition: service_healthy
+      memcached:
+        condition: service_started
     networks:
       - app-network
+    restart: on-failure:3
 
   # Banco de dados de cache
   memcached:
     image: memcached:alpine
     container_name: cache_memcached
     ports:
-      - "11211:11211"
+      - "${CACHE_PORT}:${CACHE_PORT}"
     networks:
       - app-network
+    restart: unless-stopped
 
 # Banco de dados relacional
   mariadb:
@@ -47,6 +51,12 @@ services:
       - ./mariadb_data:/var/lib/mysql:z
     networks:
       - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   # Explicitamos que o mariadb_data usa o driver padrão (local) do Docker
