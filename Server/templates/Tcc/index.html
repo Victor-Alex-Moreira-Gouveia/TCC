@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Combate aos Maus-Tratos aos Animais</title>
+    <title>Vozes que não podem gritar</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
+
 
     <style>
         body{
@@ -134,10 +136,10 @@
                     <a class="btn btn-outline-brand" href="/test#secao-noticias">Notícias</a>
                 </li>
                 <li class="nav-item">
-                    <a class="btn btn-outline-brand" href="/test/ajuda/pedir">Pedir Ajuda</a>
+                    <a class="btn btn-outline-brand" href="/test/ajuda/pedir">Denúnciar</a>
                 </li>
                 <li class="nav-item">
-                    <a class="btn btn-outline-brand" href="/test/leis">Leis e Direitos</a>
+                    <a class="btn btn-outline-brand" href="/test/leis">Informações de Denúncia</a>
                 </li>
 
                 {% if session.get('role') == 'admin' %}
@@ -216,7 +218,7 @@
                 </div>
 
                 <!-- Seção de ONGs -->
-                <div class="col-lg-5">
+                <!-- <div class="col-lg-5">
                     <div class="d-flex align-items-center gap-2 mb-4 border-bottom border-2 border-warning border-opacity-25 pb-2">
                         <h2 class="h3 fw-bold text-brand m-0">🤝 ONGs Parceiras</h2>
                     </div>
@@ -226,7 +228,7 @@
                             <p class="mt-2 mb-0">Carregando ONGs...</p>
                         </div>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
     </section>
