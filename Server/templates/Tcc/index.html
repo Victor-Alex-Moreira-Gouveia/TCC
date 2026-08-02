@@ -117,7 +117,7 @@
     <nav class="navbar navbar-expand-lg">
         <div class="container">
 
-            <a class="navbar-brand text-brand" href="/test">
+            <a class="navbar-brand text-brand" href="/>
                 🐾 Vozes que não podem gritar
             </a>
 
@@ -133,23 +133,23 @@
             <ul class="navbar-nav ms-auto align-items-center">
                 
                 <li class="nav-item">
-                    <a class="btn btn-outline-brand" href="/test#secao-noticias">Notícias</a>
+                    <a class="btn btn-outline-brand" href="/#secao-noticias">Notícias</a>
                 </li>
                 <li class="nav-item">
-                    <a class="btn btn-outline-brand" href="/test/ajuda/pedir">Denúnciar</a>
+                    <a class="btn btn-outline-brand" href="/ajuda/pedir">Denúnciar</a>
                 </li>
                 <li class="nav-item">
-                    <a class="btn btn-outline-brand" href="/test/leis">Informações de Denúncia</a>
+                    <a class="btn btn-outline-brand" href="/leis">Informações de Denúncia</a>
                 </li>
 
                 {% if session.get('role') == 'admin' %}
                     <li class="nav-item">
-                        <a class="btn btn-dark text-warning fw-bold rounded-pill px-3" href="/test/usuarios">
+                        <a class="btn btn-dark text-warning fw-bold rounded-pill px-3" href="/usuarios">
                             <i class="bi bi-speedometer2"></i> Painel Admin
                         </a>
                     </li>
                     <li class="nav-item ms-2">
-                        <a class="btn btn-danger text-white border-0 rounded-pill px-3" href="/test/logout">
+                        <a class="btn btn-danger text-white border-0 rounded-pill px-3" href="/logout">
                             <i class="bi bi-box-arrow-right"></i> Sair
                         </a>
                     </li>
@@ -158,7 +158,7 @@
                         <span class="text-secondary small me-2"><i class="bi bi-person-fill text-brand"></i> {{ session.get('usuario_nome') }}</span>
                     </li>
                     <li class="nav-item ms-2">
-                        <a class="btn btn-danger text-white border-0 rounded-pill px-3" href="/test/logout">
+                        <a class="btn btn-danger text-white border-0 rounded-pill px-3" href="/logout">
                             <i class="bi bi-box-arrow-right"></i> Sair
                         </a>
                     </li>
@@ -167,7 +167,7 @@
                         <span class="text-muted small me-2"><i class="bi bi-person-fill-dash"></i> Visitante</span>
                     </li>
                     <li class="nav-item ms-2">
-                        <a class="btn btn-brand text-white fw-bold" href="/test/login">
+                        <a class="btn btn-brand text-white fw-bold" href="/login">
                             <i class="bi bi-person-lock"></i> Login
                         </a>
                     </li>

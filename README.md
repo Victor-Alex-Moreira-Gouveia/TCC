@@ -5,7 +5,7 @@
 ### Sobre o Sistema
 - **Nome do Projeto**: Vozes que não podem gritar
 - **Objetivo**: Plataforma web de denúncia, documentação e combate a maus-tratos com integração com ONGs e sistema de contribuições
-- **Tipo**: Aplicação web com backend robusto e banco de dados relacional
+- **Tipo**: Aplicação web com backend robusto, banco de dados relacional e cache para melhor desempenho
 
 ## 🛠️ Stack Tecnológico
 
@@ -13,12 +13,12 @@
 |-----------|-----------|
 | **Linguagem** | Python 3.x |
 | **Framework Backend** | Flask |
-| **Banco de Dados** | MariaDB / MySQL |
+| **Servidor de Aplicação** | Gunicorn |
+| **Banco de Dados** | MariaDB |
 | **Cache** | Memcached |
 | **Containerização** | Docker + Docker Compose |
-| **Server Production** | Gunicorn |
-| **HTTP Client** | mysql-connector-python, pymemcache |
-
+| **Conexão com Banco** | mysql-connector-python |
+| **Conexão com Cache** | pymemcache |
 
 ---
 
@@ -34,54 +34,69 @@
 │   ├── MariaDB_MauTratos.sql       
 │   └── MySQL_MauTratos.sql         
 ├── templates/Tcc/
-│   ├── Index.html                  
-│   ├── style.css                   
-│   ├── test_index.html             
-│   ├── test_usuarios.html          
-│   ├── test_noticias.html          
-│   ├── test_ongs.html              
-│   └── test_ajuda.html             
+│   ├── Ajuda/
+│   ├── Login/
+│   ├── Leis/
+│   ├── Noticias/
+│   ├── ONGs/
+│   ├── Usuario/
+│   └── index.html
 └── test_crud.py                     
 ```
 
 ---
 
-### Tratamento de Erros
+## ▶️ Como Executar com Docker
 
-| Situação | HTTP Code | Message |
-|----------|-----------|---------|
-| Validação falhou | 400 | "Validação falhou: [detalhes]" |
-| Recurso não encontrado | 404 | "Recurso não encontrado" |
-| Email já existe | 409 | "Email já registrado no sistema" |
-| Erro no banco de dados | 500 | "Erro interno do servidor" |
-| Sucesso ao criar | 201 | "Criado com sucesso" |
-| Sucesso ao deletar | 204 | (sem body) |
+1. A partir da raiz do projeto, execute o comando abaixo:
 
----
+```bash
+docker compose up --build
+```
 
-## 🎓 Requisitos Educacionais para o TCC
+2. Após a inicialização, a aplicação estará disponível em:
 
-- ✅ Modelagem correta de banco de dados relacional
-- ✅ Implementação de API RESTful seguindo boas práticas
-- ✅ Validação e tratamento robusto de erros
-- ✅ Testes automatizados e qualidade de código
-- ✅ Documentação clara de endpoints e funcionalidades
-- ✅ Containerização com Docker para reprodutibilidade
+- http://localhost:8080/
+- http://localhost:8080/health
+
+3. Para encerrar os containers, utilize:
+
+```bash
+docker compose down
+```
 
 ---
 
-## ✅ Checklist de Conclusão
+## 🧩 Funcionalidades e Serviços
 
-- [x] Todas 4 rotas CRUD totalmente implementadas
-- [x] Validações em todos os campos críticos
-- [x] Tratamento de erros com HTTP codes apropriados
-- [x] Páginas HTML de teste funcionais
-- [ ] Frontend das páginas web
-- [x] Testes automatizados passando 100%
-- [x] Código bem documentado com docstrings
-- [x] Sem warnings ao executar testes
-- [x] Funciona perfeitamente com Docker
-- [ ] Pronto para apresentação final do TCC
+- Backend Flask rodando na porta 8080
+- Banco de dados MariaDB disponível na porta 3307
+- Cache Memcached disponível na porta 11211
+- O banco é inicializado automaticamente com o script SQL presente em `Server/Databases/MariaDB_MauTratos.sql`
+- O backend só sobe após o banco e o cache estarem prontos para uso
+- O endpoint `/health` verifica a conexão com MariaDB e Memcached
+
+---
+
+## ⚙️ Configuração do Ambiente
+
+O Docker Compose já disponibiliza as variáveis de ambiente necessárias para a aplicação, incluindo:
+
+- `DATABASE_HOST=mariadb`
+- `DATABASE_PORT=3306`
+- `DATABASE_USER=root`
+- `DATABASE_PASSWORD=19032007`
+- `DATABASE_NAME=MausTratosDB`
+- `MEMCACHED_HOST=memcached`
+- `MEMCACHED_PORT=11211`
+
+---
+
+## 📌 Observações
+
+- O projeto contém templates HTML para as páginas de teste e navegação do sistema
+- A estrutura de containerização foi ajustada para garantir uma inicialização mais estável e previsível
+- O README foi reorganizado para refletir melhor o estado atual do projeto
 
 ---
 
