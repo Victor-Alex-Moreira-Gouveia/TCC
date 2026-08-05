@@ -2,15 +2,22 @@
    VARIÁVEIS E CONFIGURAÇÕES GLOBAIS
    ========================================================================== */
 :root {
-    --bg-primary: #fffcc9;
+    --bg-primary: #5C4033;
     --brand-color: #7a4b00;
-    --brand-hover: #5c3900;
+    --brand-btn: #A67C52;
+    --brand-hover: #8B5E3C;
     --card-bg: #ffffff;
 }
 
 body {
     background-color: var(--bg-primary);
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; /* Unificado usando a fonte do ajuda.html que é mais moderna */
+    /* As patas agora usam fill='%233D2314' (Marrom Chocolate) com opacidade ajustada */
+    background-image:
+        radial-gradient(circle at top left, rgba(255, 255, 255, .05), transparent 35%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130' viewBox='0 0 120 120'%3E%3Cg fill='%233D2314' fill-opacity='0.35'%3E%3Cellipse cx='60' cy='72' rx='12' ry='10'/%3E%3Ccircle cx='49' cy='58' r='5'/%3E%3Ccircle cx='59' cy='51' r='5'/%3E%3Ccircle cx='71' cy='58' r='5'/%3E%3Ccircle cx='61' cy='63' r='5'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 130px;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     color: #333;
 }
 
@@ -23,31 +30,34 @@ body {
    BOTÕES COMPARTILHADOS
    ========================================================================== */
 .btn-brand {
-    background-color: var(--brand-color);
+    background-color: var(--brand-btn);
     color: #fff;
     border-radius: 30px;
-    padding: 8px 24px;
+    padding: 10px 24px;
     font-weight: 600;
     border: none;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.3s ease-in-out;
 }
+
 .btn-brand:hover {
     background-color: var(--brand-hover);
     color: #fff;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .25);
 }
 
 .btn-outline-brand {
     color: var(--brand-color);
-    border-color: rgba(122, 75, 0, 0.4);
+    border-color: var(--brand-btn);
     border-radius: 30px;
     font-weight: 600;
     padding: 6px 20px;
     transition: all 0.2s;
 }
+
 .btn-outline-brand:hover {
-    background-color: var(--brand-color);
-    border-color: var(--brand-color);
+    background-color: var(--brand-btn);
+    border-color: var(--brand-btn);
     color: white;
 }
 
@@ -55,11 +65,11 @@ body {
    PAINÉIS, CARDS E INPUTS
    ========================================================================== */
 .crud-card {
-    background: var(--card-bg);
-    border: 1px solid rgba(122, 75, 0, 0.1); /* Unificado com a borda sutil do ajuda.html que dá mais elegância */
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(122, 75, 0, 0.04);
-    padding: 28px;
+    background: rgba(255, 255, 255, .98);
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, .25);
+    padding: 30px;
     margin-bottom: 24px;
     transition: transform 0.2s;
 }
@@ -70,19 +80,23 @@ body {
     letter-spacing: 0.5px;
     color: #6c757d;
     margin-bottom: 6px;
+    font-weight: 600;
 }
+
 .form-control {
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
+    border: 1px solid #d9c7b5;
+    border-radius: 10px;
     padding: 10px 14px;
     font-size: 0.95rem;
-    background-color: #f8f9fa;
+    background-color: #faf9f8;
 }
+
 .form-control:focus {
     background-color: #fff;
-    border-color: var(--brand-color);
-    box-shadow: 0 0 0 0.25rem rgba(122, 75, 0, 0.15);
+    border-color: var(--brand-btn);
+    box-shadow: 0 0 0 0.25rem rgba(166, 124, 82, .20);
 }
+
 textarea.form-control {
     min-height: 110px;
     resize: vertical;
@@ -97,9 +111,11 @@ textarea.form-control {
     overflow: hidden;
     background: #fff;
 }
+
 .table {
     margin-bottom: 0;
 }
+
 .table th {
     background-color: #f8f9fa;
     color: var(--brand-color);
@@ -108,12 +124,12 @@ textarea.form-control {
     letter-spacing: 0.5px;
     padding: 14px;
 }
+
 .table td {
     padding: 14px;
-    font-size: 0.92rem; /* Uma média boa para todas as telas */
+    font-size: 0.92rem;
 }
 
-/* Classes utilitárias para truncar texto longo em tabelas (Notícias e Ajuda) */
 .corpo-cell-truncated {
     max-width: 210px;
     overflow: hidden;
@@ -126,22 +142,22 @@ textarea.form-control {
    ========================================================================== */
 .terminal-log {
     background-color: #1e1e1e;
-    color: #388e3c;
+    color: #00ff66;
     padding: 16px;
     border-radius: 10px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 0.85rem;
     max-height: 220px;
     border-left: 4px solid #4caf50;
-    white-space: pre-wrap; /* Evita que logs compridos quebrem o layout */
+    white-space: pre-wrap;
+    overflow-y: auto;
 }
 
 /* ==========================================================================
    RODAPÉ UNIFICADO
    ========================================================================== */
 footer {
-    background-color: var(--brand-color);
-    color: white;
+    color: rgba(255, 255, 255, .85);
     text-align: center;
     padding: 22px;
     margin-top: 60px;
