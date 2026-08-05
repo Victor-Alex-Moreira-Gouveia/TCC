@@ -1,3 +1,4 @@
 Frontend
-    -> Ajustar o botão de voltar de login e cadastro
-    -> Ajustar o layout de "Ultimas Notícias"
+    -> Mudar noticias para o site dedicado
+    -> Mudar a cor da fonte do Banner
+    -> Deixar somente o Banner no conteudo do site na home pag
