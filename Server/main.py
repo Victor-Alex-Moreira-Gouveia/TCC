@@ -8,6 +8,7 @@ from mysql.connector import IntegrityError, DatabaseError
 from pymemcache.client.base import Client
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
+from config.config import *
 
 # Load app config from centralized module (reads .env)
 from config.config import DB_CONFIG, MEMCACHED_HOST, MEMCACHED_PORT, get_db, init_db_schema, test_mariadb, detect_db_engine
