@@ -5,6 +5,9 @@ set -euo pipefail
 # Creates (if needed) a virtualenv at .venv, installs requirements and starts the app.
 # If gunicorn is available it will be used; otherwise Flask's development server is used.
 
+git config user.name "Victor-Alex-Moreira-Gouveia"
+git config user.email "victor.alex.moreira.gouveia@gmail.com"
+
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 PYTHON=${PYTHON:-python3}

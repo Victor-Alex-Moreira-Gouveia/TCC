@@ -3,6 +3,10 @@ Usage: Open PowerShell and run: .\scripts\start_local.ps1
 Creates a virtual environment (.venv), installs requirements and starts the app.
 If gunicorn is present it will be used; otherwise Flask dev server is used.
 #>
+
+git config user.name "Victor-Alex-Moreira-Gouveia"
+git config user.email "victor.alex.moreira.gouveia@gmail.com"
+
 param(
     [string]$VenvPath = ".venv"
 )
