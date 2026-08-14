@@ -40,10 +40,10 @@ async function loadNoticias() {
     res.data.forEach(n => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-        <td class="fw-bold text-secondary">${n.id}</td>
-        <td class="fw-semibold text-dark">${n.titulo}</td>
-        <td class="corpo-cell-truncated text-muted small" title="${n.corpo}">${n.corpo}</td>
-        <td class="text-secondary small font-monospace">${n.data_hora || '—'}</td>
+        <td class="fw-bold text-secondary">${escHtml(String(n.id))}</td>
+        <td class="fw-semibold text-dark">${escHtml(n.titulo)}</td>
+        <td class="corpo-cell-truncated text-muted small" title="${escHtml(n.corpo)}">${escHtml(n.corpo)}</td>
+        <td class="text-secondary small font-monospace">${escHtml(n.data_hora || '—')}</td>
         <td>
             <div class="d-flex gap-2 justify-content-center">
             <button class="btn btn-sm btn-outline-primary" title="Editar" onclick="fillUpdate(${n.id},'${escJs(n.titulo)}','${escJs(n.corpo)}')">
@@ -59,6 +59,14 @@ async function loadNoticias() {
 }
 
 function escJs(s) { return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n'); }
+
+// Escape for safe HTML insertion (avoid XSS / broken attributes)
+function escHtml(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/[&<>"']/g, function (m) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[m];
+    });
+}
 
 function fillUpdate(id, titulo, corpo) {
     document.getElementById('u-id').value = id;

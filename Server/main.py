@@ -10,7 +10,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import random
 
 # Load app config from centralized module (reads .env)
-from config.config import DB_CONFIG, MEMCACHED_HOST, MEMCACHED_PORT, get_db, init_db_schema, test_mariadb
+from config.config import DB_CONFIG, MEMCACHED_HOST, MEMCACHED_PORT, get_db, init_db_schema, test_mariadb, detect_db_engine
 
 app = Flask(__name__)
 # prefer secret from environment
@@ -38,16 +38,6 @@ from utils import success_response, error_response, parse_pagination, build_pagi
 # Health check
 # ---------------------------------------------------------------------------
 
-def test_mariadb():
-    try:
-        conn = get_db()
-        if conn.is_connected():
-            conn.close()
-            return True, "Conexão com MariaDB: OK"
-    except Exception as e:
-        return False, f"Erro MariaDB: {str(e)}"
-
-
 def test_memcached():
     try:
         client = Client((MEMCACHED_HOST, MEMCACHED_PORT))
@@ -62,12 +52,23 @@ def test_memcached():
 
 @app.route('/health')
 def health_check():
+    # Keep backward-compatible DB check (config.test_mariadb) and also detect engine/version
     db_status, db_msg = test_mariadb()
+    engine, engine_info = detect_db_engine()
     cache_status, cache_msg = test_memcached()
+
     status_code = 200 if db_status and cache_status else 500
+    checks = {
+        "database": {
+            "status": db_msg,
+            "engine": engine,
+            "version_or_info": engine_info
+        },
+        "memcached": cache_msg
+    }
     return jsonify({
         "status": "online" if status_code == 200 else "unstable",
-        "checks": {"mariadb": db_msg, "memcached": cache_msg}
+        "checks": checks
     }), status_code
 
 

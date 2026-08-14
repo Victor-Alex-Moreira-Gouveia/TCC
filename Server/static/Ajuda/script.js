@@ -42,10 +42,10 @@ async function loadAjuda() {
     res.data.forEach(a => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-        <td class="fw-bold text-secondary">${a.id}</td>
-        <td class="fw-semibold">${a.titulo}</td>
-        <td class="corpo-cell-truncated text-muted" title="${a.corpo}">${a.corpo}</td>
-        <td><span class="badge bg-light text-dark font-monospace border">${a.pix_doacao}</span></td>
+        <td class="fw-bold text-secondary">${escHtml(String(a.id))}</td>
+        <td class="fw-semibold">${escHtml(a.titulo)}</td>
+        <td class="corpo-cell-truncated text-muted" title="${escHtml(a.corpo)}">${escHtml(a.corpo)}</td>
+        <td><span class="badge bg-light text-dark font-monospace border">${escHtml(a.pix_doacao)}</span></td>
         <td>
             <div class="d-flex gap-2 justify-content-center">
             <button class="btn btn-sm btn-outline-primary" title="Editar" onclick="fillUpdate(${a.id},'${esc(a.titulo)}','${esc(a.corpo)}','${esc(a.pix_doacao)}')">
@@ -61,6 +61,13 @@ async function loadAjuda() {
 }
 
 function esc(s) { return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n'); }
+
+function escHtml(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/[&<>"']/g, function (m) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[m];
+    });
+}
 
 function fillUpdate(id, titulo, corpo, pix) {
 document.getElementById('u-id').value     = id;

@@ -90,12 +90,12 @@ async function loadUsuarios() {
     res.forEach(u => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${u.id}</td>
-            <td>${u.nome_usuario}</td>
-            <td>${u.email}</td>
+            <td>${escHtml(String(u.id))}</td>
+            <td>${escHtml(u.nome_usuario)}</td>
+            <td>${escHtml(u.email)}</td>
             <td class="text-center">
                 <div class="d-flex justify-content-center gap-2">
-                    <button class="btn btn-sm btn-outline-brand" onclick="fillUpdate(${u.id}, '${u.nome_usuario}', '${u.email}')" title="Editar">
+                    <button class="btn btn-sm btn-outline-brand" onclick="fillUpdate(${u.id}, '${escJs(u.nome_usuario)}', '${escJs(u.email)}')" title="Editar">
                         <i class="bi bi-pencil-square"></i>
                     </button>
                     <button class="btn btn-sm btn-outline-danger" onclick="deleteUsuario(${u.id})" title="Excluir">
@@ -169,6 +169,15 @@ function clearLog() {
     const logElement = document.getElementById('log');
     if (logElement) logElement.textContent = '— pronto para monitorar requisições —';
 }
+
+// Escapes for safe insertion into HTML and for passing into JS string literals
+function escHtml(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/[&<>"']/g, function (m) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[m];
+    });
+}
+function escJs(s) { return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n'); }
 
 /**
  * INICIALIZAÇÃO SEGURA

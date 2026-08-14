@@ -53,3 +53,25 @@ def test_mariadb():
     except Exception as e:
         return False, f"Erro MariaDB: {str(e)}"
 
+
+# Detect which DB engine is used (MariaDB or MySQL) by querying VERSION()
+def detect_db_engine():
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        cur.execute("SELECT VERSION()")
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        if not row:
+            return 'unknown', ''
+        version = row[0] if isinstance(row, (list, tuple)) else str(row)
+        version = str(version)
+        if 'MariaDB' in version:
+            return 'mariadb', version
+        if 'MySQL' in version:
+            return 'mysql', version
+        return 'unknown', version
+    except Exception as e:
+        return 'unknown', str(e)
+

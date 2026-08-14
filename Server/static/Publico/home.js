@@ -24,7 +24,7 @@ async function carregarNoticias() {
                     : 'Data não informada';
 
                 // Trata quebras de linha no corpo da notícia para exibição adequada no HTML
-                const corpoFormatado = noticia.corpo.replace(/\n/g, '<br>');
+                const corpoFormatado = noticia.corpo ? escapeHTML(noticia.corpo).replace(/\n/g, '<br>') : '';
 
                 const cardHtml = `
                     <div class="col-12">
