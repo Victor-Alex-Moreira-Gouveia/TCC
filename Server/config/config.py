@@ -6,10 +6,10 @@ load_dotenv()
 
 # Database config
 DB_CONFIG = {
-    'host': os.getenv('DATABASE_HOST', 'mariadb'),
+    'host': os.getenv('DATABASE_HOST', 'localhost'),
     'port': int(os.getenv('DATABASE_PORT', 3306)),
     'user': os.getenv('DATABASE_USER', 'root'),
-    'password': os.getenv('DATABASE_PASSWORD', '19032007'),
+    'password': os.getenv('DATABASE_PASSWORD', ''),
     'database': os.getenv('DATABASE_NAME', 'MausTratosDB')
 }
 

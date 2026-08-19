@@ -197,11 +197,32 @@
                             <div class="form-text">Forneça o máximo de informações possível para facilitar o resgate ou averiguação.</div>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label">Chave PIX de Apoio <span class="text-danger">*</span></label>
+                        <!-- <div class="mb-4">
+                            <label class="form-label">Chave PIX <span class="text-danger">*</span></label>
                             <input type="text" id="pix" class="form-control" required placeholder="CNPJ, E-mail, CPF, Telefone ou Chave Aleatória">
                             <div class="form-text">Insira uma chave PIX para que a comunidade possa apoiar financeiramente com custos de ração ou veterinário.</div>
+                        </div> -->
+
+                        <div class="mb-3">
+                            <label for="inputState" class="form-label">Tipo do Animal</label>
+                            <select id="inputState" class="form-select">
+                            <option selected>Animal doméstico</option>
+                            <option>Animal Silvestre</option>
+                            </select>
                         </div>
+
+                        <div class="mb-3">
+                            <label for="inputState" class="form-label">Nível de Urgência(Imediato)</label>
+                            <select id="inputState" class="form-select">
+                            <option selected> Ferimento grave</option>
+                            <option> Engasgo</option>
+                            <option> Convulsão</option>
+                            <option>Doença contagiosa</option>
+                            <option>Envenenamento</option>
+                            <option>Atropelamento</option>
+                            <option>Queimaduras ou exposição a produtos químicos</option>
+                            </select>
+                        </div>                        
 
                         <div class="d-flex justify-content-end gap-3">
                             <a href="/" class="btn btn-light rounded-pill px-4 fw-semibold text-secondary">Cancelar</a>

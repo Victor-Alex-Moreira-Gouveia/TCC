@@ -1,9 +1,19 @@
 Frontend
-    -> Mudar noticias para o site dedicado
-    -> Mudar a cor da fonte do Banner
-    -> Deixar somente o Banner no conteudo do site na home pag
+    -> recuperar senha
+    - > quem vai ficar responsavel depois da denuncia 
+   -> formulario 
+        -> campo de informação (animal domestico, animal silvestre)
+        -> campo de nivel de urgência (Imediato)
+            - Ferimento grave
+            - Engasgo
+            - Convulsão
+            - Agressão
+            - doença contagiosa
+            - envenenamento
+            - brigas canibais 
+            - atropelamento
+            -Queimaduras ou exposição a produtos químicos
+              
 
-Backend
-    -> implementar a inserção de noticias / site minimalista
-    -> Retirar ONG's
-    -> 
+
+        

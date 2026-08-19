@@ -193,8 +193,8 @@ app.register_blueprint(usuarios_bp)
 # ===========================================================================
 # CRUD — Noticias
 # migrated to controllers.noticias
-from controllers.noticias import noticias_bp
-app.register_blueprint(noticias_bp)
+# from controllers.noticias import noticias_bp
+# app.register_blueprint(noticias_bp)
 
 # ===========================================================================
 # CRUD — ONGs
