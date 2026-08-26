@@ -6,3 +6,5 @@ werkzeug
 pytest
 requests
 python-dotenv
+sqlalchemy
+pymysql

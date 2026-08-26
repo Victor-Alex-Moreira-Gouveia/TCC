@@ -1,81 +1,60 @@
-from config.config import get_db
-from mysql.connector import IntegrityError, DatabaseError
-
+from sqlalchemy import select, func
+from sqlalchemy.exc import IntegrityError
+from config.engine import get_db
+from models.usuarios import Usuario
 
 def count_users():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) AS total FROM usuarios")
-    total = cur.fetchone()[0]
-    cur.close()
-    conn.close()
+    db = next(get_db())
+    total = db.scalar(select(func.count()).select_from(Usuario))
     return total
 
-
 def list_users(limit, offset):
-    conn = get_db()
-    cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT id, nome_usuario, email FROM usuarios LIMIT %s OFFSET %s", (limit, offset))
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-    return rows
-
+    db = next(get_db())
+    stmt = select(Usuario).limit(limit).offset(offset)
+    rows = db.scalars(stmt).all()
+    # Retorna apenas id, nome_usuario e email, conforme o arquivo original[cite: 6]
+    return [{"id": r.id, "nome_usuario": r.nome_usuario, "email": r.email} for r in rows]
 
 def get_usuario_by_id(uid):
-    conn = get_db()
-    cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT id, nome_usuario, email FROM usuarios WHERE id = %s", (uid,))
-    row = cur.fetchone()
-    cur.close()
-    conn.close()
-    return row
-
+    db = next(get_db())
+    r = db.get(Usuario, uid)
+    if r:
+        return {"id": r.id, "nome_usuario": r.nome_usuario, "email": r.email}
+    return None
 
 def create_usuario(nome, email, senha_hash):
+    db = next(get_db())
     try:
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO usuarios (nome_usuario, email, senha) VALUES (%s, %s, %s)",
-            (nome, email, senha_hash)
-        )
-        conn.commit()
-        new_id = cur.lastrowid
-        cur.close()
-        conn.close()
-        return new_id
+        novo_usuario = Usuario(nome_usuario=nome, email=email, senha=senha_hash)
+        db.add(novo_usuario)
+        db.commit()
+        return novo_usuario.id
     except IntegrityError:
+        db.rollback()
         raise
 
-
-def update_usuario_db(uid, updates_sql, params):
+def update_usuario_db(uid, update_data):
+    db = next(get_db())
     try:
-        conn = get_db()
-        cur = conn.cursor(dictionary=True)
-        params.append(uid)
-        cur.execute(f"UPDATE usuarios SET {updates_sql} WHERE id = %s", params)
-        conn.commit()
-        cur.execute("SELECT id, nome_usuario, email FROM usuarios WHERE id = %s", (uid,))
-        updated = cur.fetchone()
-        cur.close()
-        conn.close()
-        return updated
+        usuario = db.get(Usuario, uid)
+        if not usuario:
+            return None
+        
+        for key, value in update_data.items():
+            setattr(usuario, key, value)
+            
+        db.commit()
+        return {"id": usuario.id, "nome_usuario": usuario.nome_usuario, "email": usuario.email}
     except IntegrityError:
+        db.rollback()
         raise
-
 
 def delete_usuario_db(uid):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT id FROM usuarios WHERE id = %s", (uid,))
-    found = cur.fetchone()
-    if not found:
-        cur.close()
-        conn.close()
+    db = next(get_db())
+    usuario = db.get(Usuario, uid)
+    if not usuario:
         return False
-    cur.execute("DELETE FROM usuarios WHERE id = %s", (uid,))
-    conn.commit()
-    cur.close()
-    conn.close()
+    
+    db.delete(usuario)
+    db.commit()
     return True

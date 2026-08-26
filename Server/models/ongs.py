@@ -1,78 +1,59 @@
-from config.config import get_db
-from mysql.connector import IntegrityError, DatabaseError
-
+from sqlalchemy import select, func
+from sqlalchemy.exc import IntegrityError
+from config.engine import get_db
+from models.ongs import Ong 
 
 def count_ongs():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) AS total FROM ongs")
-    total = cur.fetchone()[0]
-    cur.close()
-    conn.close()
+    db = next(get_db())
+    total = db.scalar(select(func.count()).select_from(Ong))
     return total
 
-
 def list_ongs(limit, offset):
-    conn = get_db()
-    cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT id, nome_instituicao, endereco_fisico, site, pix_doacao FROM ongs LIMIT %s OFFSET %s", (limit, offset))
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-    return rows
-
+    db = next(get_db())
+    stmt = select(Ong).limit(limit).offset(offset)
+    rows = db.scalars(stmt).all()
+    return [{"id": r.id, "nome_instituicao": r.nome_instituicao, "endereco_fisico": r.endereco_fisico, "site": r.site, "pix_doacao": r.pix_doacao} for r in rows]
 
 def get_ong_by_id(oid):
-    conn = get_db()
-    cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT id, nome_instituicao, endereco_fisico, site, pix_doacao FROM ongs WHERE id = %s", (oid,))
-    row = cur.fetchone()
-    cur.close()
-    conn.close()
-    return row
-
+    db = next(get_db())
+    r = db.get(Ong, oid)
+    if r:
+        return {"id": r.id, "nome_instituicao": r.nome_instituicao, "endereco_fisico": r.endereco_fisico, "site": r.site, "pix_doacao": r.pix_doacao}
+    return None
 
 def create_ong(nome, endereco, site, pix):
+    db = next(get_db())
     try:
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("INSERT INTO ongs (nome_instituicao, endereco_fisico, site, pix_doacao) VALUES (%s, %s, %s, %s)", (nome, endereco, site, pix))
-        conn.commit()
-        new_id = cur.lastrowid
-        cur.close()
-        conn.close()
-        return new_id
+        nova_ong = Ong(nome_instituicao=nome, endereco_fisico=endereco, site=site, pix_doacao=pix)
+        db.add(nova_ong)
+        db.commit()
+        return nova_ong.id # Retorna o ID gerado[cite: 5]
     except IntegrityError:
+        db.rollback()
         raise
 
-
-def update_ong_db(oid, updates_sql, params):
+def update_ong_db(oid, update_data):
+    db = next(get_db())
     try:
-        conn = get_db()
-        cur = conn.cursor(dictionary=True)
-        params.append(oid)
-        cur.execute(f"UPDATE ongs SET {updates_sql} WHERE id = %s", params)
-        conn.commit()
-        cur.execute("SELECT id, nome_instituicao, endereco_fisico, site, pix_doacao FROM ongs WHERE id = %s", (oid,))
-        updated = cur.fetchone()
-        cur.close()
-        conn.close()
-        return updated
+        ong = db.get(Ong, oid)
+        if not ong:
+            return None
+        
+        for key, value in update_data.items():
+            setattr(ong, key, value)
+            
+        db.commit()
+        return {"id": ong.id, "nome_instituicao": ong.nome_instituicao, "endereco_fisico": ong.endereco_fisico, "site": ong.site, "pix_doacao": ong.pix_doacao}
     except IntegrityError:
+        db.rollback()
         raise
-
 
 def delete_ong_db(oid):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT id FROM ongs WHERE id = %s", (oid,))
-    found = cur.fetchone()
-    if not found:
-        cur.close()
-        conn.close()
+    db = next(get_db())
+    ong = db.get(Ong, oid)
+    if not ong:
         return False
-    cur.execute("DELETE FROM ongs WHERE id = %s", (oid,))
-    conn.commit()
-    cur.close()
-    conn.close()
+    
+    db.delete(ong)
+    db.commit()
     return True

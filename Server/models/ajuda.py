@@ -1,78 +1,63 @@
-from config.config import get_db
-from mysql.connector import IntegrityError, DatabaseError
-
+from sqlalchemy import select, func
+from sqlalchemy.exc import IntegrityError
+from config.engine import get_db
+# Importe o modelo Ajuda de onde ele foi definido
+from models.ajuda import Ajuda 
 
 def count_ajuda():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) AS total FROM ajuda")
-    total = cur.fetchone()[0]
-    cur.close()
-    conn.close()
+    # Pegamos a sessão do generator criado no engine.py
+    db = next(get_db()) 
+    total = db.scalar(select(func.count()).select_from(Ajuda))
     return total
 
-
 def list_ajuda(limit, offset):
-    conn = get_db()
-    cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT id, titulo, corpo, pix_doacao, autor FROM ajuda LIMIT %s OFFSET %s", (limit, offset))
-    rows = cur.fetchall()
-    cur.close()
-    conn.close()
-    return rows
-
+    db = next(get_db())
+    stmt = select(Ajuda).limit(limit).offset(offset)
+    rows = db.scalars(stmt).all()
+    # Retorna como dicionário para manter a compatibilidade com o controlador antigo[cite: 4]
+    return [{"id": r.id, "titulo": r.titulo, "corpo": r.corpo, "pix_doacao": r.pix_doacao, "autor": r.autor} for r in rows]
 
 def get_ajuda_by_id(aid):
-    conn = get_db()
-    cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT id, titulo, corpo, pix_doacao, autor FROM ajuda WHERE id = %s", (aid,))
-    row = cur.fetchone()
-    cur.close()
-    conn.close()
-    return row
-
+    db = next(get_db())
+    r = db.get(Ajuda, aid)
+    if r:
+        return {"id": r.id, "titulo": r.titulo, "corpo": r.corpo, "pix_doacao": r.pix_doacao, "autor": r.autor}
+    return None
 
 def create_ajuda_db(titulo, corpo, pix, autor):
+    db = next(get_db())
     try:
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("INSERT INTO ajuda (titulo, corpo, pix_doacao, autor) VALUES (%s, %s, %s, %s)", (titulo, corpo, pix, autor))
-        conn.commit()
-        new_id = cur.lastrowid
-        cur.close()
-        conn.close()
-        return new_id
+        nova_ajuda = Ajuda(titulo=titulo, corpo=corpo, pix_doacao=pix, autor=autor)
+        db.add(nova_ajuda)
+        db.commit()
+        return nova_ajuda.id # Retorna o ID recém-criado[cite: 4]
     except IntegrityError:
+        db.rollback()
         raise
 
-
-def update_ajuda_db(aid, updates_sql, params):
+def update_ajuda_db(aid, update_data):
+    # update_data deve ser um dicionário ex: {"titulo": "Novo", "corpo": "..."}[cite: 4]
+    db = next(get_db())
     try:
-        conn = get_db()
-        cur = conn.cursor(dictionary=True)
-        params.append(aid)
-        cur.execute(f"UPDATE ajuda SET {updates_sql} WHERE id = %s", params)
-        conn.commit()
-        cur.execute("SELECT id, titulo, corpo, pix_doacao, autor FROM ajuda WHERE id = %s", (aid,))
-        updated = cur.fetchone()
-        cur.close()
-        conn.close()
-        return updated
+        ajuda = db.get(Ajuda, aid)
+        if not ajuda:
+            return None
+        
+        for key, value in update_data.items():
+            setattr(ajuda, key, value)
+            
+        db.commit()
+        return {"id": ajuda.id, "titulo": ajuda.titulo, "corpo": ajuda.corpo, "pix_doacao": ajuda.pix_doacao, "autor": ajuda.autor}
     except IntegrityError:
+        db.rollback()
         raise
-
 
 def delete_ajuda_db(aid):
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT id FROM ajuda WHERE id = %s", (aid,))
-    found = cur.fetchone()
-    if not found:
-        cur.close()
-        conn.close()
-        return False
-    cur.execute("DELETE FROM ajuda WHERE id = %s", (aid,))
-    conn.commit()
-    cur.close()
-    conn.close()
+    db = next(get_db())
+    ajuda = db.get(Ajuda, aid)
+    if not ajuda:
+        return False # Retorna False se não encontrar[cite: 4]
+    
+    db.delete(ajuda)
+    db.commit()
     return True
