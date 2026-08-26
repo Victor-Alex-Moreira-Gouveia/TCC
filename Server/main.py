@@ -90,11 +90,12 @@ def test_usuarios():
     return render_template('Tcc/Usuario/usuarios.html')
 
 # Painel de Notícias - APENAS ADMIN
+# Painel de Notícias - APENAS ADMIN
 @app.route('/noticias')
 def test_noticias():
     if session.get('role') != 'admin':
-        return redirect('/login')
-    return render_template('Tcc/Noticias/noticias.html')
+        return redirect(url_for('tela_login'))
+    return render_template('Tcc/noticias/noticias.html')
 
 # Painel de ONGs - APENAS ADMIN
 @app.route('/ongs')
