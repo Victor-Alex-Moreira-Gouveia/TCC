@@ -1,10 +1,13 @@
 import os
 from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.exc import OperationalError
 
-# Load .env from app root (works when running inside container or locally)
+# Carrega o .env a partir da raiz[cite: 11, 12]
 load_dotenv()
 
-# Database config
+# Configuração do banco lendo das variáveis de ambiente padrão do projeto[cite: 11, 12]
 DB_CONFIG = {
     'host': os.getenv('DATABASE_HOST', 'localhost'),
     'port': int(os.getenv('DATABASE_PORT', 3306)),
@@ -17,61 +20,65 @@ DB_CONFIG = {
 MEMCACHED_HOST = os.getenv('MEMCACHED_HOST', 'memcached')
 MEMCACHED_PORT = int(os.getenv('MEMCACHED_PORT', 11211))
 
-# Admin / root defaults (optional)
+# Admin / root defaults (optional)[cite: 11]
 ROOT_USER = os.getenv('ROOT_USERNAME', 'admin')
 ROOT_EMAIL = os.getenv('ROOT_EMAIL', 'admin@sistema.com')
 ROOT_PASSWORD = os.getenv('ROOT_PASSWORD', 'admin123')
 
-# Provide a helper to construct DB connection (keeps usage consistent)
-import mysql.connector
+# Monta a URL de conexão usando o driver pymysql
+DATABASE_URL = (
+    f"mysql+pymysql://{DB_CONFIG['user']}:{DB_CONFIG['password']}"
+    f"@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
+)
+
+# Cria a Engine do SQLAlchemy[cite: 12]
+engine = create_engine(DATABASE_URL, echo=False, pool_pre_ping=True)
+
+# Cria a fábrica de sessões[cite: 12]
+SessionFactory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = scoped_session(SessionFactory)
 
 def get_db():
-    return mysql.connector.connect(**DB_CONFIG)
-
-
-def init_db_schema():
+    """Retorna uma 'Session' que deve ser fechada após o uso[cite: 12]."""
+    db = SessionLocal()
     try:
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SHOW COLUMNS FROM ajuda LIKE 'autor'")
-        if not cur.fetchone():
-            cur.execute("ALTER TABLE ajuda ADD COLUMN autor VARCHAR(150) NOT NULL DEFAULT 'anon'")
-            conn.commit()
-            print("Migração automática: Coluna 'autor' inserida na tabela 'ajuda'.")
-        cur.close()
-        conn.close()
+        yield db
+    finally:
+        db.close()
+
+def init_db_schema(Base):
+    """Sincroniza as tabelas com o banco de dados[cite: 12]."""
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("Migração automática: Tabelas sincronizadas com sucesso.")
     except Exception as e:
         print(f"Alerta de migração (inicialização rápida): {e}")
 
-
 def test_mariadb():
+    """Testa a conexão executando um comando SQL nativo via SQLAlchemy[cite: 12]."""
     try:
-        conn = get_db()
-        if conn.is_connected():
-            conn.close()
-            return True, "Conexão com MariaDB: OK"
-    except Exception as e:
-        return False, f"Erro MariaDB: {str(e)}"
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+            return True, "Conexão com Banco de Dados: OK"
+    except OperationalError as e:
+        return False, f"Erro de conexão: {str(e)}"
 
-
-# Detect which DB engine is used (MariaDB or MySQL) by querying VERSION()
 def detect_db_engine():
+    """Detecta qual banco está rodando lendo a VERSION()[cite: 12]."""
     try:
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT VERSION()")
-        row = cur.fetchone()
-        cur.close()
-        conn.close()
-        if not row:
-            return 'unknown', ''
-        version = row[0] if isinstance(row, (list, tuple)) else str(row)
-        version = str(version)
-        if 'MariaDB' in version:
-            return 'mariadb', version
-        if 'MySQL' in version:
-            return 'mysql', version
-        return 'unknown', version
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT VERSION()"))
+            version = result.scalar() 
+            
+            if not version:
+                return 'unknown', ''
+            
+            version_str = str(version)
+            if 'MariaDB' in version_str:
+                return 'mariadb', version_str
+            if 'MySQL' in version_str:
+                return 'mysql', version_str
+            
+            return 'unknown', version_str
     except Exception as e:
         return 'unknown', str(e)
-

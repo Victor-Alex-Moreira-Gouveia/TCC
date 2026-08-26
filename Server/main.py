@@ -3,8 +3,8 @@ import re
 import math
 import time
 from flask import Flask, jsonify, request, render_template, session, redirect, url_for
-import mysql.connector
-from mysql.connector import IntegrityError, DatabaseError
+from sqlalchemy import select
+from models.usuarios import Usuario # Assumindo que o seu modelo Usuario está aqui
 from pymemcache.client.base import Client
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
@@ -162,25 +162,26 @@ def api_login():
         session['role'] = "admin"
         return jsonify({"status": "sucesso", "redirect": "/"}), 200
 
-    # Busca do usuário comum no banco de dados
+    # Busca do usuário comum no banco de dados usando SQLAlchemy
     try:
-        conn = get_db()
-        cur = conn.cursor(dictionary=True)
-        cur.execute("SELECT id, nome_usuario, email, senha FROM usuarios WHERE email = %s", (email,))
-        user = cur.fetchone()
-        cur.close()
-        conn.close()
+        # Obter a sessão do banco
+        db = next(get_db())
+        
+        # Consulta usando o ORM
+        stmt = select(Usuario).where(Usuario.email == email)
+        user = db.scalar(stmt)
 
-        if user and check_password_hash(user['senha'], senha):
-            session['usuario_id'] = user['id']
-            session['usuario_nome'] = user['nome_usuario']
+        # Verifica se o usuário existe e se a senha bate[cite: 10]
+        if user and check_password_hash(user.senha, senha):
+            session['usuario_id'] = user.id
+            session['usuario_nome'] = user.nome_usuario
             session['role'] = "user"
             return jsonify({"status": "sucesso", "redirect": "/"}), 200
+            
     except Exception as e:
         return jsonify({"status": "erro", "mensagem": f"Erro interno do servidor: {str(e)}"}), 500
     
     return jsonify({"status": "erro", "mensagem": "E-mail ou senha incorretos."}), 401
-
 # ===========================================================================
 # CRUD — Usuarios
 # ===========================================================================
