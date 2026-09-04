@@ -36,6 +36,8 @@ def create_ajuda():
     titulo = (data.get('titulo') or '').strip()
     corpo = (data.get('corpo') or '').strip()
     pix = (data.get('pix_doacao') or '').strip()
+    tipo_denuncia = (data.get('tipo_denuncia') or '').strip() or 'Animal doméstico'
+    nivel_urgencia = (data.get('nivel_urgencia') or '').strip() or 'Não informado'
 
     if not titulo:
         errors['titulo'] = 'Campo obrigatório'
@@ -57,7 +59,7 @@ def create_ajuda():
         autor_nome = session.get('usuario_nome', 'Visitante Anônimo')
 
     try:
-        new_id = create_ajuda_db(titulo, corpo, pix, autor_nome)
+        new_id = create_ajuda_db(titulo, corpo, pix, autor_nome, tipo_denuncia, nivel_urgencia)
         row = get_ajuda_by_id(new_id)
         return success_response(row, "Criado com sucesso", 201)
     except SQLAlchemyError as e:
@@ -108,6 +110,20 @@ def update_ajuda(aid):
             errors['autor'] = 'Não pode ser vazio'
         else:
             update_data['autor'] = autor
+
+    if 'tipo_denuncia' in data:
+        tipo = (data['tipo_denuncia'] or '').strip()
+        if not tipo:
+            errors['tipo_denuncia'] = 'Não pode ser vazio'
+        else:
+            update_data['tipo_denuncia'] = tipo
+
+    if 'nivel_urgencia' in data:
+        nivel = (data['nivel_urgencia'] or '').strip()
+        if not nivel:
+            errors['nivel_urgencia'] = 'Não pode ser vazio'
+        else:
+            update_data['nivel_urgencia'] = nivel
 
     if errors:
         return error_response("Validação falhou", "VALIDATION_ERROR", errors, 400)

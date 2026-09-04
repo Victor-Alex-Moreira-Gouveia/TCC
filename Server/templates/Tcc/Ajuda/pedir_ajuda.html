@@ -197,36 +197,33 @@
                             <div class="form-text">Forneça o máximo de informações possível para facilitar o resgate ou averiguação.</div>
                         </div>
 
-                        <!-- <div class="mb-4">
+                        <div class="mb-4">
                             <label class="form-label">Chave PIX <span class="text-danger">*</span></label>
                             <input type="text" id="pix" class="form-control" required placeholder="CNPJ, E-mail, CPF, Telefone ou Chave Aleatória">
                             <div class="form-text">Insira uma chave PIX para que a comunidade possa apoiar financeiramente com custos de ração ou veterinário.</div>
-                        </div> -->
+                        </div>
 
                         <div class="mb-3">
-                            <label for="inputState" class="form-label">Tipo de denuncias</label>
-                            <select id="inputState" class="form-select">
-                            <option selected>Animal doméstico</option>
-                            <option>Animal Silvestre</option>
-                            <option>Resgate,acolhimento </option>
-                           
-
-
+                            <label for="tipo_denuncia" class="form-label">Tipo de denúncia</label>
+                            <select id="tipo_denuncia" class="form-select">
+                                <option value="Animal doméstico" selected>Animal doméstico</option>
+                                <option value="Animal Silvestre">Animal Silvestre</option>
+                                <option value="Resgate e acolhimento">Resgate e acolhimento</option>
                             </select>
                         </div>
 
                         <div class="mb-3">
-                            <label for="inputState" class="form-label">Nível de Urgência(Imediato)</label>
-                            <select id="inputState" class="form-select">
-                            <option selected> Ferimento grave</option>
-                            <option> Engasgo</option>
-                            <option> Convulsão</option>
-                            <option>Doença contagiosa</option>
-                            <option>Envenenamento</option>
-                            <option>Atropelamento</option>
-                            <option>Queimaduras ou exposição a produtos químicos</option>
+                            <label for="nivel_urgencia" class="form-label">Nível de Urgência</label>
+                            <select id="nivel_urgencia" class="form-select">
+                                <option value="Ferimento grave" selected>Ferimento grave</option>
+                                <option value="Engasgo">Engasgo</option>
+                                <option value="Convulsão">Convulsão</option>
+                                <option value="Doença contagiosa">Doença contagiosa</option>
+                                <option value="Envenenamento">Envenenamento</option>
+                                <option value="Atropelamento">Atropelamento</option>
+                                <option value="Queimaduras ou exposição a produtos químicos">Queimaduras ou exposição a produtos químicos</option>
                             </select>
-                        </div>      
+                        </div>
 
 
                    
@@ -260,12 +257,21 @@
             const titulo = document.getElementById('titulo').value.trim();
             const corpo = document.getElementById('corpo').value.trim();
             const pix_doacao = document.getElementById('pix').value.trim();
+            const tipo_denuncia = document.getElementById('tipo_denuncia').value.trim();
+            const nivel_urgencia = document.getElementById('nivel_urgencia').value.trim();
+
+            if (!titulo || !corpo || !pix_doacao) {
+                alertMsg.textContent = 'Preencha título, relato e chave PIX antes de enviar.';
+                alertMsg.classList.add('alert-danger');
+                alertMsg.classList.remove('d-none');
+                return;
+            }
 
             try {
                 const response = await fetch('/api/ajuda', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ titulo, corpo, pix_doacao })
+                    body: JSON.stringify({ titulo, corpo, pix_doacao, tipo_denuncia, nivel_urgencia })
                 });
 
                 const dados = await response.json();
@@ -275,7 +281,9 @@
                     alertMsg.classList.add('alert-success');
                     alertMsg.classList.remove('d-none');
                     document.getElementById('formAjuda').reset();
-                    
+                    document.getElementById('tipo_denuncia').value = 'Animal doméstico';
+                    document.getElementById('nivel_urgencia').value = 'Ferimento grave';
+
                     // Rola a página até o topo do card para ver o alerta de sucesso
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else {

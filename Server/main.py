@@ -187,27 +187,26 @@ def api_login():
 # CRUD — Usuarios
 # ===========================================================================
 
-# migrated to controllers.usuarios blueprint
 from controllers.usuarios import usuarios_bp
 app.register_blueprint(usuarios_bp)
 
 
 # ===========================================================================
 # CRUD — Noticias
-# migrated to controllers.noticias
-# from controllers.noticias import noticias_bp
-# app.register_blueprint(noticias_bp)
+# ===========================================================================
+from controllers.noticias import noticias_bp
+app.register_blueprint(noticias_bp)
 
 # ===========================================================================
 # CRUD — ONGs
-# migrated to controllers.ongs
+# ===========================================================================
 from controllers.ongs import ongs_bp
 app.register_blueprint(ongs_bp)
 
 
 # ===========================================================================
 # CRUD — Ajuda
-# migrated to controllers.ajuda
+# ===========================================================================
 from controllers.ajuda import ajuda_bp
 app.register_blueprint(ajuda_bp)
 
