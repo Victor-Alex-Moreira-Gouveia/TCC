@@ -1,9 +1,7 @@
 Frontend
-    -> Mudar noticias para o site dedicado
-    -> Mudar a cor da fonte do Banner
-    -> Deixar somente o Banner no conteudo do site na home pag
+    -> recuperar senha
+    - > quem vai ficar responsavel depois da denuncia 
+   -> fazer publicação(adm) e poder reagir(publico)
 
-Backend
-    -> implementar a inserção de noticias / site minimalista
-    -> Retirar ONG's
-    -> 
+
+        

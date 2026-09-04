@@ -34,5 +34,7 @@ CREATE TABLE ajuda (
     titulo VARCHAR(255) NOT NULL,
     corpo TEXT NOT NULL,
     pix_doacao VARCHAR(100) NOT NULL,
+    tipo_denuncia VARCHAR(80) NOT NULL DEFAULT 'Animal doméstico',
+    nivel_urgencia VARCHAR(80) NOT NULL DEFAULT 'Não informado',
     autor VARCHAR(150) NOT NULL DEFAULT 'anon'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

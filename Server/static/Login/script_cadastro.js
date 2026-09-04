@@ -30,7 +30,7 @@ document.getElementById('formCadastro').addEventListener('submit', async (e) => 
             alertMsg.classList.remove('d-none');
             document.getElementById('formCadastro').reset();
             setTimeout(() => {
-                window.location.href = '/test/login';
+                window.location.href = '/login';
             }, 2000);
         } else {
             let msg = dados.error || "Erro ao realizar o cadastro.";

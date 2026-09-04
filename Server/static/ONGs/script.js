@@ -44,11 +44,11 @@ async function loadOngs() {
     res.data.forEach(o => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-        <td class="fw-bold text-secondary">${o.id}</td>
-        <td class="fw-semibold text-dark">${o.nome_instituicao}</td>
-        <td class="text-muted small">${o.endereco_fisico || '—'}</td>
-        <td>${o.site ? `<a href="${o.site}" target="_blank" class="text-brand text-decoration-none fw-semibold small"><i class="bi bi-box-arrow-up-right me-1"></i>Visitar</a>` : '<span class="text-muted">—</span>'}</td>
-        <td><span class="badge bg-light text-dark font-monospace border">${o.pix_doacao}</span></td>
+        <td class="fw-bold text-secondary">${escHtml(String(o.id))}</td>
+        <td class="fw-semibold text-dark">${escHtml(o.nome_instituicao)}</td>
+        <td class="text-muted small">${escHtml(o.endereco_fisico) || '—'}</td>
+        <td>${o.site ? `<a href="${escHtml(o.site)}" target="_blank" class="text-brand text-decoration-none fw-semibold small"><i class="bi bi-box-arrow-up-right me-1"></i>Visitar</a>` : '<span class="text-muted">—</span>'}</td>
+        <td><span class="badge bg-light text-dark font-monospace border">${escHtml(o.pix_doacao)}</span></td>
         <td>
             <div class="d-flex gap-2 justify-content-center">
             <button class="btn btn-sm btn-outline-primary" title="Editar" onclick="fillUpdate(${o.id},'${e(o.nome_instituicao)}','${e(o.endereco_fisico)}','${e(o.site)}','${e(o.pix_doacao)}')">
@@ -64,6 +64,13 @@ async function loadOngs() {
 }
 
 function e(s) { return (s || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+function escHtml(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/[&<>"']/g, function (m) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[m];
+    });
+}
 
 function fillUpdate(id, nome, end, site, pix) {
     document.getElementById('u-id').value   = id;
