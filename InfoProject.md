@@ -8,13 +8,13 @@
 - **Tipo**: Aplicação web com backend robusto e banco de dados relacional
 
 ### Status Atual
-- ✅ Estrutura inicial do backend criada
-- ✅ Banco de dados completamente modelado e estruturado
-- ✅ Arquivos SQL e Docker configurados
-- ✅ Endpoint de health check funcional
-- ✅ Rotas CRUD implementadas
-- ✅ Páginas de teste existem
-- ✅ Testes automatizados existem
+- ✅ Backend Flask organizado em controllers e models
+- ✅ Entidades ORM implementadas com SQLAlchemy 2.x
+- ✅ MariaDB, Memcached e backend configurados no Docker Compose
+- ✅ Endpoint `/health` valida banco e cache
+- ✅ CRUD implementado para usuários, notícias, ONGs e ajuda
+- ✅ Formulário de ajuda alinhado ao ORM e ao banco
+- ✅ Suíte de integração validada com 48 testes
 
 ---
 
@@ -28,17 +28,20 @@
 | **Cache** | Memcached |
 | **Containerização** | Docker + Docker Compose |
 | **Server Production** | Gunicorn |
-| **HTTP Client** | mysql-connector-python, pymemcache |
+| **Persistência** | SQLAlchemy 2.x + PyMySQL |
+| **Cache** | pymemcache |
 
 ### Dependências Atuais (requirements.txt)
 ```
 flask
 gunicorn
 pymemcache
-mysql-connector-python
 werkzeug
 pytest
 requests
+python-dotenv
+sqlalchemy
+pymysql
 ```
 
 ---
@@ -94,15 +97,20 @@ CREATE TABLE ajuda (
     id INT AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     corpo TEXT NOT NULL,
-    pix_doacao VARCHAR(100) NOT NULL
+    pix_doacao VARCHAR(100) NOT NULL,
+    tipo_denuncia VARCHAR(80) NOT NULL DEFAULT 'Animal doméstico',
+    nivel_urgencia VARCHAR(80) NOT NULL DEFAULT 'Não informado',
+    autor VARCHAR(150) NOT NULL DEFAULT 'anon'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
-- **Entidade**: Seções de ajuda e suporte
-- **Uso**: FAQ, guias de denúncia, instruções
+- **Entidade**: denúncias e solicitações públicas de ajuda
+- **Campos do formulário**: `titulo`, `corpo`, `pix_doacao`, `tipo_denuncia` e `nivel_urgencia`
+- **Campo automático**: `autor` vem da sessão do usuário ou recebe `anon`
+- **Uso**: registro e acompanhamento de ocorrências
 
 ---
 
-## 🎯 Tarefas Requeridas
+## 🎯 Funcionalidades Implementadas
 
 ### 1️⃣ **Rotas CRUD Completas**
 
@@ -115,7 +123,7 @@ CREATE TABLE ajuda (
 | **ongs** | POST /api/ongs | GET /api/ongs | GET /api/ongs/{id} | PUT /api/ongs/{id} | DELETE /api/ongs/{id} |
 | **ajuda** | POST /api/ajuda | GET /api/ajuda | GET /api/ajuda/{id} | PUT /api/ajuda/{id} | DELETE /api/ajuda/{id} |
 
-#### Requisitos por Operação
+#### Comportamento por Operação
 
 **CREATE (POST)**
 - Validações de entrada (campos obrigatórios, tipos de dados)
@@ -140,12 +148,12 @@ CREATE TABLE ajuda (
 - Sucesso retorna código 204 No Content
 - Possibilidade de soft-delete em tabelas sensíveis
 
-### 2️⃣ **Criar Páginas de Teste Funcionais**
+### 2️⃣ **Páginas e fluxos funcionais**
 
-Gerar páginas HTML simples (sem CSS avançado, apenas estrutura) para testar cada CRUD:
+As páginas atuais usam templates Jinja2, JavaScript e CSS próprios:
 
-- **Uma página por tabela** em `/Server/templates/Tcc/`
-- Exemplo: `test_usuarios.html`, `test_noticias.html`, `test_ongs.html`, `test_ajuda.html`
+- Páginas administrativas em `/Server/templates/Tcc/`
+- Formulário público de ajuda em `Tcc/Ajuda/pedir_ajuda.html`
 - Cada página deve conter:
   - Formulário para CREATE (POST)
   - Tabela/lista para READ (GET)
@@ -155,11 +163,11 @@ Gerar páginas HTML simples (sem CSS avançado, apenas estrutura) para testar ca
   - Área de output/logs para exibir respostas da API
   - Tratamento visual de erros
 
-- **Uma página INDEX** (`test_index.html`) com links para todas as páginas de teste
+- A página inicial pública é `Tcc/index.html`
 
 ### 3️⃣ **Garantia de Qualidade e Testes**
 
-Implementar testes automatizados para validar operações:
+Os testes automatizados validam as operações:
 
 **Tipos de Testes a Implementar:**
 - Testes unitários para validações de entrada
@@ -167,7 +175,7 @@ Implementar testes automatizados para validar operações:
 - Testes de banco de dados para constraints e integridade
 - Testes de erro (campos obrigatórios faltando, tipos inválidos, etc.)
 
-**Arquivo sugerido**: `/Server/test_crud.py`
+**Arquivo**: `/Server/test_crud.py`
 - Use `pytest` ou `unittest` do Python
 - Testes devem ser executáveis via `pytest test_crud.py` ou `python -m unittest`
 - Cada teste deve ter escopo independente (criar dados, testar, limpar)
@@ -184,26 +192,22 @@ Implementar testes automatizados para validar operações:
 
 ---
 
-## 📁 Estrutura de Arquivos Esperada
+## 📁 Estrutura de Arquivos Atual
 
 ```
 /Server/
-├── main.py                          # ← MODIFICAR/EXPANDIR
-├── requirements.txt                 # ← MANTER
-├── Dockerfile                       # ← MANTER
-├── start.sh                         # ← MANTER
+├── main.py                          # bootstrap Flask
+├── wsgi.py                          # entrada do Gunicorn
+├── requirements.txt                 # dependências
+├── Dockerfile                       # imagem do backend
+├── start.sh                         # inicialização do Gunicorn
 ├── Databases/
-│   ├── MariaDB_MauTratos.sql       # ← MANTER
-│   └── MySQL_MauTratos.sql         # ← MANTER
+│   ├── MariaDB_MauTratos.sql       # script de inicialização MariaDB
+│   └── MySQL_MauTratos.sql         # script compatível com MySQL
 ├── templates/Tcc/
-│   ├── Index.html                  # ← MANTER
-│   ├── style.css                   # ← MANTER
-│   ├── test_index.html             # ← CRIAR
-│   ├── test_usuarios.html          # ← CRIAR
-│   ├── test_noticias.html          # ← CRIAR
-│   ├── test_ongs.html              # ← CRIAR
-│   └── test_ajuda.html             # ← CRIAR
-└── test_crud.py                     # ← CRIAR
+│   ├── templates/Tcc/              # páginas da aplicação
+│   └── static/                     # JavaScript, CSS e imagens
+└── test_crud.py                    # testes de integração
 ```
 
 ---
@@ -310,12 +314,12 @@ com validações completas e tratamento de erros robusto."
 
 ## 📝 Informações Adicionais
 
-**Configuração do Ambiente (via Docker Compose):**
+**Configuração do Ambiente (via `.env` e Docker Compose):**
 ```yaml
 DATABASE_HOST: mariadb
 DATABASE_PORT: 3306
 DATABASE_USER: root
-DATABASE_PASSWORD: 19032007
+DATABASE_PASSWORD: definida no arquivo local `.env`
 DATABASE_NAME: MausTratosDB
 MEMCACHED_HOST: memcached
 MEMCACHED_PORT: 11211
@@ -326,13 +330,11 @@ MEMCACHED_PORT: 11211
 - Serviço Memcached já configurado
 - Volume para persistência de dados
 
-**Como Executar Localmente:**
+**Como Executar:**
 ```bash
-cd /Server
-docker-compose up -d
-python main.py
-# Ou com Gunicorn
-gunicorn -w 4 -b 0.0.0.0:8080 main:app
+cp .env.example .env
+docker compose up -d --build
+docker compose exec server pytest -q test_crud.py
 ```
 
 ---
@@ -370,5 +372,3 @@ gunicorn -w 4 -b 0.0.0.0:8080 main:app
 ### 6️⃣ Página de Leis de Maus-Tratos (Estática)
 - **Rota Frontend**: `/leis` (renderiza `templates/Tcc/Leis/leis.html`)
 - **Funcionamento**: Conteúdo informativo sobre a **Lei Sansão (Lei Federal nº 14.064/20)**, a **Lei de Crimes Ambientais (Lei nº 9.605/98)**, e canais de denúncia públicos (190 PM, DEPA, etc.).
-
-
