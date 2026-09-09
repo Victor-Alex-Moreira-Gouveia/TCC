@@ -1,583 +1,521 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Notícias - Combate aos Maus-Tratos</title>
+    <title>Notícias | Combate aos Maus-Tratos aos Animais</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <style>
-        body {
-            background-color: #6b4226;
-            color: #f7f4eb;
-            font-family: Arial, sans-serif;
+
+        /* ==============================
+           CONFIGURAÇÕES GERAIS E FUNDO
+        ============================== */
+
+        * {
+            box-sizing: border-box;
         }
 
-        .navbar-custom {
-            background-color: #d68c45;
+        body {
+            margin: 0;
+            background-color: #6b4226;
+            color: #f7f4eb;
+            font-family: Arial, Helvetica, sans-serif;
+            overflow-x: hidden;
+
+            /* Padrão de patinhas estampadas repetidas por TODO o fundo */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="rgba(255, 255, 255, 0.06)"><path d="M12 14c-2.5 0-4.5 1.5-4.5 3.5 0 1.5 1.5 2.5 4.5 2.5s4.5-1 4.5-2.5c0-2-2-3.5-4.5-3.5zm-5-3.5c-1 0-2 .8-2 2s.8 2 2 2 2-.8 2-2-.8-2-2-2zm10 0c-1 0-2 .8-2 2s.8 2 2 2 2-.8 2-2-.8-2-2-2zm-8.5-4c-1 0-2 .8-2 2s.8 2 2 2 2-.8 2-2-.8-2-2-2zm7 0c-1 0-2 .8-2 2s.8 2 2 2 2-.8 2-2-.8-2-2-2z"/></svg>');
+            background-repeat: repeat;
+            background-size: 90px 90px;
+        }
+
+        /* ==============================
+           NAVBAR
+        ============================== */
+
+        .navbar {
+            background: #d68c45 !important;
             padding: 15px 0;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.20);
         }
 
         .navbar-brand {
+            color: #fffcc9 !important;
             font-weight: bold;
-            color: #ffffff;
-            font-size: 22px;
+            font-size: 1.35rem;
+        }
+
+        .navbar-brand:hover {
+            color: #ffffff !important;
         }
 
         .btn-voltar {
-            background-color: #612b0e;
-            color: white;
-            border: none;
-            border-radius: 10px;
+            color: #fffcc9;
+            border: 2px solid #fffcc9;
+            border-radius: 25px;
             padding: 8px 18px;
+            text-decoration: none;
+            transition: 0.3s;
         }
 
         .btn-voltar:hover {
-            background-color: #5f2508;
-            color: white;
+            background: #fffcc9;
+            color: #6b4226;
         }
 
-        .titulo {
+        /* ==============================
+           CABEÇALHO
+        ============================== */
+
+        .cabecalho {
+            position: relative;
+            z-index: 2;
             text-align: center;
-            margin: 35px 0 10px;
-            font-weight: bold;
+            padding: 55px 20px 35px;
+        }
+
+        .cabecalho h1 {
             color: #fffcc9;
+            font-weight: 800;
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            margin-bottom: 15px;
         }
 
-        .subtitulo {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #f0ebd8;
+        .cabecalho p {
+            max-width: 850px;
+            margin: auto;
+            color: #f7f4eb;
+            font-size: 1.1rem;
+            line-height: 1.7;
         }
 
-        .publicacao {
-            background: white;
-            color: #000000;
-            border-radius: 15px;
-            max-width: 750px;
-            margin: 0 auto 30px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+        /* ==============================
+           ÁREA DAS NOTÍCIAS
+        ============================== */
+
+        .noticias-container {
+            position: relative;
+            z-index: 2;
+            max-width: 1100px;
+            margin: auto;
+            padding: 10px 20px 60px;
+        }
+
+        /* ==============================
+           CARD DA NOTÍCIA
+        ============================== */
+
+        .noticia {
+            background: #fffdf5;
+            color: #3e2818;
+            border-radius: 20px;
+            margin-bottom: 35px;
+            padding: 28px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.20);
+            transition: 0.3s ease;
+            position: relative;
             overflow: hidden;
         }
 
-        .publicacao-header {
-            display: flex;
-            align-items: center;
-            padding: 18px;
+        .noticia:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
         }
 
-        .avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background-color: #dfdbd7;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #b15f33;
-            margin-right: 12px;
+        /* Patinha d'água no fundo interno do card */
+        .noticia::after {
+            content: "🐾";
+            position: absolute;
+            right: -5px;
+            bottom: -25px;
+            font-size: 100px;
+            opacity: 0.07;
+            transform: rotate(-15deg);
         }
 
-        .nome {
-            font-weight: bold;
-            margin: 0;
+        .noticia h2 {
+            color: #6b4226;
+            font-size: 1.65rem;
+            font-weight: 800;
+            line-height: 1.3;
         }
 
         .data {
-            color: #777;
-            font-size: 13px;
+            color: #a56732;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 18px;
         }
 
-        .publicacao-conteudo {
-            padding: 0 18px 18px;
+        .noticia p {
+            line-height: 1.7;
+            font-size: 1rem;
         }
 
-        .publicacao-conteudo h3 {
-            color: #6b3e26;
-            font-size: 23px;
-            margin-bottom: 10px;
-        }
-
-        .publicacao-conteudo p {
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        .imagem-noticia {
-            width: 100%;
-            max-height: 400px;
-            object-fit: cover;
-        }
+        /* ==============================
+           BOTÕES DE AÇÃO
+        ============================== */
 
         .acoes {
-            border-top: 1px solid #ddd;
             display: flex;
-            padding: 10px 15px;
-            gap: 10px;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 22px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .btn-reacao,
+        .btn-comentario {
+            border: none;
+            border-radius: 25px;
+            padding: 9px 18px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
         }
 
         .btn-reacao {
-            flex: 1;
-            border: none;
-            background: transparent;
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 15px;
-            font-weight: bold;
-            transition: 0.2s;
+            background: #f1d28a;
+            color: #5c391f;
         }
 
         .btn-reacao:hover {
-            background-color: #fff0dc;
+            background: #e5b95d;
+            transform: scale(1.04);
         }
 
-        .btn-curtir.ativo {
-            background-color: #ffd6d6;
-            color: #d62828;
+        .btn-reacao.ativo {
+            background: #d68c45;
+            color: white;
         }
+
+        .btn-comentario {
+            background: #6b4226;
+            color: white;
+        }
+
+        .btn-comentario:hover {
+            background: #4f2f1b;
+            transform: scale(1.04);
+        }
+
+        /* ==============================
+           ÁREA DE COMENTÁRIOS
+        ============================== */
 
         .comentarios {
-            padding: 0 18px 18px;
             display: none;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #eadccf;
+            position: relative;
+            z-index: 3;
         }
 
-        .comentarios.ativo {
+        .comentarios.aberto {
             display: block;
         }
 
+        .comentarios h5 {
+            color: #6b4226;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
         .comentario {
-            background-color: #f7f7f7;
-            border-radius: 10px;
-            padding: 10px;
-            margin-top: 8px;
+            background: #f5eee5;
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
         }
 
         .comentario strong {
-            color: #6b3e26;
+            color: #6b4226;
         }
 
-        .campo-comentario {
+        .form-comentario {
             display: flex;
-            gap: 8px;
-            margin-top: 12px;
+            gap: 10px;
+            margin-top: 15px;
         }
 
-        .campo-comentario input {
+        .form-comentario input {
             flex: 1;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 9px;
+            border: 2px solid #e0c9ae;
+            border-radius: 20px;
+            padding: 10px 15px;
+            outline: none;
+        }
+
+        .form-comentario input:focus {
+            border-color: #d68c45;
         }
 
         .btn-enviar {
-            background-color: #973e0e;
-            color: white;
             border: none;
-            border-radius: 8px;
-            padding: 9px 15px;
+            background: #d68c45;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
         }
 
-        .contador {
-            padding: 0 18px 10px;
-            color: #777;
-            font-size: 14px;
+        .btn-enviar:hover {
+            background: #b96f31;
         }
+
+        /* ==============================
+           RODAPÉ
+        ============================== */
 
         footer {
+            position: relative;
+            z-index: 2;
+            background: #4f2f1b;
             text-align: center;
-            padding: 25px;
-            margin-top: 40px;
-            background-color: #d68c45;
-            color: #ffffff;
-            font-weight: bold;
+            padding: 30px 20px;
+            color: #fffcc9;
         }
+
+        footer .patas-footer {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        /* ==============================
+           RESPONSIVIDADE
+        ============================== */
+
+        @media (max-width: 768px) {
+            .navbar-brand { font-size: 1.05rem; }
+            .cabecalho { padding-top: 40px; }
+            .noticia { padding: 20px; }
+            .noticia h2 { font-size: 1.35rem; }
+            .form-comentario { flex-direction: column; }
+            .btn-enviar { width: 100%; }
+        }
+
     </style>
 </head>
 
 <body>
 
-    <!-- MENU -->
-    <nav class="navbar-custom">
-        <div class="container d-flex justify-content-between align-items-center">
-
-            <a class="navbar-brand" href="/">
-                🐾 Combate aos Maus-Tratos
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                🐾 Vozes que não podem gritar
             </a>
-
-            <a href="/" class="btn btn-voltar">
+            <a href="#" class="btn-voltar">
+                <i class="bi bi-arrow-left"></i>
                 Voltar
             </a>
-
         </div>
     </nav>
 
 
-    <!-- TÍTULO -->
-    <div class="container">
-
-        <h1 class="titulo">
-            Notícias
+    <!-- CABEÇALHO -->
+    <header class="cabecalho">
+        <h1>
+            🐾 Notícias sobre Maus-Tratos aos Animais 🐾
         </h1>
-
-        <p class="subtitulo">
-            Acompanhe informações e novidades sobre a proteção dos animais.
+        <p>
+            Acompanhe notícias e casos relacionados à proteção animal.
+            Compartilhe informações, demonstre sua opinião e ajude a
+            conscientizar outras pessoas sobre a importância do respeito
+            e cuidado com os animais.
         </p>
+    </header>
 
 
-        <!-- PUBLICAÇÃO 1 (RESGATE MAIRIPORÃ) -->
-        <div class="publicacao">
+    <!-- NOTÍCIAS -->
+    <main class="noticias-container">
 
-            <div class="publicacao-header">
-
-                <div class="avatar">
-                    ADM
-                </div>
-
-                <div>
-                    <p class="nome">Da Redação</p>
-                    <span class="data">26 de agosto de 2025</span>
-                </div>
-
+        <!-- NOTÍCIA 1 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 26 de agosto de 2025
             </div>
+            <h2>Mais de 100 animais são resgatados em situação de maus-tratos na Grande SP</h2>
+            <p>Mais de 100 animais foram resgatados de uma situação de maus-tratos em uma propriedade localizada em Mairiporã, na Grande São Paulo.</p>
+            <p>A ação resultou no resgate de cães, gatos e porcos. O caso foi descoberto após uma denúncia e passou a ser investigado pelas autoridades responsáveis pela proteção dos animais.</p>
+            <p>Ao todo, foram encontrados 125 animais, sendo 60 cães, 55 gatos e 10 porcos. O responsável pelo local passou a ser investigado.</p>
 
-
-
-            <div class="publicacao-conteudo">
-
-                <h3>
-                    Mais de 100 animais são resgatados em situação de maus-tratos na Grande SP
-                </h3>
-
-                <p>
-                    A Polícia Civil realizou o resgate de 125 animais — sendo 60 cães, 55 gatos e 10 porcos — em um sítio localizado em Mairiporã-SP. A ação teve início após uma denúncia registrada em boletim de ocorrência, resultando no cumprimento de mandados de busca e apreensão por policiais da 3ª Delegacia de Crimes contra Animais (Diima). A responsável pelo local não prestava os cuidados necessários e está sob investigação.
-                </p>
-
-            </div>
-
-
-            <div class="contador">
-                ❤️ <span id="curtidas1">0</span> curtidas
-                ·
-                💬 <span id="contadorComentarios1">0</span> comentários
-            </div>
-
-
-            <!-- BOTÕES -->
             <div class="acoes">
-
-                <button
-                    class="btn-reacao btn-curtir"
-                    onclick="curtir(this, 'curtidas1')">
-                    ❤️ Curtir
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas1')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas1">0</span>
                 </button>
-
-                <button
-                    class="btn-reacao"
-                    onclick="mostrarComentarios('comentarios1')">
-                    💬 Comentar
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios1')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios1">0</span>
                 </button>
-
             </div>
 
-
-            <!-- COMENTÁRIOS -->
             <div class="comentarios" id="comentarios1">
-
-                <div class="campo-comentario">
-
-                    <input
-                        type="text"
-                        id="inputComentario1"
-                        placeholder="Escreva um comentário..."
-                    >
-
-                    <button
-                        class="btn-enviar"
-                        onclick="adicionarComentario('comentarios1', 'inputComentario1', 'contadorComentarios1')">
-                        Enviar
-                    </button>
-
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios1"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario1" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios1', 'inputComentario1', 'contadorComentarios1')">Enviar 🐾</button>
                 </div>
-
             </div>
+        </article>
 
-        </div>
-
-
-        <!-- PUBLICAÇÃO 2 (FRANCISCO MORATO) -->
-        <div class="publicacao">
-
-            <div class="publicacao-header">
-
-                <div class="avatar">
-                    ADM
-                </div>
-
-                <div>
-                    <p class="nome">Da Redação</p>
-                    <span class="data">21 de agosto de 2025</span>
-                </div>
-
+        <!-- NOTÍCIA 2 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 21 de agosto de 2025
             </div>
+            <h2>Homem é preso por suspeita de maus-tratos contra gatos em Francisco Morato</h2>
+            <p>Um homem foi preso em Francisco Morato, na Grande São Paulo, sob suspeita de cometer maus-tratos contra animais.</p>
+            <p>Durante a investigação, as autoridades encontraram diversos gatos em condições graves. O caso chamou a atenção pela quantidade de animais encontrados no local.</p>
+            <p>A ocorrência foi encaminhada para investigação e as autoridades continuam apurando as circunstâncias do caso.</p>
 
-
-            <div class="publicacao-conteudo">
-
-                <h3>
-                    'Serial killer' de gatos: homem é preso por suspeita de maus-tratos a animais em São Paulo
-                </h3>
-
-                <p>
-                    Um homem foi preso em Francisco Morato acusado de maus-tratos a animais, ameaça e crime ambiental. Após denúncias, guardas civis municipais inspecionaram o imóvel e encontraram 18 animais em estado crítico, quatro gatos mortos e restos de animais enterrados no local.
-                </p>
-
-            </div>
-
-
-            <div class="contador">
-                ❤️ <span id="curtidas2">0</span> curtidas
-                ·
-                💬 <span id="contadorComentarios2">0</span> comentários
-            </div>
-
-
-            <!-- BOTÕES -->
             <div class="acoes">
-
-                <button
-                    class="btn-reacao btn-curtir"
-                    onclick="curtir(this, 'curtidas2')">
-                    ❤️ Curtir
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas2')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas2">0</span>
                 </button>
-
-                <button
-                    class="btn-reacao"
-                    onclick="mostrarComentarios('comentarios2')">
-                    💬 Comentar
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios2')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios2">0</span>
                 </button>
-
             </div>
 
-
-            <!-- COMENTÁRIOS -->
             <div class="comentarios" id="comentarios2">
-
-                <div class="campo-comentario">
-
-                    <input
-                        type="text"
-                        id="inputComentario2"
-                        placeholder="Escreva um comentário..."
-                    >
-
-                    <button
-                        class="btn-enviar"
-                        onclick="adicionarComentario('comentarios2', 'inputComentario2', 'contadorComentarios2')">
-                        Enviar
-                    </button>
-
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios2"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario2" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios2', 'inputComentario2', 'contadorComentarios2')">Enviar 🐾</button>
                 </div>
-
             </div>
+        </article>
 
-        </div>
-
-
-        <!-- PUBLICAÇÃO 3 (ADOÇÃO RESPONSÁVEL) -->
-        <div class="publicacao">
-
-            <div class="publicacao-header">
-
-                <div class="avatar">
-                    ADM
-                </div>
-
-                <div>
-                    <p class="nome">Administrador</p>
-                    <span class="data">26 de agosto de 2026</span>
-                </div>
-
+        <!-- NOTÍCIA 3 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 26 de agosto de 2025
             </div>
+            <h2>Cão Orelha é encontrado ferido após sofrer agressões</h2>
+            <p>Um cachorro conhecido como Orelha foi encontrado ferido após sofrer agressões. O animal foi localizado em situação grave e encaminhado para atendimento veterinário.</p>
+            <p>Devido à gravidade dos ferimentos, o animal precisou receber atendimento especializado. O caso passou a ser investigado pelas autoridades.</p>
 
-
-            <img
-                src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1200&q=80"
-                class="imagem-noticia"
-                alt="Cães para adoção"
-            >
-
-
-            <div class="publicacao-conteudo">
-
-                <h3>
-                    A importância da adoção responsável
-                </h3>
-
-                <p>
-                    Adotar um animal é assumir uma responsabilidade para toda a vida.
-                    Antes de adotar, é importante avaliar se você possui condições
-                    de oferecer alimentação, cuidados, segurança, carinho e atendimento
-                    veterinário.
-                </p>
-
-            </div>
-
-
-            <div class="contador">
-                ❤️ <span id="curtidas3">0</span> curtidas
-                ·
-                💬 <span id="contadorComentarios3">0</span> comentários
-            </div>
-
-
-            <!-- BOTÕES -->
             <div class="acoes">
-
-                <button
-                    class="btn-reacao btn-curtir"
-                    onclick="curtir(this, 'curtidas3')">
-                    ❤️ Curtir
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas3')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas3">0</span>
                 </button>
-
-                <button
-                    class="btn-reacao"
-                    onclick="mostrarComentarios('comentarios3')">
-                    💬 Comentar
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios3')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios3">0</span>
                 </button>
-
             </div>
 
-
-            <!-- COMENTÁRIOS -->
             <div class="comentarios" id="comentarios3">
-
-                <div class="comentario">
-                    <strong>Maria:</strong>
-                    Adotar realmente muda a vida de um animal!
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios3"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario3" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios3', 'inputComentario3', 'contadorComentarios3')">Enviar 🐾</button>
                 </div>
+            </div>
+        </article>
 
-                <div class="comentario">
-                    <strong>João:</strong>
-                    Precisamos conscientizar cada vez mais pessoas.
-                </div>
+        <!-- NOTÍCIA 4 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> Agosto de 2025
+            </div>
+            <h2>Filhote de anta é resgatado após sofrer fratura</h2>
+            <p>Um filhote de anta com aproximadamente 15 dias de vida foi resgatado no interior de São Paulo.</p>
+            <p>O animal apresentava uma fratura na pata traseira e recebeu atendimento veterinário.</p>
+            <p>A expectativa é que, após sua recuperação, o filhote possa retornar ao seu habitat natural.</p>
 
-
-                <div class="campo-comentario">
-
-                    <input
-                        type="text"
-                        id="inputComentario3"
-                        placeholder="Escreva um comentário..."
-                    >
-
-                    <button
-                        class="btn-enviar"
-                        onclick="adicionarComentario('comentarios3', 'inputComentario3', 'contadorComentarios3')">
-                        Enviar
-                    </button>
-
-                </div>
-
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas4')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas4">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios4')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios4">0</span>
+                </button>
             </div>
 
-        </div>
+            <div class="comentarios" id="comentarios4">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios4"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario4" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios4', 'inputComentario4', 'contadorComentarios4')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
 
-    </div>
+    </main>
 
 
+    <!-- RODAPÉ -->
     <footer>
-        © 2026 - Combate aos Maus-Tratos aos Animais
+        <div class="patas-footer">🐾 🐾 🐾</div>
+        <p><strong>Vozes que não podem gritar</strong> - Conscientização e Proteção Animal</p>
+        <p>&copy; Todos os direitos reservados.</p>
     </footer>
 
 
+    <!-- JAVASCRIPT DA PÁGINA -->
     <script>
-
-        // CURTIR PUBLICAÇÃO
-        function curtir(botao, contadorId) {
-
-            const contador = document.getElementById(contadorId);
-
+        // Função para alternar curtir/descurtir
+        function curtir(btn, idContador) {
+            let contador = document.getElementById(idContador);
             let quantidade = parseInt(contador.innerText);
 
-            if (botao.classList.contains("ativo")) {
-
-                quantidade--;
-
-                botao.classList.remove("ativo");
-
+            if (btn.classList.contains('ativo')) {
+                btn.classList.remove('ativo');
+                contador.innerText = quantidade - 1;
             } else {
-
-                quantidade++;
-
-                botao.classList.add("ativo");
-
+                btn.classList.add('ativo');
+                contador.innerText = quantidade + 1;
             }
-
-            contador.innerText = quantidade;
         }
 
-
-        // MOSTRAR/ESCONDER COMENTÁRIOS
-        function mostrarComentarios(id) {
-
-            const comentarios = document.getElementById(id);
-
-            comentarios.classList.toggle("ativo");
-
+        // Função para abrir/fechar comentários
+        function mostrarComentarios(idComentario) {
+            let caixa = document.getElementById(idComentario);
+            caixa.classList.toggle('aberto');
         }
 
+        // Função para adicionar comentário
+        function adicionarComentario(idLista, idInput, idContador) {
+            let input = document.getElementById(idInput);
+            let texto = input.value.trim();
 
-        // ADICIONAR COMENTÁRIO
-        function adicionarComentario(
-            comentariosId,
-            inputId,
-            contadorId
-        ) {
+            if (texto !== "") {
+                let lista = document.getElementById(idLista);
+                let novoComentario = document.createElement('div');
+                novoComentario.className = 'comentario';
+                novoComentario.innerHTML = `<strong>Anônimo 🐾:</strong> ${texto}`;
+                
+                lista.appendChild(novoComentario);
+                
+                // Atualizar contador de comentários
+                let contador = document.getElementById(idContador);
+                contador.innerText = parseInt(contador.innerText) + 1;
 
-            const input = document.getElementById(inputId);
-
-            const texto = input.value.trim();
-
-            if (texto === "") {
-
-                alert("Digite um comentário.");
-
-                return;
+                // Limpar campo de texto
+                input.value = "";
             }
-
-
-            const comentarios = document.getElementById(comentariosId);
-
-            const novoComentario = document.createElement("div");
-
-            novoComentario.classList.add("comentario");
-
-            novoComentario.innerHTML =
-                "<strong>Você:</strong> " + texto;
-
-
-            const campo = comentarios.querySelector(".campo-comentario");
-
-            comentarios.insertBefore(
-                novoComentario,
-                campo
-            );
-
-
-            const contador =
-                document.getElementById(contadorId);
-
-            contador.innerText =
-                parseInt(contador.innerText) + 1;
-
-
-            input.value = "";
-
         }
-
     </script>
 
 </body>

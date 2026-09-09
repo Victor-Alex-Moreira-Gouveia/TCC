@@ -16,7 +16,7 @@
 - ✅ Formulário de ajuda alinhado ao ORM e ao banco
 - ✅ Suíte de integração validada com 48 testes
 
----
+---0
 
 ## 🛠️ Stack Tecnológico
 
