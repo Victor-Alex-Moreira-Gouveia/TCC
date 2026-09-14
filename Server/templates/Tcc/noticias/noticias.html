@@ -156,6 +156,17 @@
             margin-bottom: 18px;
         }
 
+        /* IMAGEM DA NOTÍCIA (Mantendo o layout responsivo e elegante) */
+        .noticia-img {
+            width: 100%;
+            max-height: 420px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
         .noticia p {
             line-height: 1.7;
             font-size: 1rem;
@@ -307,6 +318,7 @@
             .cabecalho { padding-top: 40px; }
             .noticia { padding: 20px; }
             .noticia h2 { font-size: 1.35rem; }
+            .noticia-img { max-height: 250px; }
             .form-comentario { flex-direction: column; }
             .btn-enviar { width: 100%; }
         }
@@ -319,10 +331,10 @@
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="/">
                 🐾 Vozes que não podem gritar
             </a>
-            <a href="#" class="btn-voltar">
+            <a href="/" class="btn-voltar">
                 <i class="bi bi-arrow-left"></i>
                 Voltar
             </a>
@@ -336,7 +348,7 @@
             🐾 Notícias sobre Maus-Tratos aos Animais 🐾
         </h1>
         <p>
-            Acompanhe notícias e casos relacionados à proteção animal.
+            Acompanhe notícias e casos recentes relacionados à proteção animal.
             Compartilhe informações, demonstre sua opinião e ajude a
             conscientizar outras pessoas sobre a importância do respeito
             e cuidado com os animais.
@@ -353,9 +365,10 @@
                 <i class="bi bi-calendar3"></i> 26 de agosto de 2025
             </div>
             <h2>Mais de 100 animais são resgatados em situação de maus-tratos na Grande SP</h2>
-            <p>Mais de 100 animais foram resgatados de uma situação de maus-tratos em uma propriedade localizada em Mairiporã, na Grande São Paulo.</p>
-            <p>A ação resultou no resgate de cães, gatos e porcos. O caso foi descoberto após uma denúncia e passou a ser investigado pelas autoridades responsáveis pela proteção dos animais.</p>
-            <p>Ao todo, foram encontrados 125 animais, sendo 60 cães, 55 gatos e 10 porcos. O responsável pelo local passou a ser investigado.</p>
+            <img src="{{ url_for('static', filename='img/noticias/noticia1_mairipora.jpg') }}" alt="Resgate em Mairiporã" class="noticia-img">
+            <p>Mais de 100 animais foram resgatados de uma situação de maus-tratos em um sítio localizado em Mairiporã, na Grande São Paulo.</p>
+            <p>A ação teve início após uma denúncia registrada em boletim de ocorrência. Policiais da 3ª Delegacia de Crimes contra Animais (Diima) cumpriram mandados de busca e apreensão no local.</p>
+            <p>Ao todo, foram encontrados 125 animais, sendo 60 cães, 55 gatos e 10 porcos. O responsável pelo local é investigado por não prestar os cuidados necessários aos animais.</p>
 
             <div class="acoes">
                 <button class="btn-reacao" onclick="curtir(this, 'curtidas1')">
@@ -381,10 +394,11 @@
             <div class="data">
                 <i class="bi bi-calendar3"></i> 21 de agosto de 2025
             </div>
-            <h2>Homem é preso por suspeita de maus-tratos contra gatos em Francisco Morato</h2>
-            <p>Um homem foi preso em Francisco Morato, na Grande São Paulo, sob suspeita de cometer maus-tratos contra animais.</p>
-            <p>Durante a investigação, as autoridades encontraram diversos gatos em condições graves. O caso chamou a atenção pela quantidade de animais encontrados no local.</p>
-            <p>A ocorrência foi encaminhada para investigação e as autoridades continuam apurando as circunstâncias do caso.</p>
+            <h2>'Serial killer' de gatos: homem é preso por suspeita de maus-tratos a animais em São Paulo</h2>
+            <img src="{{ url_for('static', filename='img/noticias/noticia2_francisco_morato.jpg') }}" alt="Apreensão de animais em Francisco Morato" class="noticia-img">
+            <p>Um homem foi preso em Francisco Morato por maus-tratos a 18 animais, ameaça a pessoas e crime ambiental após denúncias de moradores e familiares.</p>
+            <p>Guardas civis foram até o imóvel e encontraram 18 animais (13 gatos e 5 cães) em estado crítico, além de quatro gatos mortos e restos de animais enterrados.</p>
+            <p>Os animais vivos foram encaminhados para atendimento veterinário. A polícia solicitou perícia no local e pediu a conversão da prisão em flagrante para preventiva.</p>
 
             <div class="acoes">
                 <button class="btn-reacao" onclick="curtir(this, 'curtidas2')">
@@ -408,11 +422,13 @@
         <!-- NOTÍCIA 3 -->
         <article class="noticia">
             <div class="data">
-                <i class="bi bi-calendar3"></i> 26 de agosto de 2025
+                <i class="bi bi-calendar3"></i> 26 de janeiro de 2026
             </div>
-            <h2>Cão Orelha é encontrado ferido após sofrer agressões</h2>
-            <p>Um cachorro conhecido como Orelha foi encontrado ferido após sofrer agressões. O animal foi localizado em situação grave e encaminhado para atendimento veterinário.</p>
-            <p>Devido à gravidade dos ferimentos, o animal precisou receber atendimento especializado. O caso passou a ser investigado pelas autoridades.</p>
+            <h2>Caso Cão Orelha: agressão a cachorro comunitário mobiliza investigação em Florianópolis</h2>
+            <img src="{{ url_for('static', filename='img/noticias/noticia3_cao_orelha.jpg') }}" alt="Caso Cão Orelha" class="noticia-img">
+            <p>Na madrugada entre 3 e 4 de janeiro, o cão comunitário Orelha foi vítima de maus-tratos no bairro Praia Brava, em Florianópolis (SC).</p>
+            <p>Encontrado por moradores em uma área de mata com graves ferimentos na cabeça, o cão foi socorrido, mas precisou ser submetido à eutanásia devido à severidade das lesões.</p>
+            <p>O caso ganhou repercussão nacional. Mandados de busca e apreensão foram cumpridos contra suspeitos e pessoas indiciadas por coação de testemunhas.</p>
 
             <div class="acoes">
                 <button class="btn-reacao" onclick="curtir(this, 'curtidas3')">
@@ -436,12 +452,14 @@
         <!-- NOTÍCIA 4 -->
         <article class="noticia">
             <div class="data">
-                <i class="bi bi-calendar3"></i> Agosto de 2025
+                <i class="bi bi-calendar3"></i> 18 de agosto de 2025
             </div>
-            <h2>Filhote de anta é resgatado após sofrer fratura</h2>
-            <p>Um filhote de anta com aproximadamente 15 dias de vida foi resgatado no interior de São Paulo.</p>
-            <p>O animal apresentava uma fratura na pata traseira e recebeu atendimento veterinário.</p>
-            <p>A expectativa é que, após sua recuperação, o filhote possa retornar ao seu habitat natural.</p>
+            <h2>Tutor que cortou patas de cavalo em Bananal é investigado pela Polícia Civil</h2>
+            <img src="{{ url_for('static', filename='img/noticias/noticia4_bananal_cavalo.jpg') }}" alt="Caso do cavalo em Bananal" class="noticia-img">
+            <p>A morte de um cavalo branco em Bananal, no interior de SP, gerou revolta nacional após imagens mostrarem o animal mutilado com um facão durante uma cavalgada.</p>
+
+            <p>O tutor de 21 anos prestou depoimento e alegou acreditar que o equino já estivesse morto ao golpeá-lo, versão contestada por testemunhas.</p>
+            <p>A Polícia Civil de São Paulo abriu inquérito para apurar as circunstâncias e responsabilidades pelo crime de maus-tratos.</p>
 
             <div class="acoes">
                 <button class="btn-reacao" onclick="curtir(this, 'curtidas4')">
@@ -458,6 +476,240 @@
                 <div class="form-comentario">
                     <input type="text" id="inputComentario4" placeholder="Escreva um comentário...">
                     <button class="btn-enviar" onclick="adicionarComentario('listaComentarios4', 'inputComentario4', 'contadorComentarios4')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 5 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 26 de setembro de 2025
+            </div>
+            <h2>China: Advogado de Xangai é acusado de torturar e matar milhares de gatos para vídeos online</h2>
+            <img src="{{ url_for('static', filename='img/noticias/noticia5_china_gatos.jpg') }}" alt="Caso de crueldade contra gatos em Xangai" class="noticia-img">
+            <p>Um caso chocante de crueldade contra animais veio à tona em Xangai, onde um advogado local é acusado de torturar e matar felinos desde 2017 para comercializar vídeos na internet.</p>
+            <p>A descoberta ocorreu após flagrante em um estacionamento subterrâneo por voluntários de proteção animal. Análises indicam mais de 300 vídeos produzidos e cerca de 4.000 gatos vitimados.</p>
+            <p>Organizações internacionais e protetores locais cobram punições severas e endurecimento das leis de proteção animal no país.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas5')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas5">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios5')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios5">0</span>
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios5">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios5"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario5" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios5', 'inputComentario5', 'contadorComentarios5')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 6 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 18 de agosto de 2025
+            </div>
+            <h2>PRF resgata dois bezerros em situação de maus-tratos na BR-116 na Bahia</h2>
+            <img src="{{ url_for('static', filename='img/noticias/noticia6_prf_bezerros.jpg') }}" alt="Bezerros resgatados em caminhão pela PRF" class="noticia-img">
+            <p>Dois bezerros foram resgatados pela Polícia Rodoviária Federal (PRF) em ação conjunta com a Agência de Defesa Agropecuária da Bahia (Adab) na BR-116 em Vitória da Conquista.</p>
+            <p>Os animais eram transportados trancados na gaveta lateral de um caminhão boiadeiro, sem ventilação, higiene ou espaço mínimo de mobilidade.</p>
+            <p>Os bezerros foram encaminhados para assistência e o motorista assinou um Termo Circunstanciado de Ocorrência (TCO) por crime de maus-tratos.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas6')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas6">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios6')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios6">0</span>
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios6">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios6"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario6" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios6', 'inputComentario6', 'contadorComentarios6')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 7 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> Agosto de 2025
+            </div>
+            <h2>Cavalos mantidos amarrados sob sol forte e feridos geram denúncias em Santarém</h2>
+            <img src="{{ url_for('static', filename='img/noticias/noticia7_santarem_cavalos.jpg') }}" alt="Cavalos abandonados no sol em Santarém" class="noticia-img">
+            <p>Vídeos gravados por moradores do bairro São Cristóvão, em Santarém (PA), mostram dois cavalos mantidos amarrados e abandonados sob sol escaldante em um terreno baldio.</p>
+            <p>Um dos animais apresentava ferimento visível na pata dianteira e exaustão extrema. Moradores relatam que a situação é recorrente e cobram fiscalização dos órgãos ambientais.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas7')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas7">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios7')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios7">0</span>
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios7">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios7"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario7" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios7', 'inputComentario7', 'contadorComentarios7')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 8 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 10 de setembro de 2025
+            </div>
+            <h2>Homem é preso com mais de 1 mil aves silvestres no RJ; 180 morreram no transporte</h2>
+            <img src="{{ url_for('static', filename='img/noticias/noticia8_aves_rj.jpg') }}" alt="Gaiolas com aves silvestres resgatadas" class="noticia-img">
+            <p>Em uma operação conjunta na BR-040 em Petrópolis, a PRF e a Polícia Federal resgataram 1.080 pássaros silvestres trazidos de Minas Gerais para venda ilegal em feiras no Rio de Janeiro.</p>
+            <p>Aproximadamente 180 aves foram encontradas mortas por asfixia e amontoamento em caixas de madeira e papelão. 820 pássaros com condições de saúde foram reabilitados para soltura.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas8')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas8">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios8')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios8">0</span>
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios8">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios8"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario8" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios8', 'inputComentario8', 'contadorComentarios8')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 9 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> Outubro de 2025
+            </div>
+            <h2>Cão negligenciado com corrente pesada recebe resgate emocionante em Minas Gerais</h2>
+            <img src="{{ url_for('static', filename='img_posts/') }}" alt="Resgate do cão Ted em Viçosa" class="noticia-img">
+            <p>Denúncias mobilizaram a Sociedade Viçosense de Proteção aos Animais (SOVIPA) e a Polícia Ambiental em uma propriedade rural em Viçosa (MG).</p>
+            <p>Cães eram mantidos acorrentados entre entulhos e sujeira. O cão Ted foi resgatado debilitado e assustado, recebendo tratamento médico veterinário e acolhimento adequado.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas9')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas9">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios9')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios9">0</span>
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios9">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios9"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario9" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios9', 'inputComentario9', 'contadorComentarios9')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 10 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 30 de junho de 2025
+            </div>
+            <h2>“Zara, a mamãe esqueleto”: cadela em pele e osso usa últimas forças para amamentar no lixo em SP</h2>
+            <img src="{{ url_for('static', filename='img_posts') }}" alt="Resgate da cadela Zara e seus filhotes" class="noticia-img">
+            <p>Uma cadela com severo quadro de desnutrição foi resgatada em Itariri (SP) após um pedido de socorro mobilizar voluntários e protetores locais.</p>
+            <p>Mesmo sem forças, Zara se mantinha deitada sob blocos de concreto e entulho para amamentar sua ninhada recém-nascida. A família foi transferida para um centro de reabilitação e adoção.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas10')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas10">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios10')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios10">0</span>
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios10">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios10"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario10" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios10', 'inputComentario10', 'contadorComentarios10')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 11 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 07 de setembro de 2025
+            </div>
+            <h2>Filhote de anta de 15 dias é resgatado com fratura na pata no interior de SP</h2>
+            <img src="{{ url_for('static', filename='img_posts') }}" alt="Filhote de anta resgatado" class="noticia-img">
+            <p>Um filhote de anta de apenas 15 dias de vida foi resgatado nas proximidades de Planalto do Sul, interior paulista, apresentando fratura na pata traseira.</p>
+            <p>O animal recebeu atendimento da Polícia Ambiental e da Associação Protetora dos Animais Silvestres de Assis. Assim que se recuperar, será reintroduzido ao habitat natural.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas11')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas11">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios11')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios11">0</span>
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios11">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios11"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario11" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios11', 'inputComentario11', 'contadorComentarios11')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 12 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 07 de outubro de 2025
+            </div>
+            <h2>Polícia investiga maus-tratos após descoberta de animais enterrados em terreno em Adamantina</h2>
+            <img src="{{ url_for('static', filename='img_posts') }}" alt="Investigação de maus-tratos em Adamantina" class="noticia-img">
+            <p>A Polícia Civil de Adamantina (SP) instaurou inquérito para apurar crime ambiental após encontrar corpos de animais de pequeno e grande porte enterrados em um terreno.</p>
+            <p>As buscas iniciaram a partir de vídeos gravados por moradores. Cães sobreviventes encontrados no local foram acolhidos por uma ONG parceira.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas12')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas12">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios12')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios12">0</span>
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios12">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios12"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario12" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios12', 'inputComentario12', 'contadorComentarios12')">Enviar 🐾</button>
                 </div>
             </div>
         </article>
