@@ -43,7 +43,7 @@ services:
 
 # Banco de dados relacional
   mariadb:
-    image: mariadb:latest
+    image: mariadb:11.4
     container_name: db_mariadb
     env_file:
       - .env
@@ -61,7 +61,7 @@ services:
     volumes:
       - mariadb_data:/var/lib/mysql
       # Linha adicionada para carregar o SQL automaticamente:
-      - ./Server/Databases/MariaDB_MauTratos.sql:/docker-entrypoint-initdb.d/MariaDB_MauTratos.sql:ro
+      - ./Server/Databases/MariaDB_MauTratos.sql:/docker-entrypoint-initdb.d/MariaDB_MauTratos.sql:ro,Z
     networks:
       - app-network
     restart: unless-stopped

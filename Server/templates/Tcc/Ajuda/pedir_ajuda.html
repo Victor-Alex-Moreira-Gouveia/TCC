@@ -7,139 +7,12 @@
     <!-- Bootstrap 5 & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        /* ===== FUNDO ===== */
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-             background-color: #8e6bbd;
-
-            background-image:
-                radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 35%),
-                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130' viewBox='0 0 120 120'%3E%3Cg fill='%23d8b08c' fill-opacity='0.22'%3E%3Cellipse cx='60' cy='72' rx='12' ry='10'/%3E%3Ccircle cx='49' cy='58' r='5'/%3E%3Ccircle cx='59' cy='51' r='5'/%3E%3Ccircle cx='71' cy='58' r='5'/%3E%3Ccircle cx='61' cy='63' r='5'/%3E%3C/g%3E%3C/svg%3E");
-
-            background-repeat: repeat;
-            background-size: 130px;
-        }
-
-        /* ===== NAVBAR ===== */
-        .navbar {
-            background: rgba(255,255,255,.96) !important;
-            backdrop-filter: blur(8px);
-        }
-
-        /* ===== CARD ===== */
-        .help-card {
-            background: rgba(255,255,255,.98);
-            border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0,0,0,.25);
-            padding: 45px;
-            border: none;
-        }
-
-        /* ===== CORES ===== */
-        .text-brand {
-            color: #7a4b00;
-            font-weight: bold;
-        }
-
-        /* ===== BOTÃO ===== */
-        .btn-brand {
-            background-color: #A67C52;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            font-weight: 600;
-            padding: 12px 28px;
-            transition: .3s;
-        }
-
-        .btn-brand:hover {
-            background-color: #8B5E3C;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,.25);
-        }
-
-        .btn-light {
-            border-radius: 30px;
-        }
-
-        /* ===== LABELS ===== */
-        .form-label {
-            font-size: .8rem;
-            text-transform: uppercase;
-            letter-spacing: .5px;
-            color: #6c757d;
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
-
-        /* ===== INPUTS ===== */
-        .form-control, .form-select {
-            border-radius: 10px;
-            border: 1px solid #d9c7b5;
-            background: #faf9f8;
-            padding: 12px 14px;
-        }
-
-        .form-control:focus, .form-select:focus {
-            background: white;
-            border-color: #A67C52;
-            box-shadow: 0 0 0 .25rem rgba(166,124,82,.20);
-        }
-
-        textarea.form-control {
-            resize: vertical;
-        }
-
-        /* ===== ALERTA ===== */
-        .alert-info {
-            background: #f8f4ef;
-            border: 1px solid #e3d5c7;
-        }
-
-        /* ===== VOLTAR ===== */
-        .back-link {
-            color: #7a4b00;
-            text-decoration: none;
-            font-weight: 600;
-            transition: .2s;
-        }
-
-        .back-link:hover {
-            color: #5c3900;
-            transform: translateX(-3px);
-        }
-
-        /* ===== RODAPÉ ===== */
-        footer {
-            color: rgba(255,255,255,.85);
-            text-align: center;
-            padding: 20px;
-            margin-top: 50px;
-        }
-
-        /* ===== RESPONSIVO ===== */
-        @media (max-width: 768px) {
-            .help-card {
-                padding: 30px 20px;
-            }
-
-            .d-flex.justify-content-end {
-                flex-direction: column;
-            }
-
-            .d-flex.justify-content-end .btn {
-                width: 100%;
-            }
-        }
-</style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
 </head>
-<body>
+<body class="page-help">
 
     <!-- MENU SIMPLES -->
-    <nav class="navbar navbar-expand-lg bg-white shadow-sm mb-5">
+    <nav class="navbar navbar-expand-lg shadow-sm mb-5">
         <div class="container">
             <a class="navbar-brand text-brand" href="/">
                 🐾 Vozes que não podem gritar
@@ -166,7 +39,7 @@
                     </div>
 
                     <!-- Identificador de Usuário -->
-                    <div class="alert alert-info py-2 px-3 mb-4 d-flex align-items-center justify-content-between" style="border-radius: 8px;">
+                    <div class="alert alert-info py-2 px-3 mb-4 d-flex align-items-center justify-content-between help-identity">
                         <span class="small text-secondary-emphasis">
                             <i class="bi bi-shield-fill-check"></i> Você está enviando como: 
                             <strong class="text-brand">
@@ -221,8 +94,8 @@
 
                         <!-- CHECKBOX DE CONDUTA IMEDIATA -->
                         <div class="mb-3 form-check bg-danger-subtle p-3 rounded-3 border border-danger-subtle shadow-sm">
-                            <input class="form-check-input ms-1 mt-1" type="checkbox" id="checkbox-urgencia" style="cursor: pointer;">
-                            <label class="form-check-label ms-2 fw-bold text-danger" for="checkbox-urgencia" style="cursor: pointer;">
+                            <input class="form-check-input ms-1 mt-1 help-pointer" type="checkbox" id="checkbox-urgencia">
+                            <label class="form-check-label ms-2 fw-bold text-danger help-pointer" for="checkbox-urgencia">
                                 <i class="bi bi-exclamation-triangle-fill"></i> Exibir conduta e orientações imediatas na tela
                             </label>
                             <div class="form-text ms-2 mt-1 text-danger opacity-75 small">
@@ -235,7 +108,7 @@
                             <h4 class="alert-heading fw-bold fs-6 mb-2">
                                 <i class="bi bi-shield-exclamation"></i> Ação Imediata Necessária: <span id="urgencia-titulo-alerta" class="text-decoration-underline"></span>
                             </h4>
-                            <p id="urgencia-texto-alerta" class="mb-0 small" style="line-height: 1.5;"></p>
+                            <p id="urgencia-texto-alerta" class="mb-0 small help-guidance-text"></p>
                         </div>
 
                         <div class="d-flex justify-content-end gap-3">
@@ -256,7 +129,9 @@
         </p>
     </footer>
 
-    <script>
+    <script src="{{ url_for('static', filename='js/ajuda-pedir.js') }}"></script>
+    <!-- Código anterior mantido apenas como referência histórica; a execução usa o asset externo. -->
+    <!--
         // Textos de conduta imediata orientados por urgência
         const instrucoesUrgencia = {
             'Ferimento grave': 'Mantenha a calma e evite movimentos bruscos no animal para não piorar a lesão. Pressione um pano limpo levemente sobre o sangramento. <strong>Ligue imediatamente para um veterinário de plantão ou serviço de resgate animal</strong> e prepare um transporte seguro.',
@@ -348,6 +223,6 @@
                 alertMsg.classList.remove('d-none');
             }
         });
-    </script>
+    </script> -->
 </body>
 </html>

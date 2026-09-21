@@ -112,9 +112,14 @@ Server/
 ├── controllers/              # Blueprints e validação das rotas
 ├── models/                   # Entidades ORM e operações de persistência
 ├── templates/                # Páginas Jinja2
-├── static/                   # JavaScript, CSS e imagens
+├── static/                   # Assets da aplicação
+│   ├── css/                  # Estilos específicos de páginas
+│   ├── js/                   # Scripts específicos de páginas
+│   └── img_posts/            # Imagens das notícias
 ├── Databases/                # Scripts de inicialização MariaDB/MySQL
 ├── main.py                   # bootstrap Flask
 ├── wsgi.py                   # entrada do Gunicorn
 └── test_crud.py              # testes de integração
 ```
+
+A convenção detalhada de organização dos templates, assets e documentos está em [`Docs/README.md`](Docs/README.md).

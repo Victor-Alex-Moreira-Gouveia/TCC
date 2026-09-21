@@ -83,7 +83,7 @@ Server/templates/Tcc/
 No HTML:
 
 - mantenha `lang="pt-BR"` e o viewport;
-- carregue o CSS global com `url_for('static', filename='style.css')`;
+- carregue a identidade visual com `url_for('static', filename='css/pages.css')`;
 - carregue scripts com `url_for('static', filename='MeuDominio/script.js')`;
 - use `url_for()` para links e rotas, em vez de caminhos relativos;
 - use IDs únicos nos campos que serão acessados pelo JavaScript;
@@ -99,7 +99,7 @@ Exemplo mínimo de template público:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
     <title>{{ titulo }}</title>
 </head>
 <body>

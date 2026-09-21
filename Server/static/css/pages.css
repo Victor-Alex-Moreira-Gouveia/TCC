@@ -1,0 +1,388 @@
+/* Identidade visual compartilhada. */
+:root {
+    --color-brand: #7a4b00;
+    --color-brand-dark: #5c3900;
+    --color-accent: #a67c52;
+    --color-accent-soft: #e8b0f3;
+    --color-lilac: #e8b0f3;
+    --color-page-bg: #8e6bbd;
+    --color-surface: #ffffff;
+    --color-surface-soft: #f8f4ef;
+    --color-text: #333333;
+    --color-heading: #ffffff;
+    --paw-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130' viewBox='0 0 120 120'%3E%3Cg fill='%233D2314' fill-opacity='0.35'%3E%3Cellipse cx='60' cy='72' rx='12' ry='10'/%3E%3Ccircle cx='49' cy='58' r='5'/%3E%3Ccircle cx='59' cy='51' r='5'/%3E%3Ccircle cx='71' cy='58' r='5'/%3E%3Ccircle cx='61' cy='63' r='5'/%3E%3C/g%3E%3C/svg%3E");
+    --paw-size: 130px;
+}
+
+/* Componentes compartilhados por todas as páginas. */
+body.page-home,
+body.page-login,
+body.page-register,
+body.page-help,
+body.page-laws,
+body.page-admin,
+body.page-news {
+    color: var(--color-text);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.text-brand { color: var(--color-brand); }
+.btn-brand {
+    background-color: var(--color-accent);
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    padding: 10px 24px;
+    font-weight: 600;
+    transition: all .3s ease-in-out;
+}
+.btn-brand:hover {
+    background-color: var(--color-brand-dark);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .25);
+}
+.btn-outline-brand {
+    color: var(--color-brand);
+    border: 2px solid var(--color-accent);
+    border-radius: 30px;
+    font-weight: 600;
+    padding: 6px 20px;
+    transition: all .2s;
+}
+.btn-outline-brand:hover {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #fff;
+}
+.crud-card {
+    background: rgba(255, 255, 255, .98);
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, .25);
+    padding: 30px;
+    margin-bottom: 24px;
+}
+.form-label {
+    font-size: .85rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #6c757d;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+.form-control,
+.form-select {
+    border: 1px solid #d9c7b5;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: .95rem;
+    background-color: #faf9f8;
+}
+.form-control:focus,
+.form-select:focus {
+    background-color: #fff;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 .25rem rgba(166, 124, 82, .2);
+}
+textarea.form-control { min-height: 110px; resize: vertical; }
+.table-responsive-wrapper { border: 1px solid #efefef; border-radius: 12px; overflow: hidden; background: #fff; }
+.table { margin-bottom: 0; }
+.table th { background-color: #f8f4ef; color: var(--color-brand); font-size: .8rem; text-transform: uppercase; letter-spacing: .5px; padding: 14px; }
+.table td { padding: 14px; font-size: .92rem; }
+.corpo-cell-truncated { max-width: 210px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.terminal-log { background: var(--color-brand-dark); color: var(--color-accent-soft); padding: 16px; border-radius: 10px; font-family: 'Courier New', Courier, monospace; font-size: .85rem; max-height: 220px; border-left: 4px solid var(--color-accent); white-space: pre-wrap; overflow-y: auto; }
+
+/* Estilos específicos das páginas públicas e de autenticação. */
+body.page-home {
+    background-color: var(--color-page-bg);
+    background-image:
+        radial-gradient(circle at top left, rgba(255, 255, 255, .05), transparent 35%),
+        var(--paw-pattern);
+    background-repeat: repeat;
+    background-size: var(--paw-size);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.page-home .navbar {
+    background-color: var(--color-lilac);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 15px 0;
+}
+
+.page-home .navbar-brand {
+    color: var(--color-brand);
+    font-weight: bold;
+    font-size: 1.4rem;
+}
+
+.page-home .navbar-nav { gap: 10px; }
+.page-home .navbar-nav .btn {
+    border-radius: 30px;
+    padding: 10px 25px;
+    font-weight: 600;
+    min-width: 110px;
+}
+
+.hero { width: 100%; text-align: center; padding: 0; }
+.hero img { width: 100%; height: auto; display: block; margin: 0 auto; }
+
+.page-home footer {
+    background-color: var(--color-lilac);
+    color: var(--color-brand);
+    text-align: center;
+    padding: 15px;
+    margin-top: 50px;
+}
+
+.page-login,
+.page-register,
+.page-help,
+.page-laws,
+.page-admin {
+    background-color: var(--color-page-bg);
+    background-image:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 35%),
+        var(--paw-pattern);
+    background-repeat: repeat;
+    background-size: var(--paw-size);
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    padding: 50px;
+    max-width: 500px;
+    width: 100%;
+}
+
+.register-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(122, 75, 0, 0.08);
+    padding: 40px;
+    max-width: 480px;
+    width: 100%;
+    border: 1px solid rgba(122, 75, 0, 0.05);
+}
+
+.page-login .text-brand,
+.page-register .text-brand,
+.page-help .text-brand,
+.page-laws .text-brand,
+.page-admin .text-brand {
+    color: var(--color-brand);
+    font-weight: bold;
+}
+
+.page-login .btn-brand,
+.page-register .btn-brand,
+.page-help .btn-brand {
+    background-color: var(--color-accent);
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    font-weight: 600;
+    padding: 12px;
+}
+
+.page-login .form-control,
+.page-register .form-control,
+.page-help .form-control,
+.page-help .form-select {
+    border-radius: 10px;
+    border: 1px solid #d9c7b5;
+    padding: 12px 14px;
+}
+
+.help-card,
+.laws-card {
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    border: none;
+}
+
+.help-card { padding: 45px; }
+.page-help .btn-light { border-radius: 30px; }
+.page-help .help-id-column { width: 60px; }
+.page-help .help-actions-column { width: 100px; }
+.page-help .help-identity { border-radius: 8px; }
+.page-help .help-pointer { cursor: pointer; }
+.page-help .help-guidance-text { line-height: 1.5; }
+.page-help .form-label { font-size: .8rem; text-transform: uppercase; letter-spacing: .5px; color: #6c757d; margin-bottom: 6px; font-weight: 600; }
+.page-help textarea.form-control { resize: vertical; }
+.page-help .alert-info { background: #f8f4ef; border: 1px solid #e3d5c7; }
+.page-help footer { color: rgba(255, 255, 255, .85); padding: 20px; margin-top: 50px; }
+.laws-card { padding: 40px; margin-bottom: 30px; }
+.law-highlight {
+    border-left: 5px solid var(--color-accent);
+    background: #f8f4ef;
+    padding: 15px 18px;
+    border-radius: 0 12px 12px 0;
+    margin: 20px 0;
+}
+
+.page-help .navbar,
+.page-laws .navbar,
+.page-news .navbar {
+    background-color: var(--color-lilac) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .1);
+    backdrop-filter: none;
+}
+.page-help .navbar-brand,
+.page-laws .navbar-brand,
+.page-news .navbar-brand { color: var(--color-brand) !important; font-weight: bold; }
+.page-help .btn-voltar,
+.page-laws .btn-voltar,
+.page-news .btn-voltar { color: var(--color-brand); border-color: var(--color-brand); }
+.page-help .btn-voltar:hover,
+.page-laws .btn-voltar:hover,
+.page-news .btn-voltar:hover { background: var(--color-brand); color: #fff; }
+.page-home .navbar-toggler,
+.page-help .navbar-toggler,
+.page-laws .navbar-toggler { border-color: var(--color-brand); }
+
+.back-link {
+    color: var(--color-brand);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .page-home .navbar-nav { margin-top: 15px; gap: 8px; }
+    .page-home .navbar-nav .btn { width: 100%; }
+    .login-card { padding: 30px 20px; }
+    .help-card, .laws-card { padding: 25px 20px; }
+    .page-help .help-card { padding: 30px 20px; }
+    .page-help .d-flex.justify-content-end { flex-direction: column; }
+    .page-help .d-flex.justify-content-end .btn { width: 100%; }
+}
+
+/* Página de notícias. */
+.page-news { 
+    margin: 0;
+    background-color: var(--color-page-bg);
+    background-image: var(--paw-pattern);
+    background-repeat: repeat;
+    background-size: var(--paw-size);
+    color: #f7f4eb;
+    font-family: Arial, Helvetica, sans-serif;
+    overflow-x: hidden;
+}
+
+.page-news .navbar { background: #915eb3 !important; padding: 15px 0; position: relative; z-index: 10; }
+.page-news .cabecalho h1 { color: var(--color-heading) !important; }
+.page-news .navbar-brand { font-weight: bold; font-size: 1.35rem; }
+.btn-voltar { color: var(--color-brand); border: 2px solid var(--color-brand); border-radius: 25px; padding: 8px 18px; text-decoration: none; transition: .3s; }
+.btn-voltar:hover { background: var(--color-brand); color: #fff; }
+.cabecalho { position: relative; z-index: 2; text-align: center; padding: 55px 20px 35px; }
+.cabecalho h1 { font-weight: 800; font-size: clamp(2rem, 5vw, 3.2rem); margin-bottom: 15px; }
+.cabecalho p { max-width: 850px; margin: auto; font-size: 1.1rem; line-height: 1.7; }
+.noticias-container { position: relative; z-index: 2; max-width: 1100px; margin: auto; padding: 10px 20px 60px; }
+.noticia { background: var(--color-surface); color: var(--color-text); border-radius: 20px; margin-bottom: 35px; padding: 28px; box-shadow: 0 8px 25px rgba(0, 0, 0, .2); transition: .3s ease; position: relative; overflow: hidden; }
+.noticia:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0, 0, 0, .28); }
+.noticia::after { content: "🐾"; position: absolute; right: -5px; bottom: -25px; font-size: 100px; opacity: .07; transform: rotate(-15deg); }
+.noticia h2 { color: var(--color-brand); font-size: 1.65rem; font-weight: 800; line-height: 1.3; }
+.data { color: #a56732; font-size: .9rem; font-weight: bold; margin-bottom: 18px; }
+.noticia-img { width: 100%; max-height: 420px; object-fit: cover; border-radius: 12px; margin: 15px 0 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, .15); }
+.noticia p { line-height: 1.7; font-size: 1rem; }
+.acoes { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; position: relative; z-index: 3; }
+.btn-reacao, .btn-comentario, .btn-compartilhar { border: none; border-radius: 25px; padding: 9px 18px; font-weight: bold; transition: .3s; cursor: pointer; }
+.btn-reacao { background: var(--color-accent-soft); color: #5c391f; }
+.btn-reacao:hover { background: #e5b95d; transform: scale(1.04); }
+.btn-reacao.ativo { background: var(--color-accent); color: white; }
+.btn-comentario { background: var(--color-brand); color: white; }
+.btn-comentario:hover { background: var(--color-brand-dark); transform: scale(1.04); }
+.btn-compartilhar { background: var(--color-lilac); color: var(--color-brand-dark); }
+.btn-compartilhar:hover { background: #d994c4; transform: scale(1.04); }
+.menu-compartilhar { display: none; margin-top: 15px; padding: 15px; background: var(--color-surface-soft); border-radius: 15px; border: 1px solid #eadccf; position: relative; z-index: 4; }
+.menu-compartilhar.aberto { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.menu-compartilhar button, .menu-compartilhar a { border: none; border-radius: 20px; padding: 8px 14px; font-weight: bold; text-decoration: none; cursor: pointer; transition: .3s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-whatsapp { background: #25d366; color: white; }
+.btn-facebook { background: #1877f2; color: white; }
+.btn-x { background: #111; color: white; }
+.btn-copiar, .btn-enviar { background: var(--color-accent); color: white; }
+.menu-compartilhar button:hover, .menu-compartilhar a:hover { transform: scale(1.04); opacity: .9; }
+.comentarios { display: none; margin-top: 25px; padding-top: 20px; border-top: 2px solid #eadccf; position: relative; z-index: 3; }
+.comentarios.aberto { display: block; }
+.comentarios h5, .comentario strong { color: var(--color-brand); font-weight: bold; }
+.comentario { background: var(--color-surface-soft); border-radius: 12px; padding: 12px 15px; margin-bottom: 10px; }
+.form-comentario { display: flex; gap: 10px; margin-top: 15px; }
+.form-comentario input { flex: 1; border: 2px solid #e0c9ae; border-radius: 20px; padding: 10px 15px; outline: none; }
+.form-comentario input:focus { border-color: var(--color-accent); }
+.btn-enviar { border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: .3s; }
+.btn-enviar:hover { background: #b96f31; }
+.page-news footer { position: relative; z-index: 2; background: var(--color-brand-dark); text-align: center; padding: 30px 20px; color: var(--color-heading); }
+.page-news footer .patas-footer { font-size: 28px; margin-bottom: 8px; }
+.page-news footer p { margin: 5px 0; }
+
+/* Página inicial. */
+.page-home .conscientizacao { padding: 70px 20px; text-align: center; }
+.page-home .conscientizacao h1 { color: var(--color-brand); font-size: 3rem; font-weight: bold; margin-bottom: 25px; }
+.page-home .conscientizacao p { max-width: 900px; margin: auto; font-size: 1.2rem; line-height: 1.8; color: #333; }
+
+/* Login e cadastro. */
+.page-login h3 { font-size: 2rem; }
+.page-login .btn-brand:hover { background-color: var(--color-brand-dark); color: white; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, .25); }
+.page-login .form-control { padding: 12px; border-color: #d2c1b0; }
+.page-login .form-control:focus { border-color: var(--color-accent); box-shadow: 0 0 0 .2rem rgba(166, 124, 82, .25); }
+.page-login .input-group .btn { border-radius: 0 10px 10px 0; }
+.page-login .back-link { display: inline-flex; align-items: center; margin-bottom: 20px; transition: .2s; }
+.page-login .back-link i { transition: .2s; }
+.page-login .back-link:hover { color: var(--color-brand-dark); transform: translateX(-3px); }
+.page-login .back-link:hover i { transform: translateX(-3px); }
+.page-login .text-brand:hover { color: var(--color-brand-dark); }
+.page-register .btn-brand { background-color: var(--color-brand); transition: all .2s ease-in-out; }
+.page-register .btn-brand:hover { background-color: var(--color-brand-dark); color: #fff; transform: translateY(-1px); }
+.page-register .form-label { font-size: .8rem; text-transform: uppercase; letter-spacing: .5px; color: #6c757d; margin-bottom: 6px; font-weight: 600; }
+.page-register .form-control { border-color: #dee2e6; border-radius: 8px; padding: 10px 14px; font-size: .95rem; background-color: #f8f9fa; }
+.page-register .form-control:focus { background-color: #fff; border-color: var(--color-brand); box-shadow: 0 0 0 .25rem rgba(122, 75, 0, .15); }
+
+/* Página de legislação. */
+.page-laws .bg-light { background: #f8f4ef !important; border: 1px solid #eadfd2; }
+.page-laws .list-group-item { background: transparent; border-bottom: 1px solid #eee; }
+.page-laws .list-group-item:last-child { border-bottom: none; }
+.page-laws .badge { font-size: .85rem; padding: 10px 16px; }
+.page-laws footer { color: rgba(255, 255, 255, .85); padding: 25px; margin-top: 30px; }
+
+/* Painel administrativo. */
+.page-admin .admin-layout { min-height: 100vh; }
+.page-admin .admin-nav-link { font-weight: 500; }
+.page-admin .admin-subtitle { color: rgba(255, 255, 255, .7); }
+.page-admin .admin-readonly { background: #e9ecef !important; border: 1px dashed #d9c7b5 !important; }
+.page-admin .admin-id-column { width: 70px; }
+.page-admin .admin-actions-column { width: 120px; }
+.page-admin .admin-log-box { background-color: var(--color-brand-dark); border: 1px solid #d9c7b5; max-height: 200px; overflow-y: auto; }
+.page-admin .sidebar { background: var(--color-lilac) !important; backdrop-filter: none; border-right: 1px solid rgba(122, 75, 0, .2); }
+.page-admin .crud-card { background: rgba(255, 255, 255, .98) !important; border-radius: 20px !important; box-shadow: 0 15px 40px rgba(0, 0, 0, .25) !important; border: none !important; }
+.page-admin .text-brand { color: var(--color-brand) !important; }
+.page-admin .border-brand-light { border-color: #e3d5c7 !important; }
+.page-admin .text-muted { color: #8b5e3c !important; }
+.page-admin .btn-brand { background-color: var(--color-accent) !important; color: white !important; border-radius: 30px !important; padding: 10px 24px; }
+.page-admin .btn-success { background-color: var(--color-accent) !important; border-color: var(--color-accent) !important; color: #fff !important; }
+.page-admin .btn-success:hover { background-color: var(--color-brand-dark) !important; border-color: var(--color-brand-dark) !important; }
+.page-admin .btn-brand:hover, .page-admin .nav-link.active.btn-brand { background-color: var(--color-brand-dark) !important; color: white !important; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, .25); }
+.page-admin .btn-outline-brand { color: var(--color-accent) !important; border: 2px solid var(--color-accent) !important; background: transparent !important; border-radius: 30px !important; }
+.page-admin .btn-outline-brand:hover { background-color: var(--color-accent) !important; color: white !important; }
+.page-admin .form-control { border-radius: 10px !important; border: 1px solid #d9c7b5 !important; background: #faf9f8 !important; padding: 12px 14px; }
+.page-admin .form-control:focus { background: white !important; border-color: var(--color-accent) !important; box-shadow: 0 0 0 .25rem rgba(166, 124, 82, .2) !important; }
+.page-admin .table-light th { background-color: #f8f4ef !important; color: var(--color-brand) !important; border-bottom: 2px solid #d9c7b5 !important; }
+.page-admin footer, .page-admin footer p { color: rgba(255, 255, 255, .85) !important; }
+
+@media (max-width: 768px) {
+    .page-news .navbar-brand { font-size: 1.05rem; }
+    .cabecalho { padding-top: 40px; }
+    .noticia { padding: 20px; }
+    .noticia h2 { font-size: 1.35rem; }
+    .noticia-img { max-height: 250px; }
+    .form-comentario { flex-direction: column; }
+    .btn-enviar { width: 100%; }
+    .page-home .conscientizacao { padding: 50px 15px; }
+    .page-home .conscientizacao h1 { font-size: 2rem; }
+    .page-home .conscientizacao p { font-size: 1rem; }
+    .page-laws .laws-card { padding: 25px; }
+    .page-laws .display-5 { font-size: 2rem; }
+    .page-laws .badge { margin-bottom: 8px; }
+}

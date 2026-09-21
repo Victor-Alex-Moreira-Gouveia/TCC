@@ -10,8 +10,10 @@
 
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
 
-    <style>
+    <!-- CSS legado desativado: os estilos estão em static/css/pages.css.
+    CSS legado preservado apenas como referência histórica:
 
         /* ==============================
            CONFIGURAÇÕES GERAIS E FUNDO
@@ -398,10 +400,11 @@
             .btn-enviar { width: 100%; }
         }
 
-    </style>
+    Fim do CSS legado.
+    -->
 </head>
 
-<body>
+<body class="page-news">
 
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg">
@@ -1017,8 +1020,9 @@
     </footer>
 
 
-    <!-- JAVASCRIPT DA PÁGINA -->
-    <script>
+    <script src="{{ url_for('static', filename='js/noticias.js') }}"></script>
+    <!-- JAVASCRIPT LEGADO DESATIVADO: mantido neste arquivo apenas durante a migração. -->
+    <!--
         // Função para alternar curtir/descurtir
         function curtir(btn, idContador) {
             let contador = document.getElementById(idContador);
@@ -1128,7 +1132,7 @@
                 input.value = "";
             }
         }
-    </script>
+    -->
 
 </body>
 </html>
