@@ -29,6 +29,9 @@ Criar uma experiência autenticada para administração de notícias e registro 
 
 ### 3. Autenticação obrigatória
 
+- Somente usuários cadastrados e autenticados podem acessar o conteúdo da plataforma.
+- Visitantes não autenticados podem acessar apenas as telas de login e cadastro.
+- A página inicial, notícias, leis, ONGs, denúncias, comentários, curtidas e painéis devem exigir autenticação.
 - Remover o acesso funcional anônimo às áreas que exigem conta.
 - Usuários sem sessão devem ser direcionados para o login.
 - Usuários comuns devem acessar apenas recursos permitidos para o papel `user`.
@@ -69,6 +72,36 @@ Ao registrar uma denúncia:
 - Centralizar o mapa de orientações no backend ou em um módulo de serviço/configuração, evitando regras duplicadas nos templates.
 - Não exibir orientação de emergência antes de o usuário marcar ou selecionar a opção correspondente, salvo quando o risco exigir aviso imediato.
 
+### 6. Comentários e curtidas em notícias
+
+Preparar o sistema para interação autenticada nas notícias:
+
+- Somente usuários cadastrados e autenticados podem curtir ou comentar.
+- Visitantes devem ser redirecionados para o login ao tentar interagir.
+- Cada usuário pode ter no máximo uma curtida por notícia.
+- Permitir remover a própria curtida sem duplicar registros.
+- Usuários podem criar comentários associados à notícia e ao autor autenticado.
+- Usuários comuns podem editar ou remover apenas os próprios comentários.
+- Administradores podem moderar, editar ou remover qualquer comentário.
+- Exibir autor, data de criação e, quando aplicável, data de atualização.
+- Validar no backend o vínculo entre sessão, comentário e usuário.
+- Validar tamanho mínimo e máximo do comentário.
+- Rejeitar comentários vazios, conteúdo inválido e requisições sem autenticação.
+- Escapar o conteúdo dos comentários para impedir XSS.
+- Criar endpoints separados e consistentes, por exemplo:
+  - `GET /api/noticias/<id>/comentarios`
+  - `POST /api/noticias/<id>/comentarios`
+  - `PUT /api/comentarios/<id>`
+  - `DELETE /api/comentarios/<id>`
+  - `POST /api/noticias/<id>/curtida`
+  - `DELETE /api/noticias/<id>/curtida`
+- Retornar a quantidade de curtidas e comentários na resposta da notícia.
+- Atualizar a interface sem recarregar a página quando for simples e seguro fazê-lo.
+- Mostrar estados de carregamento, lista vazia, erro e sucesso.
+- Pedir confirmação antes de remover um comentário.
+
+Criar as entidades necessárias no banco, com chaves estrangeiras, índices e restrições para evitar curtidas duplicadas.
+
 ## Requisitos técnicos
 
 - Seguir os padrões existentes de Flask, SQLAlchemy, Blueprints e respostas JSON.
@@ -80,6 +113,7 @@ Ao registrar uma denúncia:
 - Usar `url_for('static', filename=...)` para assets locais.
 - Manter o `docker-compose.yml` compatível com banco local e Docker.
 - Atualizar README e documentação de API/estrutura.
+- Documentar claramente que todo o conteúdo e toda interação exigem usuário autenticado.
 
 ## Testes obrigatórios
 
@@ -91,6 +125,13 @@ Adicionar ou atualizar testes para verificar:
 - campos PIX não existem mais em formulários, payloads e respostas;
 - mensagens de sucesso só aparecem após resposta positiva do backend;
 - denúncia salva retorna confirmação e orientação correspondente;
+- usuário não autenticado não acessa páginas, comentários ou curtidas;
+- usuário autenticado pode curtir uma notícia apenas uma vez;
+- usuário pode criar, editar e remover o próprio comentário;
+- usuário não pode editar ou remover comentário de outra pessoa;
+- administrador pode moderar comentários;
+- tentativa de comentário com HTML malicioso não gera XSS;
+- contagem de curtidas permanece correta após repetir ou desfazer a ação;
 - mensagens de erro são exibidas quando a persistência falha;
 - execução permanece compatível com Docker e com banco local configurado por `.env`.
 
@@ -107,5 +148,6 @@ Considere a tarefa concluída somente quando:
 7. CSS e JavaScript permanecerem separados dos templates.
 8. Os testes automatizados e as validações de sintaxe passarem.
 9. A configuração `DATABASE_HOST` continuar selecionável pelo `.env`, sem quebrar execução local ou Docker.
+10. Comentários e curtidas funcionarem somente para usuários autenticados e respeitarem as permissões definidas.
 
 Antes de editar, faça uma leitura breve das rotas, controllers, models, templates, scripts e testes relacionados. Faça mudanças pequenas e verificáveis, sem reescrever módulos não envolvidos.
