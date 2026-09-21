@@ -20,12 +20,21 @@ Criar uma experiência autenticada para administração de notícias e registro 
 - Criar uma interface experimental para o administrador cadastrar e editar notícias.
 - Exibir mensagens de sucesso e erro após cada operação.
 
-### 2. Remoção completa de PIX
+### 2. Remoção completa de PIX e do módulo de ONGs
 
-- Remover o campo `pix_doacao` dos formulários, templates, JavaScript, validações, payloads, models, schemas, SQL e controllers onde ele não for mais necessário.
-- Criar uma migração compatível para bancos existentes, quando necessário.
-- Atualizar documentação e testes para não mencionar PIX.
-- Não deixar referências órfãs a `pix`, `pix_doacao` ou campos equivalentes.
+- Remover completamente a funcionalidade de ONGs, pois ela foi abandonada.
+- Remover as páginas, rotas, controllers, models, serviços, scripts, imagens, menus, endpoints, testes e documentação relacionados a ONGs.
+- Remover o campo `pix_doacao` e qualquer campo equivalente dos formulários, templates, JavaScript, validações, payloads, models, schemas, SQL e controllers.
+- Remover campos PIX das tabelas de denúncias, ONGs ou qualquer outra tabela onde ainda existam.
+- Atualizar o SQL inicial (`Server/Databases/MariaDB_MauTratos.sql` e demais scripts SQL) para não criar colunas, tabelas ou referências a ONGs e PIX.
+- Criar uma migração segura e compatível para bancos existentes, removendo as colunas e tabelas abandonadas somente quando confirmado que não são mais usadas.
+- Considerar dependências e chaves estrangeiras antes de remover tabelas.
+- Atualizar modelos ORM, serializadores, validações, controllers, serviços e respostas da API.
+- Remover links de navegação, cards, menus e chamadas JavaScript das ONGs.
+- Atualizar documentação, exemplos JSON, README e testes para não mencionar ONGs ou PIX.
+- Fazer uma busca global no repositório por `pix`, `pix_doacao`, `ONG`, `ongs`, `ong` e nomes equivalentes.
+- Não deixar referências órfãs, campos sem uso, rotas quebradas, tabelas abandonadas ou dados sendo enviados para propriedades removidas.
+- Confirmar que o formulário de denúncia, o backend e o banco possuem exatamente o mesmo contrato de dados.
 
 ### 3. Autenticação obrigatória
 
@@ -114,6 +123,7 @@ Criar as entidades necessárias no banco, com chaves estrangeiras, índices e re
 - Manter o `docker-compose.yml` compatível com banco local e Docker.
 - Atualizar README e documentação de API/estrutura.
 - Documentar claramente que todo o conteúdo e toda interação exigem usuário autenticado.
+- Manter o contrato entre frontend, backend e banco sincronizado após a remoção de módulos e campos.
 
 ## Testes obrigatórios
 
@@ -123,6 +133,11 @@ Adicionar ou atualizar testes para verificar:
 - usuário comum não altera notícias;
 - administrador cria, edita e remove notícias;
 - campos PIX não existem mais em formulários, payloads e respostas;
+- não existem páginas, rotas, tabelas, models, scripts ou referências funcionais de ONGs;
+- não existem colunas PIX ou tabelas abandonadas após a migração do banco;
+- o SQL de instalação limpa e a migração de banco existente produzem o mesmo schema esperado;
+- o formulário de denúncia, o endpoint correspondente e o model usam os mesmos campos;
+- nenhuma requisição envia campos removidos ou desconhecidos;
 - mensagens de sucesso só aparecem após resposta positiva do backend;
 - denúncia salva retorna confirmação e orientação correspondente;
 - usuário não autenticado não acessa páginas, comentários ou curtidas;
@@ -149,5 +164,7 @@ Considere a tarefa concluída somente quando:
 8. Os testes automatizados e as validações de sintaxe passarem.
 9. A configuração `DATABASE_HOST` continuar selecionável pelo `.env`, sem quebrar execução local ou Docker.
 10. Comentários e curtidas funcionarem somente para usuários autenticados e respeitarem as permissões definidas.
+11. ONGs e PIX estiverem removidos de forma consistente do frontend, backend, banco, documentação e testes.
+12. Uma busca global não encontrar referências funcionais a módulos ou campos removidos.
 
 Antes de editar, faça uma leitura breve das rotas, controllers, models, templates, scripts e testes relacionados. Faça mudanças pequenas e verificáveis, sem reescrever módulos não envolvidos.
