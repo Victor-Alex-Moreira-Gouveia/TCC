@@ -386,3 +386,37 @@ body.page-home {
     .page-laws .display-5 { font-size: 2rem; }
     .page-laws .badge { margin-bottom: 8px; }
 }
+
+/* Toast/Alerts reutilizáveis de confirmação de persistência */
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 300px;
+    max-width: 450px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: fadeInDown 0.3s ease-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.comentario-acoes {
+    display: flex;
+    gap: 6px;
+}
+.btn-sm-icon {
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    border-radius: 12px;
+}

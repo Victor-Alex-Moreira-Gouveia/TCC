@@ -4,17 +4,11 @@ from flask import jsonify
 
 
 EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
-PIX_RE = re.compile(
-    r'^(\d{11}|\d{14}|[^@\s]+@[^@\s]+\.[^@\s]+|\+\d{1,3}\d{10,11}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})$'
-)
 
 
 def validate_email(email: str):
     return EMAIL_RE.match((email or '').strip()) is not None
 
-
-def validate_pix(pix: str):
-    return PIX_RE.match((pix or '').strip()) is not None
 
 
 def parse_pagination(args):

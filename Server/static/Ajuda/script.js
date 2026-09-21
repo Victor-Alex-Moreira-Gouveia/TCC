@@ -13,18 +13,15 @@ async function apiFetch(url, opts = {}) {
 
 async function createAjuda() {
     const body = {
-        titulo:     document.getElementById('c-titulo').value,
-        corpo:      document.getElementById('c-corpo').value,
-        pix_doacao: document.getElementById('c-pix').value,
+        titulo: document.getElementById('c-titulo').value,
+        corpo: document.getElementById('c-corpo').value,
     };
     const res = await apiFetch(BASE, { method: 'POST', body: JSON.stringify(body) });
     log(res);
     if (res.success) {
         loadAjuda();
-        // Limpa o formulário de criação após sucesso
         document.getElementById('c-titulo').value = '';
         document.getElementById('c-corpo').value = '';
-        document.getElementById('c-pix').value = '';
     }
 }
 
@@ -34,8 +31,8 @@ async function loadAjuda() {
     const tbody = document.querySelector('#tbl-ajuda tbody');
     tbody.innerHTML = '';
 
-    if(!res.data || res.data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Nenhum registro encontrado.</td></tr>`;
+    if (!res.data || res.data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">Nenhum registro encontrado.</td></tr>`;
         return;
     }
 
@@ -45,10 +42,9 @@ async function loadAjuda() {
         <td class="fw-bold text-secondary">${escHtml(String(a.id))}</td>
         <td class="fw-semibold">${escHtml(a.titulo)}</td>
         <td class="corpo-cell-truncated text-muted" title="${escHtml(a.corpo)}">${escHtml(a.corpo)}</td>
-        <td><span class="badge bg-light text-dark font-monospace border">${escHtml(a.pix_doacao)}</span></td>
         <td>
             <div class="d-flex gap-2 justify-content-center">
-            <button class="btn btn-sm btn-outline-primary" title="Editar" onclick="fillUpdate(${a.id},'${esc(a.titulo)}','${esc(a.corpo)}','${esc(a.pix_doacao)}')">
+            <button class="btn btn-sm btn-outline-primary" title="Editar" onclick="fillUpdate(${a.id},'${esc(a.titulo)}','${esc(a.corpo)}')">
                 <i class="bi bi-pencil"></i>
             </button>
             <button class="btn btn-sm btn-outline-danger" title="Excluir" onclick="deleteAjuda(${a.id})">
@@ -60,23 +56,20 @@ async function loadAjuda() {
     });
 }
 
-function esc(s) { return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n'); }
+function esc(s) { return (s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n'); }
 
 function escHtml(s) {
     if (s === null || s === undefined) return '';
     return String(s).replace(/[&<>"']/g, function (m) {
-        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[m];
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
     });
 }
 
-function fillUpdate(id, titulo, corpo, pix) {
-document.getElementById('u-id').value     = id;
-document.getElementById('u-titulo').value = titulo;
-document.getElementById('u-corpo').value  = corpo;
-document.getElementById('u-pix').value    = pix;
-
-// Scroll suave focado no formulário de edição
-document.getElementById('u-id').scrollIntoView({ behavior: 'smooth' });
+function fillUpdate(id, titulo, corpo) {
+    document.getElementById('u-id').value = id;
+    document.getElementById('u-titulo').value = titulo;
+    document.getElementById('u-corpo').value = corpo;
+    document.getElementById('u-id').scrollIntoView({ behavior: 'smooth' });
 }
 
 async function updateAjuda() {
@@ -85,10 +78,8 @@ async function updateAjuda() {
     const body = {};
     const t = document.getElementById('u-titulo').value.trim();
     const c = document.getElementById('u-corpo').value.trim();
-    const p = document.getElementById('u-pix').value.trim();
     if (t) body.titulo = t;
-    if (c) body.corpo  = c;
-    if (p) body.pix_doacao = p;
+    if (c) body.corpo = c;
     const res = await apiFetch(`${BASE}/${id}`, { method: 'PUT', body: JSON.stringify(body) });
     log(res);
     if (res.success) loadAjuda();
@@ -103,5 +94,4 @@ async function deleteAjuda(id) {
 
 function clearLog() { document.getElementById('log').textContent = '— terminal limpo —'; }
 
-// Inicialização automática ao carregar a página
 loadAjuda();

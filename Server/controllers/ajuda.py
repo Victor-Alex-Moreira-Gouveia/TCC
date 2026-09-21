@@ -4,7 +4,8 @@ from models.ajuda import (
     count_ajuda, list_ajuda, get_ajuda_by_id,
     create_ajuda_db, update_ajuda_db, delete_ajuda_db
 )
-from utils import parse_pagination, build_pagination, success_response, error_response, validate_pix
+from services.orientacoes import obter_orientacao_imediata
+from utils import parse_pagination, build_pagination, success_response, error_response
 
 ajuda_bp = Blueprint('ajuda', __name__, url_prefix='/api')
 
@@ -35,7 +36,6 @@ def create_ajuda():
 
     titulo = (data.get('titulo') or '').strip()
     corpo = (data.get('corpo') or '').strip()
-    pix = (data.get('pix_doacao') or '').strip()
     tipo_denuncia = (data.get('tipo_denuncia') or '').strip() or 'Animal doméstico'
     nivel_urgencia = (data.get('nivel_urgencia') or '').strip() or 'Não informado'
 
@@ -45,23 +45,19 @@ def create_ajuda():
         errors['titulo'] = 'Máximo 255 caracteres'
     if not corpo:
         errors['corpo'] = 'Campo obrigatório'
-    if not pix:
-        errors['pix_doacao'] = 'Campo obrigatório'
-    elif not validate_pix(pix):
-        errors['pix_doacao'] = 'Formato de chave PIX inválido'
 
     if errors:
         return error_response("Validação falhou", "VALIDATION_ERROR", errors, 400)
 
-    if session.get('role') == 'guest':
-        autor_nome = session.get('usuario_id', 'anon')
-    else:
-        autor_nome = session.get('usuario_nome', 'Visitante Anônimo')
+    autor_nome = session.get('usuario_nome') or session.get('usuario_id') or 'Visitante'
 
     try:
-        new_id = create_ajuda_db(titulo, corpo, pix, autor_nome, tipo_denuncia, nivel_urgencia)
+        new_id = create_ajuda_db(titulo, corpo, autor_nome, tipo_denuncia, nivel_urgencia)
         row = get_ajuda_by_id(new_id)
-        return success_response(row, "Criado com sucesso", 201)
+        orientacao = obter_orientacao_imediata(nivel_urgencia, tipo_denuncia)
+        if row:
+            row['orientacao_imediata'] = orientacao
+        return success_response(row, "Denúncia registrada com sucesso.", 201)
     except SQLAlchemyError as e:
         return error_response("Erro interno do servidor", "DB_ERROR", str(e), 500)
 
@@ -77,7 +73,7 @@ def update_ajuda(aid):
         return error_response("Erro interno do servidor", "DB_ERROR", str(e), 500)
 
     errors = {}
-    update_data = {} # Substitui o uso de updates (lista de strings) e params[cite: 7]
+    update_data = {}
 
     if 'titulo' in data:
         titulo = (data['titulo'] or '').strip()
@@ -94,15 +90,6 @@ def update_ajuda(aid):
             errors['corpo'] = 'Não pode ser vazio'
         else:
             update_data['corpo'] = corpo
-
-    if 'pix_doacao' in data:
-        pix = (data['pix_doacao'] or '').strip()
-        if not pix:
-            errors['pix_doacao'] = 'Não pode ser vazio'
-        elif not validate_pix(pix):
-            errors['pix_doacao'] = 'Formato de chave PIX inválido'
-        else:
-            update_data['pix_doacao'] = pix
 
     if 'autor' in data:
         autor = (data['autor'] or '').strip()

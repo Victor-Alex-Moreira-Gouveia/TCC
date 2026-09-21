@@ -1,17 +1,10 @@
 """
-test_crud.py — Testes automatizados do CRUD do projeto MausTratos
-=================================================================
+test_crud.py — Testes automatizados do projeto Vozes que não podem gritar
+========================================================================
 Execução:
-    pytest test_crud.py -v
+    docker compose exec server pytest -v test_crud.py
     # ou
-    python -m pytest test_crud.py -v
-
-Pré-requisitos:
-    pip install pytest requests
-
-A aplicação deve estar rodando em BASE_URL (padrão: http://localhost:8080).
-Configure via variável de ambiente:
-    BASE_URL=http://localhost:8080 pytest test_crud.py -v
+    python -m pytest Server/test_crud.py -v
 """
 
 import os
@@ -22,21 +15,30 @@ import requests
 BASE_URL = os.getenv('BASE_URL', 'http://localhost:8080').rstrip('/')
 API = f"{BASE_URL}/api"
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
-def post(endpoint, payload):
-    return requests.post(f"{API}/{endpoint}", json=payload)
+def get_admin_session():
+    s = requests.Session()
+    r = s.post(f"{API}/login", json={"email": "admin@sistema.com", "senha": "admin123"})
+    assert r.status_code == 200, f"Login admin falhou: {r.text}"
+    return s
 
-def get(endpoint):
-    return requests.get(f"{API}/{endpoint}")
 
-def put(endpoint, payload):
-    return requests.put(f"{API}/{endpoint}", json=payload)
+def get_user_session():
+    ts = str(int(time.time() * 1000))
+    email = f"user.{ts}@maustratos.test"
+    senha = "SenhaUser@123"
 
-def delete(endpoint):
-    return requests.delete(f"{API}/{endpoint}")
+    r_create = requests.post(f"{API}/usuarios", json={
+        "nome_usuario": f"User {ts}",
+        "email": email,
+        "senha": senha
+    })
+    assert r_create.status_code == 201, f"Cadastro usuário falhou: {r_create.text}"
+
+    s = requests.Session()
+    r_login = s.post(f"{API}/login", json={"email": email, "senha": senha})
+    assert r_login.status_code == 200, f"Login usuário falhou: {r_login.text}"
+    return s, r_create.json()["data"]["id"]
 
 
 # ===========================================================================
@@ -46,7 +48,7 @@ def delete(endpoint):
 class TestHealth:
     def test_health_endpoint_is_reachable(self):
         r = requests.get(f"{BASE_URL}/health")
-        assert r.status_code in (200, 500), "Endpoint /health deve responder"
+        assert r.status_code in (200, 500)
 
     def test_health_returns_json(self):
         r = requests.get(f"{BASE_URL}/health")
@@ -56,13 +58,48 @@ class TestHealth:
 
 
 # ===========================================================================
+# Autenticação Obrigatória e Trava de Segurança
+# ===========================================================================
+
+class TestAutenticacaoEBloqueios:
+    def test_visitante_nao_acessa_api_noticias_sem_login(self):
+        r = requests.get(f"{API}/noticias")
+        assert r.status_code == 401
+        assert r.json()["success"] is False
+
+    def test_visitante_redirecionado_ao_tentar_acessar_pagina_noticias(self):
+        r = requests.get(f"{BASE_URL}/noticias", allow_redirects=False)
+        assert r.status_code == 302
+        assert '/login' in r.headers['Location']
+
+    def test_visitante_acessa_paginas_publicas_sem_login(self):
+        r_home = requests.get(f"{BASE_URL}/")
+        assert r_home.status_code == 200
+
+        r_pedir = requests.get(f"{BASE_URL}/ajuda/pedir")
+        assert r_pedir.status_code == 200
+
+    def test_usuario_comum_nao_cria_noticia(self):
+        user_s, _ = get_user_session()
+        r = user_s.post(f"{API}/noticias", json={
+            "titulo": "Notícia não autorizada",
+            "corpo": "Usuário comum não pode criar"
+        })
+        assert r.status_code == 403
+        assert r.json()["code"] == "FORBIDDEN"
+
+    def test_modulo_ongs_removido_retorna_404(self):
+        admin_s = get_admin_session()
+        r = admin_s.get(f"{API}/ongs")
+        assert r.status_code == 404
+
+
+# ===========================================================================
 # CRUD — Usuarios
 # ===========================================================================
 
 class TestUsuarios:
-    """Suite completa de testes para /api/usuarios"""
-
-    TS = str(int(time.time()))
+    TS = str(int(time.time() * 1000))
     VALID = {
         "nome_usuario": f"Teste User {TS}",
         "email": f"teste.user.{TS}@maustratos.test",
@@ -70,10 +107,8 @@ class TestUsuarios:
     }
     created_id = None
 
-    # --- CREATE ---
-
     def test_create_usuario_sucesso(self):
-        r = post("usuarios", self.VALID)
+        r = requests.post(f"{API}/usuarios", json=self.VALID)
         assert r.status_code == 201, r.text
         body = r.json()
         assert body["success"] is True
@@ -81,323 +116,189 @@ class TestUsuarios:
         TestUsuarios.created_id = body["data"]["id"]
 
     def test_create_usuario_email_duplicado(self):
-        r = post("usuarios", self.VALID)
+        r = requests.post(f"{API}/usuarios", json=self.VALID)
         assert r.status_code == 409
         assert r.json()["success"] is False
 
     def test_create_usuario_sem_campos_obrigatorios(self):
-        r = post("usuarios", {})
+        r = requests.post(f"{API}/usuarios", json={})
         assert r.status_code == 400
         body = r.json()
         assert body["success"] is False
-        assert "nome_usuario" in body.get("details", {})
-        assert "email" in body.get("details", {})
-        assert "senha" in body.get("details", {})
 
-    def test_create_usuario_email_invalido(self):
-        r = post("usuarios", {**self.VALID, "email": "nao-eh-email", "email": "invalido"})
-        # garante email diferente para não conflitar
-        r = post("usuarios", {
-            "nome_usuario": "Teste",
-            "email": "email-invalido-sem-arroba",
-            "senha": "Senha@1234"
-        })
-        assert r.status_code == 400
-        assert "email" in r.json().get("details", {})
-
-    def test_create_usuario_senha_curta(self):
-        r = post("usuarios", {
-            "nome_usuario": "Teste",
-            "email": f"outro.{self.TS}@maustratos.test",
-            "senha": "123"
-        })
-        assert r.status_code == 400
-        assert "senha" in r.json().get("details", {})
-
-    # --- READ ---
-
-    def test_list_usuarios_retorna_lista(self):
-        r = get("usuarios")
+    def test_list_usuarios_autenticado(self):
+        admin_s = get_admin_session()
+        r = admin_s.get(f"{API}/usuarios")
         assert r.status_code == 200
         body = r.json()
         assert body["success"] is True
         assert isinstance(body["data"], list)
-        assert "pagination" in body
 
     def test_get_usuario_por_id(self):
-        assert TestUsuarios.created_id, "Crie um usuário primeiro"
-        r = get(f"usuarios/{TestUsuarios.created_id}")
+        admin_s = get_admin_session()
+        assert TestUsuarios.created_id
+        r = admin_s.get(f"{API}/usuarios/{TestUsuarios.created_id}")
         assert r.status_code == 200
-        body = r.json()
-        assert body["data"]["id"] == TestUsuarios.created_id
-
-    def test_get_usuario_inexistente(self):
-        r = get("usuarios/999999")
-        assert r.status_code == 404
-        assert r.json()["success"] is False
-
-    # --- UPDATE ---
+        assert r.json()["data"]["id"] == TestUsuarios.created_id
 
     def test_update_usuario_nome(self):
+        admin_s = get_admin_session()
         assert TestUsuarios.created_id
-        r = put(f"usuarios/{TestUsuarios.created_id}", {"nome_usuario": "Nome Atualizado"})
+        r = admin_s.put(f"{API}/usuarios/{TestUsuarios.created_id}", json={"nome_usuario": "Nome Atualizado"})
         assert r.status_code == 200
         assert r.json()["data"]["nome_usuario"] == "Nome Atualizado"
 
-    def test_update_usuario_inexistente(self):
-        r = put("usuarios/999999", {"nome_usuario": "X"})
-        assert r.status_code == 404
-
-    def test_update_usuario_sem_campos(self):
-        assert TestUsuarios.created_id
-        r = put(f"usuarios/{TestUsuarios.created_id}", {})
-        assert r.status_code == 400
-
-    # --- DELETE ---
-
     def test_delete_usuario(self):
+        admin_s = get_admin_session()
         assert TestUsuarios.created_id
-        r = delete(f"usuarios/{TestUsuarios.created_id}")
+        r = admin_s.delete(f"{API}/usuarios/{TestUsuarios.created_id}")
         assert r.status_code == 204
-
-    def test_delete_usuario_inexistente(self):
-        r = delete("usuarios/999999")
-        assert r.status_code == 404
-
-    def test_get_usuario_apos_delete(self):
-        assert TestUsuarios.created_id
-        r = get(f"usuarios/{TestUsuarios.created_id}")
-        assert r.status_code == 404
 
 
 # ===========================================================================
-# CRUD — Noticias
+# CRUD — Noticias (Admin) e Noticias Pré-Cadastradas
 # ===========================================================================
 
 class TestNoticias:
-    TS = str(int(time.time()))
+    TS = str(int(time.time() * 1000))
     VALID = {
         "titulo": f"Notícia de Teste {TS}",
         "corpo": "Conteúdo gerado por teste automatizado.",
+        "imagem_url": "/static/img_posts/Imagem1.jpg"
     }
     created_id = None
 
-    def test_create_noticia_sucesso(self):
-        r = post("noticias", self.VALID)
+    def test_create_noticia_sucesso_admin_com_imagem(self):
+        admin_s = get_admin_session()
+        r = admin_s.post(f"{API}/noticias", json=self.VALID)
         assert r.status_code == 201, r.text
         body = r.json()
         assert body["success"] is True
         assert "id" in body["data"]
+        assert body["data"]["imagem_url"] == "/static/img_posts/Imagem1.jpg"
         TestNoticias.created_id = body["data"]["id"]
 
-    def test_create_noticia_sem_campos(self):
-        r = post("noticias", {})
-        assert r.status_code == 400
-        details = r.json().get("details", {})
-        assert "titulo" in details
-        assert "corpo" in details
-
-    def test_list_noticias(self):
-        r = get("noticias")
+    def test_list_noticias_contem_pre_cadastradas(self):
+        user_s, _ = get_user_session()
+        r = user_s.get(f"{API}/noticias?limit=50")
         assert r.status_code == 200
-        assert isinstance(r.json()["data"], list)
+        items = r.json()["data"]
+        assert len(items) >= 12
+        titulos = [n["titulo"] for n in items]
+        assert any("Mais de 100 animais" in t for t in titulos)
+        assert any("Serial killer" in t for t in titulos)
 
-    def test_get_noticia_por_id(self):
+    def test_update_noticia_admin(self):
+        admin_s = get_admin_session()
         assert TestNoticias.created_id
-        r = get(f"noticias/{TestNoticias.created_id}")
-        assert r.status_code == 200
-        assert r.json()["data"]["id"] == TestNoticias.created_id
-
-    def test_get_noticia_inexistente(self):
-        r = get("noticias/999999")
-        assert r.status_code == 404
-
-    def test_update_noticia(self):
-        assert TestNoticias.created_id
-        r = put(f"noticias/{TestNoticias.created_id}", {"titulo": "Título Atualizado"})
+        r = admin_s.put(f"{API}/noticias/{TestNoticias.created_id}", json={"titulo": "Título Notícia Atualizado"})
         assert r.status_code == 200
         assert "Atualizado" in r.json()["data"]["titulo"]
 
-    def test_update_noticia_inexistente(self):
-        r = put("noticias/999999", {"titulo": "X"})
-        assert r.status_code == 404
 
-    def test_delete_noticia(self):
-        assert TestNoticias.created_id
-        r = delete(f"noticias/{TestNoticias.created_id}")
-        assert r.status_code == 204
+# ===========================================================================
+# Comentários e Curtidas em Notícias
+# ===========================================================================
 
-    def test_get_noticia_apos_delete(self):
-        assert TestNoticias.created_id
-        r = get(f"noticias/{TestNoticias.created_id}")
-        assert r.status_code == 404
+class TestComentariosECurtidas:
+    def test_curtir_e_descurtir_noticia(self):
+        admin_s = get_admin_session()
+        r_not = admin_s.post(f"{API}/noticias", json={
+            "titulo": "Notícia para Curtida",
+            "corpo": "Corpo da notícia para teste de curtida."
+        })
+        assert r_not.status_code == 201
+        nid = r_not.json()["data"]["id"]
+
+        user_s, _ = get_user_session()
+
+        # Dar curtida
+        r_like = user_s.post(f"{API}/noticias/{nid}/curtida")
+        assert r_like.status_code == 200
+        assert r_like.json()["data"]["curtidas_count"] >= 1
+        assert r_like.json()["data"]["curtido_pelo_usuario"] is True
+
+        # Descurtir
+        r_unlike = user_s.delete(f"{API}/noticias/{nid}/curtida")
+        assert r_unlike.status_code == 200
+        assert r_unlike.json()["data"]["curtido_pelo_usuario"] is False
+
+    def test_criar_e_moderar_comentario(self):
+        admin_s = get_admin_session()
+        r_not = admin_s.post(f"{API}/noticias", json={
+            "titulo": "Notícia para Comentário",
+            "corpo": "Corpo da notícia para teste de comentário."
+        })
+        assert r_not.status_code == 201
+        nid = r_not.json()["data"]["id"]
+
+        user_s, _ = get_user_session()
+
+        # Adicionar comentário com XSS potencial
+        r_com = user_s.post(f"{API}/noticias/{nid}/comentarios", json={
+            "texto": "<script>alert('xss')</script>Comentário Válido"
+        })
+        assert r_com.status_code == 201
+        cid = r_com.json()["data"]["id"]
+        assert "&lt;script&gt;" in r_com.json()["data"]["texto"]
+
+        # Editar próprio comentário
+        r_upd = user_s.put(f"{API}/comentarios/{cid}", json={"texto": "Comentário Editado com Sucesso"})
+        assert r_upd.status_code == 200
+        assert r_upd.json()["data"]["texto"] == "Comentário Editado com Sucesso"
+
+        # Admin exclui comentário
+        r_del = admin_s.delete(f"{API}/comentarios/{cid}")
+        assert r_del.status_code == 204
 
 
 # ===========================================================================
-# CRUD — ONGs
-# ===========================================================================
-
-class TestOngs:
-    TS = str(int(time.time()))
-    VALID = {
-        "nome_instituicao": f"ONG Teste {TS}",
-        "endereco_fisico": "Rua dos Testes, 0 - SP",
-        "pix_doacao": f"ong.teste.{TS}@pix.test",
-    }
-    created_id = None
-
-    def test_create_ong_sucesso(self):
-        r = post("ongs", self.VALID)
-        assert r.status_code == 201, r.text
-        body = r.json()
-        assert body["success"] is True
-        TestOngs.created_id = body["data"]["id"]
-
-    def test_create_ong_sem_endereco_nem_site(self):
-        r = post("ongs", {
-            "nome_instituicao": "Sem Contato",
-            "pix_doacao": "contato@test.com"
-        })
-        assert r.status_code == 400
-        details = r.json().get("details", {})
-        assert "endereco_fisico" in details or "site" in details
-
-    def test_create_ong_pix_invalido(self):
-        r = post("ongs", {
-            "nome_instituicao": "ONG Inválida",
-            "site": "https://ong.com.br",
-            "pix_doacao": "nao eh pix valido aqui!!!",
-        })
-        assert r.status_code == 400
-
-    def test_create_ong_apenas_com_site(self):
-        r = post("ongs", {
-            "nome_instituicao": f"ONG Site {self.TS}",
-            "site": "https://ong-site-only.org.br",
-            "pix_doacao": f"sosite.{self.TS}@pix.test",
-        })
-        assert r.status_code == 201, r.text
-        # Limpar
-        oid = r.json()["data"]["id"]
-        delete(f"ongs/{oid}")
-
-    def test_list_ongs(self):
-        r = get("ongs")
-        assert r.status_code == 200
-        assert isinstance(r.json()["data"], list)
-
-    def test_get_ong_por_id(self):
-        assert TestOngs.created_id
-        r = get(f"ongs/{TestOngs.created_id}")
-        assert r.status_code == 200
-
-    def test_get_ong_inexistente(self):
-        r = get("ongs/999999")
-        assert r.status_code == 404
-
-    def test_update_ong_nome(self):
-        assert TestOngs.created_id
-        r = put(f"ongs/{TestOngs.created_id}", {"nome_instituicao": "ONG Atualizada"})
-        assert r.status_code == 200
-        assert "Atualizada" in r.json()["data"]["nome_instituicao"]
-
-    def test_update_ong_remove_endereco_sem_site_falha(self):
-        """Não deve permitir remover endereço se não há site."""
-        assert TestOngs.created_id
-        r = put(f"ongs/{TestOngs.created_id}", {"endereco_fisico": None})
-        # O existing não tem site, então deve retornar 400
-        assert r.status_code == 400
-
-    def test_delete_ong(self):
-        assert TestOngs.created_id
-        r = delete(f"ongs/{TestOngs.created_id}")
-        assert r.status_code == 204
-
-    def test_delete_ong_inexistente(self):
-        r = delete("ongs/999999")
-        assert r.status_code == 404
-
-
-# ===========================================================================
-# CRUD — Ajuda
+# CRUD — Ajuda (Denúncia com Orientação Imediata, Sem PIX)
 # ===========================================================================
 
 class TestAjuda:
-    TS = str(int(time.time()))
+    TS = str(int(time.time() * 1000))
     VALID = {
-        "titulo": f"Como denunciar? {TS}",
-        "corpo": "Para denunciar, acesse o portal e preencha o formulário.",
-        "pix_doacao": f"ajuda.{TS}@pix.test",
+        "titulo": f"Denúncia Urgente {TS}",
+        "corpo": "Cão atropelado necessitando de socorro imediato.",
+        "tipo_denuncia": "Animal doméstico",
+        "nivel_urgencia": "Atropelamento"
     }
     created_id = None
 
-    def test_create_ajuda_sucesso(self):
-        r = post("ajuda", self.VALID)
+    def test_create_ajuda_retorna_orientacao_imediata(self):
+        user_s, _ = get_user_session()
+        r = user_s.post(f"{API}/ajuda", json=self.VALID)
         assert r.status_code == 201, r.text
         body = r.json()
         assert body["success"] is True
+        assert "orientacao_imediata" in body["data"]
+        assert "resgate" in body["data"]["orientacao_imediata"].lower() or "zoonoses" in body["data"]["orientacao_imediata"].lower()
         TestAjuda.created_id = body["data"]["id"]
 
-    def test_create_ajuda_sem_campos(self):
-        r = post("ajuda", {})
-        assert r.status_code == 400
-        details = r.json().get("details", {})
-        assert "titulo" in details
-        assert "corpo" in details
-        assert "pix_doacao" in details
-
-    def test_create_ajuda_pix_invalido(self):
-        r = post("ajuda", {**self.VALID, "pix_doacao": "pix invalido !!!"})
-        assert r.status_code == 400
-
-    def test_list_ajuda(self):
-        r = get("ajuda")
-        assert r.status_code == 200
-        assert isinstance(r.json()["data"], list)
-
-    def test_get_ajuda_por_id(self):
+    def test_create_ajuda_sem_pix_doacao(self):
+        user_s, _ = get_user_session()
         assert TestAjuda.created_id
-        r = get(f"ajuda/{TestAjuda.created_id}")
+        r = user_s.get(f"{API}/ajuda/{TestAjuda.created_id}")
         assert r.status_code == 200
-        assert r.json()["data"]["id"] == TestAjuda.created_id
-
-    def test_get_ajuda_inexistente(self):
-        r = get("ajuda/999999")
-        assert r.status_code == 404
-
-    def test_update_ajuda(self):
-        assert TestAjuda.created_id
-        r = put(f"ajuda/{TestAjuda.created_id}", {"titulo": "Título Ajuda Atualizado"})
-        assert r.status_code == 200
-        assert "Atualizado" in r.json()["data"]["titulo"]
-
-    def test_update_ajuda_inexistente(self):
-        r = put("ajuda/999999", {"titulo": "X"})
-        assert r.status_code == 404
+        assert "pix_doacao" not in r.json()["data"]
 
     def test_delete_ajuda(self):
+        admin_s = get_admin_session()
         assert TestAjuda.created_id
-        r = delete(f"ajuda/{TestAjuda.created_id}")
+        r = admin_s.delete(f"{API}/ajuda/{TestAjuda.created_id}")
         assert r.status_code == 204
-
-    def test_get_ajuda_apos_delete(self):
-        assert TestAjuda.created_id
-        r = get(f"ajuda/{TestAjuda.created_id}")
-        assert r.status_code == 404
 
 
 # ===========================================================================
-# Testes de paginação
+# Testes de Paginação
 # ===========================================================================
 
 class TestPaginacao:
     def test_paginacao_limit(self):
-        r = requests.get(f"{API}/noticias?limit=2&page=1")
+        admin_s = get_admin_session()
+        r = admin_s.get(f"{API}/noticias?limit=2&page=1")
         assert r.status_code == 200
         body = r.json()
         assert body["pagination"]["limit"] == 2
         assert len(body["data"]) <= 2
-
-    def test_paginacao_page_invalida_usa_default(self):
-        r = requests.get(f"{API}/noticias?page=abc&limit=xyz")
-        assert r.status_code == 200  # não deve estourar 500

@@ -12,7 +12,6 @@ class Ajuda(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     titulo: Mapped[str] = mapped_column(String(255), nullable=False)
     corpo: Mapped[str] = mapped_column(Text, nullable=False)
-    pix_doacao: Mapped[str] = mapped_column(String(100), nullable=False)
     tipo_denuncia: Mapped[str] = mapped_column(String(80), nullable=False, default='Animal doméstico')
     nivel_urgencia: Mapped[str] = mapped_column(String(80), nullable=False, default='Não informado')
     autor: Mapped[str] = mapped_column(String(150), nullable=False, default='anon')
@@ -33,7 +32,6 @@ def list_ajuda(limit, offset):
             'id': r.id,
             'titulo': r.titulo,
             'corpo': r.corpo,
-            'pix_doacao': r.pix_doacao,
             'tipo_denuncia': r.tipo_denuncia,
             'nivel_urgencia': r.nivel_urgencia,
             'autor': r.autor,
@@ -50,7 +48,6 @@ def get_ajuda_by_id(aid):
             'id': row.id,
             'titulo': row.titulo,
             'corpo': row.corpo,
-            'pix_doacao': row.pix_doacao,
             'tipo_denuncia': row.tipo_denuncia,
             'nivel_urgencia': row.nivel_urgencia,
             'autor': row.autor,
@@ -58,13 +55,12 @@ def get_ajuda_by_id(aid):
     return None
 
 
-def create_ajuda_db(titulo, corpo, pix, autor, tipo_denuncia='Animal doméstico', nivel_urgencia='Não informado'):
+def create_ajuda_db(titulo, corpo, autor, tipo_denuncia='Animal doméstico', nivel_urgencia='Não informado'):
     db = next(get_db())
     try:
         nova_ajuda = Ajuda(
             titulo=titulo,
             corpo=corpo,
-            pix_doacao=pix,
             autor=autor,
             tipo_denuncia=tipo_denuncia,
             nivel_urgencia=nivel_urgencia,
@@ -92,7 +88,6 @@ def update_ajuda_db(aid, update_data):
             'id': ajuda.id,
             'titulo': ajuda.titulo,
             'corpo': ajuda.corpo,
-            'pix_doacao': ajuda.pix_doacao,
             'tipo_denuncia': ajuda.tipo_denuncia,
             'nivel_urgencia': ajuda.nivel_urgencia,
             'autor': ajuda.autor,

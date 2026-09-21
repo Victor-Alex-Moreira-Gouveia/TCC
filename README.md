@@ -1,6 +1,6 @@
 # TCC - Vozes que não podem gritar
 
-Plataforma web para denúncias de maus-tratos, pedidos de ajuda, divulgação de notícias e integração com ONGs.
+Plataforma web para registro de denúncias de maus-tratos, orientação emergencial imediata, gerenciamento de notícias e interação comunitária.
 
 ## Stack atual
 
@@ -11,6 +11,13 @@ Plataforma web para denúncias de maus-tratos, pedidos de ajuda, divulgação de
 - Memcached com `pymemcache`
 - Docker Compose
 - Testes de integração com `pytest` e `requests`
+
+## Funcionalidades Principais
+
+1. **Autenticação Obrigatória:** Apenas usuários autenticados possuem acesso ao conteúdo e às funcionalidades da plataforma. Visitantes não autenticados são redirecionados para `/login`.
+2. **Denúncia com Orientação Imediata:** Ao registrar uma denúncia, o sistema orienta imediatamente o usuário sobre ações emergenciais condizentes com a gravidade do caso.
+3. **Notícias Administráveis:** Administradores (`admin`) possuem painel/modal para cadastrar, editar e excluir notícias. Usuários cadastrados (`user`) podem visualizar as notícias, curtir e comentar.
+4. **Comentários e Curtidas:** Sistema de interação em tempo real com controle de permissões (1 curtida por usuário, comentários moderáveis por autor ou admin).
 
 ## Executando com Docker
 
@@ -27,7 +34,7 @@ Endpoints principais:
 
 - Aplicação: http://localhost:8080/
 - Health check: http://localhost:8080/health
-- Formulário público de ajuda: http://localhost:8080/ajuda/pedir
+- Registro de denúncia: http://localhost:8080/ajuda/pedir
 
 Para acompanhar ou encerrar os serviços:
 
@@ -63,36 +70,21 @@ MEMCACHED_HOST=memcached
 MEMCACHED_PORT=11211
 ```
 
-Em `Server/config/config.py`, o SQLAlchemy cria a engine, as sessões e executa a sincronização inicial das tabelas ORM. Bancos já existentes recebem as colunas novas do formulário de ajuda quando necessário.
+Em `Server/config/config.py`, o SQLAlchemy cria a engine, as sessões e executa a sincronização inicial das tabelas ORM e migrações automáticas.
 
 ## API REST
 
-Todas as APIs usam JSON e o prefixo `/api`:
+Todas as APIs usam JSON, exigem autenticação prévia (exceto login/cadastro/health) e usam o prefixo `/api`:
 
 | Recurso | Operações |
 |---|---|
 | `usuarios` | `GET/POST /api/usuarios`, `GET/PUT/DELETE /api/usuarios/<id>` |
-| `noticias` | `GET/POST /api/noticias`, `GET/PUT/DELETE /api/noticias/<id>` |
-| `ongs` | `GET/POST /api/ongs`, `GET/PUT/DELETE /api/ongs/<id>` |
+| `noticias` | `GET/POST /api/noticias`, `GET/PUT/DELETE /api/noticias/<id>` (Write ops apenas admin) |
+| `comentarios` | `GET/POST /api/noticias/<id>/comentarios`, `PUT/DELETE /api/comentarios/<id>` |
+| `curtidas` | `POST/DELETE /api/noticias/<id>/curtida` |
 | `ajuda` | `GET/POST /api/ajuda`, `GET/PUT/DELETE /api/ajuda/<id>` |
 
-As listagens são paginadas com `page` e `limit`. Respostas de sucesso usam `success`, `data` e `message`; erros usam `success`, `error`, `code` e, quando aplicável, `details`.
-
-## Formulário de ajuda
-
-O formulário envia:
-
-```json
-{
-  "titulo": "Título do caso",
-  "corpo": "Descrição da ocorrência",
-  "pix_doacao": "contato@pix.com",
-  "tipo_denuncia": "Animal doméstico",
-  "nivel_urgencia": "Ferimento grave"
-}
-```
-
-O campo `autor` é preenchido pelo backend a partir da sessão. `tipo_denuncia` e `nivel_urgencia` possuem valores padrão para manter compatibilidade com registros antigos.
+As listagens são paginadas com `page` e `limit`. Respostas de sucesso usam `success`, `data` e `message`; erros usam `success`, `error`, `code` e `details`.
 
 ## Testes
 
@@ -102,24 +94,20 @@ Com os containers ativos:
 docker compose exec server pytest -q test_crud.py
 ```
 
-A suíte valida health check, paginação e CRUD completo dos quatro recursos. A última validação executada resultou em **48 testes aprovados**.
-
 ## Estrutura
 
 ```text
 Server/
-├── config/config.py          # .env, engine e sessões SQLAlchemy
+├── config/config.py          # .env, engine e migrações SQLAlchemy
 ├── controllers/              # Blueprints e validação das rotas
 ├── models/                   # Entidades ORM e operações de persistência
+├── services/                 # Serviços de negócios (orientações emergenciais)
 ├── templates/                # Páginas Jinja2
 ├── static/                   # Assets da aplicação
-│   ├── css/                  # Estilos específicos de páginas
-│   ├── js/                   # Scripts específicos de páginas
-│   └── img_posts/            # Imagens das notícias
+│   ├── css/                  # Estilos de páginas e notificações
+│   └── js/                   # Scripts reativos e interações
 ├── Databases/                # Scripts de inicialização MariaDB/MySQL
-├── main.py                   # bootstrap Flask
+├── main.py                   # bootstrap e travas de segurança Flask
 ├── wsgi.py                   # entrada do Gunicorn
-└── test_crud.py              # testes de integração
+└── test_crud.py              # testes de integração automatizados
 ```
-
-A convenção detalhada de organização dos templates, assets e documentos está em [`Docs/README.md`](Docs/README.md).
