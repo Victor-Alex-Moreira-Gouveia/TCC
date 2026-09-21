@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Notícias | Combate aos Maus-Tratos aos Animais  </title>
+
+
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <style>
+
+        /* ==============================
+           CONFIGURAÇÕES GERAIS E FUNDO
+        ============================== */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background-color: #8e6bbd;
+            color: #f7f4eb;
+            font-family: Arial, Helvetica, sans-serif;
+            overflow-x: hidden;
+
+            /* Padrão de patinhas estampadas repetidas por TODO o fundo */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="rgba(255, 255, 255, 0.10)"><path d="M12 14c-2.5 0-4.5 1.5-4.5 3.5 0 1.5 1.5 2.5 4.5 2.5s4.5-1 4.5-2.5c0-2-2-3.5-4.5-3.5zm-5-3.5c-1 0-2 .8-2 2s.8 2 2 2 2-.8 2-2-.8-2-2-2zm10 0c-1 0-2 .8-2 2s.8 2 2 2 2-.8 2-2-.8-2-2-2zm-8.5-4c-1 0-2 .8-2 2s.8 2 2 2 2-.8 2-2-.8-2-2-2zm7 0c-1 0-2 .8-2 2s.8 2 2 2 2-.8 2-2-.8-2-2-2z"/></svg>');
+            background-repeat: repeat;
+            background-size: 90px 90px;
+        }
+
+        /* ==============================
+           NAVBAR
+        ============================== */
+
+        .navbar {
+            background: #915eb3 !important;
+            padding: 15px 0;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.20);
+        }
+
+        .navbar-brand {
+            color: #fffcc9 !important;
+            font-weight: bold;
+            font-size: 1.35rem;
+        }
+
+        .navbar-brand:hover {
+            color: #ffffff !important;
+        }
+
+        .btn-voltar {
+            color: #fffcc9;
+            border: 2px solid #fffcc9;
+            border-radius: 25px;
+            padding: 8px 18px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .btn-voltar:hover {
+            background: #fffcc9;
+            color: #6b4226;
+        }
+
+        /* ==============================
+           CABEÇALHO
+        ============================== */
+
+        .cabecalho {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 55px 20px 35px;
+        }
+
+        .cabecalho h1 {
+            color: #fffcc9;
+            font-weight: 800;
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            margin-bottom: 15px;
+        }
+
+        .cabecalho p {
+            max-width: 850px;
+            margin: auto;
+            color: #f7f4eb;
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+
+        /* ==============================
+           ÁREA DAS NOTÍCIAS
+        ============================== */
+
+        .noticias-container {
+            position: relative;
+            z-index: 2;
+            max-width: 1100px;
+            margin: auto;
+            padding: 10px 20px 60px;
+        }
+
+        /* ==============================
+           CARD DA NOTÍCIA
+        ============================== */
+
+        .noticia {
+            background: #fffdf5;
+            color: #3e2818;
+            border-radius: 20px;
+            margin-bottom: 35px;
+            padding: 28px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.20);
+            transition: 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .noticia:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+        }
+
+        /* Patinha d'água no fundo interno do card */
+        .noticia::after {
+            content: "🐾";
+            position: absolute;
+            right: -5px;
+            bottom: -25px;
+            font-size: 100px;
+            opacity: 0.07;
+            transform: rotate(-15deg);
+        }
+
+        .noticia h2 {
+            color: #6b4226;
+            font-size: 1.65rem;
+            font-weight: 800;
+            line-height: 1.3;
+        }
+
+        .data {
+            color: #a56732;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 18px;
+        }
+
+        /* IMAGEM DA NOTÍCIA (Mantendo o layout responsivo e elegante) */
+        .noticia-img {
+            width: 100%;
+            max-height: 420px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .noticia p {
+            line-height: 1.7;
+            font-size: 1rem;
+        }
+
+        /* ==============================
+           BOTÕES DE AÇÃO
+        ============================== */
+
+        .acoes {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 22px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .btn-reacao,
+        .btn-comentario {
+            border: none;
+            border-radius: 25px;
+            padding: 9px 18px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .btn-reacao {
+            background: #f1d28a;
+            color: #5c391f;
+        }
+
+        .btn-reacao:hover {
+            background: #e5b95d;
+            transform: scale(1.04);
+        }
+
+        .btn-reacao.ativo {
+            background: #d68c45;
+            color: white;
+        }
+
+        .btn-comentario {
+            background: #6b4226;
+            color: white;
+        }
+
+        .btn-comentario:hover {
+            background: #4f2f1b;
+            transform: scale(1.04);
+        }
+
+        .btn-compartilhar {
+            border: none;
+            border-radius: 25px;
+            padding: 9px 18px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+            background: #e8b6d9;
+            color: #4f2f1b;
+        }
+
+        .btn-compartilhar:hover {
+            background: #d994c4;
+            transform: scale(1.04);
+        }
+
+
+        /* ==============================
+           MENU DE COMPARTILHAMENTO
+        ============================== */
+
+        .menu-compartilhar {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f5eee5;
+            border-radius: 15px;
+            border: 1px solid #eadccf;
+            position: relative;
+            z-index: 4;
+        }
+
+        .menu-compartilhar.aberto {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .menu-compartilhar button,
+        .menu-compartilhar a {
+            border: none;
+            border-radius: 20px;
+            padding: 8px 14px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+        }
+
+        .btn-facebook {
+            background: #1877F2;
+            color: white;
+        }
+
+        .btn-x {
+            background: #111;
+            color: white;
+        }
+
+        .btn-copiar {
+            background: #d68c45;
+            color: white;
+        }
+
+        .menu-compartilhar button:hover,
+        .menu-compartilhar a:hover {
+            transform: scale(1.04);
+            opacity: 0.9;
+        }
+
+        /* ==============================
+           ÁREA DE COMENTÁRIOS
+        ============================== */
+
+        .comentarios {
+            display: none;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #eadccf;
+            position: relative;
+            z-index: 3;
+        }
+
+        .comentarios.aberto {
+            display: block;
+        }
+
+        .comentarios h5 {
+            color: #6b4226;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .comentario {
+            background: #f5eee5;
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+        }
+
+        .comentario strong {
+            color: #6b4226;
+        }
+
+        .form-comentario {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .form-comentario input {
+            flex: 1;
+            border: 2px solid #e0c9ae;
+            border-radius: 20px;
+            padding: 10px 15px;
+            outline: none;
+        }
+
+        .form-comentario input:focus {
+            border-color: #d68c45;
+        }
+
+        .btn-enviar {
+            border: none;
+            background: #d68c45;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-enviar:hover {
+            background: #b96f31;
+        }
+
+        /* ==============================
+           RODAPÉ
+        ============================== */
+
+        footer {
+            position: relative;
+            z-index: 2;
+            background: #4f2f1b;
+            text-align: center;
+            padding: 30px 20px;
+            color: #fffcc9;
+        }
+
+        footer .patas-footer {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        footer p {
+            margin: 5px 0;
+        }
+
+        /* ==============================
+           RESPONSIVIDADE
+        ============================== */
+
+        @media (max-width: 768px) {
+            .navbar-brand { font-size: 1.05rem; }
+            .cabecalho { padding-top: 40px; }
+            .noticia { padding: 20px; }
+            .noticia h2 { font-size: 1.35rem; }
+            .noticia-img { max-height: 250px; }
+            .form-comentario { flex-direction: column; }
+            .btn-enviar { width: 100%; }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                🐾 Vozes que não podem gritar
+            </a>
+            <a href="/" class="btn-voltar">
+                <i class="bi bi-arrow-left"></i>
+                Voltar
+            </a>
+        </div>
+    </nav>
+
+
+    <!-- CABEÇALHO -->
+    <header class="cabecalho">
+        <h1>
+            🐾 Notícias sobre Maus-Tratos aos Animais 🐾
+        </h1>
+        <p>
+            Acompanhe notícias e casos recentes relacionados à proteção animal.
+            Compartilhe informações, demonstre sua opinião e ajude a
+            conscientizar outras pessoas sobre a importância do respeito
+            e cuidado com os animais.
+        </p>
+    </header>
+
+
+    <!-- NOTÍCIAS -->
+    <main class="noticias-container">
+
+        <!-- NOTÍCIA 1 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 26 de agosto de 2025
+            </div>
+            <h2>Mais de 100 animais são resgatados em situação de maus-tratos na Grande SP</h2>
+            <img src="{{ url_for('static', filename='img_posts/Imagem1.jpg') }}" alt="Resgate em Mairiporã" class="noticia-img">
+            <p>Mais de 100 animais foram resgatados de uma situação de maus-tratos em um sítio localizado em Mairiporã, na Grande São Paulo.</p>
+            <p>A ação teve início após uma denúncia registrada em boletim de ocorrência. Policiais da 3ª Delegacia de Crimes contra Animais (Diima) cumpriram mandados de busca e apreensão no local.</p>
+            <p>Ao todo, foram encontrados 125 animais, sendo 60 cães, 55 gatos e 10 porcos. O responsável pelo local é investigado por não prestar os cuidados necessários aos animais.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas1')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas1">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios1')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios1">0</span>
+                </button>
+                <button class="btn-compartilhar" onclick="compartilharNoticia(this)">
+                    <i class="bi bi-share-fill"></i> Compartilhar
+                </button>
+            </div>
+
+            <div class="menu-compartilhar" id="menuCompartilhar1">
+                <a href="#" class="btn-whatsapp" onclick="compartilharWhatsApp(event, this)">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </a>
+                <a href="#" class="btn-facebook" onclick="compartilharFacebook(event, this)">
+                    <i class="bi bi-facebook"></i> Facebook
+                </a>
+                <a href="#" class="btn-x" onclick="compartilharX(event, this)">
+                    <i class="bi bi-twitter-x"></i> X
+                </a>
+                <button class="btn-copiar" onclick="copiarLinkNoticia(this)">
+                    <i class="bi bi-link-45deg"></i> Copiar link
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios1">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios1"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario1" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios1', 'inputComentario1', 'contadorComentarios1')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 2 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 21 de agosto de 2025
+            </div>
+            <h2>'Serial killer' de gatos: homem é preso por suspeita de maus-tratos a animais em São Paulo</h2>
+            <img src="{{ url_for('static', filename='img_posts/Imagem2.png') }}" alt="Apreensão de animais em Francisco Morato" class="noticia-img">
+            <p>Um homem foi preso em Francisco Morato por maus-tratos a 18 animais, ameaça a pessoas e crime ambiental após denúncias de moradores e familiares.</p>
+            <p>Guardas civis foram até o imóvel e encontraram 18 animais (13 gatos e 5 cães) em estado crítico, além de quatro gatos mortos e restos de animais enterrados.</p>
+            <p>Os animais vivos foram encaminhados para atendimento veterinário. A polícia solicitou perícia no local e pediu a conversão da prisão em flagrante para preventiva.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas2')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas2">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios2')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios2">0</span>
+                </button>
+                <button class="btn-compartilhar" onclick="compartilharNoticia(this)">
+                    <i class="bi bi-share-fill"></i> Compartilhar
+                </button>
+            </div>
+
+            <div class="menu-compartilhar" id="menuCompartilhar2">
+                <a href="#" class="btn-whatsapp" onclick="compartilharWhatsApp(event, this)">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </a>
+                <a href="#" class="btn-facebook" onclick="compartilharFacebook(event, this)">
+                    <i class="bi bi-facebook"></i> Facebook
+                </a>
+                <a href="#" class="btn-x" onclick="compartilharX(event, this)">
+                    <i class="bi bi-twitter-x"></i> X
+                </a>
+                <button class="btn-copiar" onclick="copiarLinkNoticia(this)">
+                    <i class="bi bi-link-45deg"></i> Copiar link
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios2">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios2"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario2" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios2', 'inputComentario2', 'contadorComentarios2')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 3 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 26 de janeiro de 2026
+            </div>
+            <h2>Caso Cão Orelha: agressão a cachorro comunitário mobiliza investigação em Florianópolis</h2>
+            <img src="{{ url_for('static', filename='img_posts/Imagem3.jpg') }}" alt="Caso Cão Orelha" class="noticia-img">
+            <p>Na madrugada entre 3 e 4 de janeiro, o cão comunitário Orelha foi vítima de maus-tratos no bairro Praia Brava, em Florianópolis (SC).</p>
+            <p>Encontrado por moradores em uma área de mata com graves ferimentos na cabeça, o cão foi socorrido, mas precisou ser submetido à eutanásia devido à severidade das lesões.</p>
+            <p>O caso ganhou repercussão nacional. Mandados de busca e apreensão foram cumpridos contra suspeitos e pessoas indiciadas por coação de testemunhas.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas3')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas3">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios3')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios3">0</span>
+                </button>
+                <button class="btn-compartilhar" onclick="compartilharNoticia(this)">
+                    <i class="bi bi-share-fill"></i> Compartilhar
+                </button>
+            </div>
+
+            <div class="menu-compartilhar" id="menuCompartilhar3">
+                <a href="#" class="btn-whatsapp" onclick="compartilharWhatsApp(event, this)">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </a>
+                <a href="#" class="btn-facebook" onclick="compartilharFacebook(event, this)">
+                    <i class="bi bi-facebook"></i> Facebook
+                </a>
+                <a href="#" class="btn-x" onclick="compartilharX(event, this)">
+                    <i class="bi bi-twitter-x"></i> X
+                </a>
+                <button class="btn-copiar" onclick="copiarLinkNoticia(this)">
+                    <i class="bi bi-link-45deg"></i> Copiar link
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios3">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios3"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario3" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios3', 'inputComentario3', 'contadorComentarios3')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 4 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 18 de agosto de 2025
+            </div>
+            <h2>Tutor que cortou patas de cavalo em Bananal é investigado pela Polícia Civil</h2>
+            <img src="{{ url_for('static', filename='img_posts/Imagem5.jpg') }}" alt="Caso do cavalo em Bananal" class="noticia-img">
+            <p>A morte de um cavalo branco em Bananal, no interior de SP, gerou revolta nacional após imagens mostrarem o animal mutilado com um facão durante uma cavalgada.</p>
+
+            <p>O tutor de 21 anos prestou depoimento e alegou acreditar que o equino já estivesse morto ao golpeá-lo, versão contestada por testemunhas.</p>
+            <p>A Polícia Civil de São Paulo abriu inquérito para apurar as circunstâncias e responsabilidades pelo crime de maus-tratos.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas4')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas4">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios4')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios4">0</span>
+                </button>
+                <button class="btn-compartilhar" onclick="compartilharNoticia(this)">
+                    <i class="bi bi-share-fill"></i> Compartilhar
+                </button>
+            </div>
+
+            <div class="menu-compartilhar" id="menuCompartilhar4">
+                <a href="#" class="btn-whatsapp" onclick="compartilharWhatsApp(event, this)">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </a>
+                <a href="#" class="btn-facebook" onclick="compartilharFacebook(event, this)">
+                    <i class="bi bi-facebook"></i> Facebook
+                </a>
+                <a href="#" class="btn-x" onclick="compartilharX(event, this)">
+                    <i class="bi bi-twitter-x"></i> X
+                </a>
+                <button class="btn-copiar" onclick="copiarLinkNoticia(this)">
+                    <i class="bi bi-link-45deg"></i> Copiar link
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios4">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios4"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario4" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios4', 'inputComentario4', 'contadorComentarios4')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 5 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 26 de setembro de 2025
+            </div>
+            <h2>China: Advogado de Xangai é acusado de torturar e matar milhares de gatos para vídeos online</h2>
+            <img src="{{ url_for('static', filename='img_posts/Imagem6.jpg') }}" alt="Caso de crueldade contra gatos em Xangai" class="noticia-img">
+            <p>Um caso chocante de crueldade contra animais veio à tona em Xangai, onde um advogado local é acusado de torturar e matar felinos desde 2017 para comercializar vídeos na internet.</p>
+            <p>A descoberta ocorreu após flagrante em um estacionamento subterrâneo por voluntários de proteção animal. Análises indicam mais de 300 vídeos produzidos e cerca de 4.000 gatos vitimados.</p>
+            <p>Organizações internacionais e protetores locais cobram punições severas e endurecimento das leis de proteção animal no país.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas5')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas5">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios5')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios5">0</span>
+                </button>
+                <button class="btn-compartilhar" onclick="compartilharNoticia(this)">
+                    <i class="bi bi-share-fill"></i> Compartilhar
+                </button>
+            </div>
+
+            <div class="menu-compartilhar" id="menuCompartilhar5">
+                <a href="#" class="btn-whatsapp" onclick="compartilharWhatsApp(event, this)">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </a>
+                <a href="#" class="btn-facebook" onclick="compartilharFacebook(event, this)">
+                    <i class="bi bi-facebook"></i> Facebook
+                </a>
+                <a href="#" class="btn-x" onclick="compartilharX(event, this)">
+                    <i class="bi bi-twitter-x"></i> X
+                </a>
+                <button class="btn-copiar" onclick="copiarLinkNoticia(this)">
+                    <i class="bi bi-link-45deg"></i> Copiar link
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios5">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios5"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario5" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios5', 'inputComentario5', 'contadorComentarios5')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 6 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 18 de agosto de 2025
+            </div>
+            <h2>PRF resgata dois bezerros em situação de maus-tratos na BR-116 na Bahia</h2>
+            <img src="{{ url_for('static', filename='img_posts/Imagem7.jpg') }}" alt="Bezerros resgatados em caminhão pela PRF" class="noticia-img">
+            <p>Dois bezerros foram resgatados pela Polícia Rodoviária Federal (PRF) em ação conjunta com a Agência de Defesa Agropecuária da Bahia (Adab) na BR-116 em Vitória da Conquista.</p>
+            <p>Os animais eram transportados trancados na gaveta lateral de um caminhão boiadeiro, sem ventilação, higiene ou espaço mínimo de mobilidade.</p>
+            <p>Os bezerros foram encaminhados para assistência e o motorista assinou um Termo Circunstanciado de Ocorrência (TCO) por crime de maus-tratos.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas6')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas6">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios6')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios6">0</span>
+                </button>
+                <button class="btn-compartilhar" onclick="compartilharNoticia(this)">
+                    <i class="bi bi-share-fill"></i> Compartilhar
+                </button>
+            </div>
+
+            <div class="menu-compartilhar" id="menuCompartilhar6">
+                <a href="#" class="btn-whatsapp" onclick="compartilharWhatsApp(event, this)">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </a>
+                <a href="#" class="btn-facebook" onclick="compartilharFacebook(event, this)">
+                    <i class="bi bi-facebook"></i> Facebook
+                </a>
+                <a href="#" class="btn-x" onclick="compartilharX(event, this)">
+                    <i class="bi bi-twitter-x"></i> X
+                </a>
+                <button class="btn-copiar" onclick="copiarLinkNoticia(this)">
+                    <i class="bi bi-link-45deg"></i> Copiar link
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios6">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios6"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario6" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios6', 'inputComentario6', 'contadorComentarios6')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 7 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> Agosto de 2025
+            </div>
+            <h2>Cavalos mantidos amarrados sob sol forte e feridos geram denúncias em Santarém</h2>
+            <img src="{{ url_for('static', filename='img_posts/Imagem8.jpg') }}" alt="Cavalos abandonados no sol em Santarém" class="noticia-img">
+            <p>Vídeos gravados por moradores do bairro São Cristóvão, em Santarém (PA), mostram dois cavalos mantidos amarrados e abandonados sob sol escaldante em um terreno baldio.</p>
+            <p>Um dos animais apresentava ferimento visível na pata dianteira e exaustão extrema. Moradores relatam que a situação é recorrente e cobram fiscalização dos órgãos ambientais.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas7')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas7">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios7')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios7">0</span>
+                </button>
+                <button class="btn-compartilhar" onclick="compartilharNoticia(this)">
+                    <i class="bi bi-share-fill"></i> Compartilhar
+                </button>
+            </div>
+
+            <div class="menu-compartilhar" id="menuCompartilhar7">
+                <a href="#" class="btn-whatsapp" onclick="compartilharWhatsApp(event, this)">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </a>
+                <a href="#" class="btn-facebook" onclick="compartilharFacebook(event, this)">
+                    <i class="bi bi-facebook"></i> Facebook
+                </a>
+                <a href="#" class="btn-x" onclick="compartilharX(event, this)">
+                    <i class="bi bi-twitter-x"></i> X
+                </a>
+                <button class="btn-copiar" onclick="copiarLinkNoticia(this)">
+                    <i class="bi bi-link-45deg"></i> Copiar link
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios7">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios7"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario7" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios7', 'inputComentario7', 'contadorComentarios7')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 8 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 10 de setembro de 2025
+            </div>
+            <h2>Homem é preso com mais de 1 mil aves silvestres no RJ; 180 morreram no transporte</h2>
+            <img src="{{ url_for('static', filename='img_posts/Imagem9.jpg') }}" alt="Gaiolas com aves silvestres resgatadas" class="noticia-img">
+            <p>Em uma operação conjunta na BR-040 em Petrópolis, a PRF e a Polícia Federal resgataram 1.080 pássaros silvestres trazidos de Minas Gerais para venda ilegal em feiras no Rio de Janeiro.</p>
+            <p>Aproximadamente 180 aves foram encontradas mortas por asfixia e amontoamento em caixas de madeira e papelão. 820 pássaros com condições de saúde foram reabilitados para soltura.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas8')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas8">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios8')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios8">0</span>
+                </button>
+                <button class="btn-compartilhar" onclick="compartilharNoticia(this)">
+                    <i class="bi bi-share-fill"></i> Compartilhar
+                </button>
+            </div>
+
+            <div class="menu-compartilhar" id="menuCompartilhar8">
+                <a href="#" class="btn-whatsapp" onclick="compartilharWhatsApp(event, this)">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </a>
+                <a href="#" class="btn-facebook" onclick="compartilharFacebook(event, this)">
+                    <i class="bi bi-facebook"></i> Facebook
+                </a>
+                <a href="#" class="btn-x" onclick="compartilharX(event, this)">
+                    <i class="bi bi-twitter-x"></i> X
+                </a>
+                <button class="btn-copiar" onclick="copiarLinkNoticia(this)">
+                    <i class="bi bi-link-45deg"></i> Copiar link
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios8">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios8"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario8" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios8', 'inputComentario8', 'contadorComentarios8')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 9 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> Outubro de 2025
+            </div>
+            <h2>Cão negligenciado com corrente pesada recebe resgate emocionante em Minas Gerais</h2>
+            <img src="{{ url_for('static', filename='img_posts/Imagem10.jpg') }}" alt="Resgate do cão Ted em Viçosa" class="noticia-img">
+            <p>Denúncias mobilizaram a Sociedade Viçosense de Proteção aos Animais (SOVIPA) e a Polícia Ambiental em uma propriedade rural em Viçosa (MG).</p>
+            <p>Cães eram mantidos acorrentados entre entulhos e sujeira. O cão Ted foi resgatado debilitado e assustado, recebendo tratamento médico veterinário e acolhimento adequado.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas9')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas9">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios9')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios9">0</span>
+                </button>
+                <button class="btn-compartilhar" onclick="compartilharNoticia(this)">
+                    <i class="bi bi-share-fill"></i> Compartilhar
+                </button>
+            </div>
+
+            <div class="menu-compartilhar" id="menuCompartilhar9">
+                <a href="#" class="btn-whatsapp" onclick="compartilharWhatsApp(event, this)">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </a>
+                <a href="#" class="btn-facebook" onclick="compartilharFacebook(event, this)">
+                    <i class="bi bi-facebook"></i> Facebook
+                </a>
+                <a href="#" class="btn-x" onclick="compartilharX(event, this)">
+                    <i class="bi bi-twitter-x"></i> X
+                </a>
+                <button class="btn-copiar" onclick="copiarLinkNoticia(this)">
+                    <i class="bi bi-link-45deg"></i> Copiar link
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios9">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios9"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario9" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios9', 'inputComentario9', 'contadorComentarios9')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 10 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 30 de junho de 2025
+            </div>
+            <h2>“Zara, a mamãe esqueleto”: cadela em pele e osso usa últimas forças para amamentar no lixo em SP</h2>
+            <img src="{{ url_for('static', filename='img_posts/Imagem4.jpg') }}" alt="Resgate da cadela Zara e seus filhotes" class="noticia-img">
+            <img src="{{ url_for('static', filename='img_posts/Imagem11.jpg') }}" alt="Animais resgatados junto com a cadela Zara" class="noticia-img">
+            <p>Uma cadela com severo quadro de desnutrição foi resgatada em Itariri (SP) após um pedido de socorro mobilizar voluntários e protetores locais.</p>
+            <p>Mesmo sem forças, Zara se mantinha deitada sob blocos de concreto e entulho para amamentar sua ninhada recém-nascida. A família foi transferida para um centro de reabilitação e adoção.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas10')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas10">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios10')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios10">0</span>
+                </button>
+                <button class="btn-compartilhar" onclick="compartilharNoticia(this)">
+                    <i class="bi bi-share-fill"></i> Compartilhar
+                </button>
+            </div>
+
+            <div class="menu-compartilhar" id="menuCompartilhar10">
+                <a href="#" class="btn-whatsapp" onclick="compartilharWhatsApp(event, this)">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </a>
+                <a href="#" class="btn-facebook" onclick="compartilharFacebook(event, this)">
+                    <i class="bi bi-facebook"></i> Facebook
+                </a>
+                <a href="#" class="btn-x" onclick="compartilharX(event, this)">
+                    <i class="bi bi-twitter-x"></i> X
+                </a>
+                <button class="btn-copiar" onclick="copiarLinkNoticia(this)">
+                    <i class="bi bi-link-45deg"></i> Copiar link
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios10">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios10"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario10" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios10', 'inputComentario10', 'contadorComentarios10')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 11 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 07 de setembro de 2025
+            </div>
+            <h2>Filhote de anta de 15 dias é resgatado com fratura na pata no interior de SP</h2>
+            <img src="{{ url_for('static', filename='img_posts/Imagem12.jpg') }}" alt="Filhote de anta resgatado" class="noticia-img">
+            <p>Um filhote de anta de apenas 15 dias de vida foi resgatado nas proximidades de Planalto do Sul, interior paulista, apresentando fratura na pata traseira.</p>
+            <p>O animal recebeu atendimento da Polícia Ambiental e da Associação Protetora dos Animais Silvestres de Assis. Assim que se recuperar, será reintroduzido ao habitat natural.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas11')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas11">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios11')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios11">0</span>
+                </button>
+                <button class="btn-compartilhar" onclick="compartilharNoticia(this)">
+                    <i class="bi bi-share-fill"></i> Compartilhar
+                </button>
+            </div>
+
+            <div class="menu-compartilhar" id="menuCompartilhar11">
+                <a href="#" class="btn-whatsapp" onclick="compartilharWhatsApp(event, this)">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </a>
+                <a href="#" class="btn-facebook" onclick="compartilharFacebook(event, this)">
+                    <i class="bi bi-facebook"></i> Facebook
+                </a>
+                <a href="#" class="btn-x" onclick="compartilharX(event, this)">
+                    <i class="bi bi-twitter-x"></i> X
+                </a>
+                <button class="btn-copiar" onclick="copiarLinkNoticia(this)">
+                    <i class="bi bi-link-45deg"></i> Copiar link
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios11">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios11"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario11" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios11', 'inputComentario11', 'contadorComentarios11')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+        <!-- NOTÍCIA 12 -->
+        <article class="noticia">
+            <div class="data">
+                <i class="bi bi-calendar3"></i> 07 de outubro de 2025
+            </div>
+            <h2>Polícia investiga maus-tratos após descoberta de animais enterrados em terreno em Adamantina</h2>
+            <img src="{{ url_for('static', filename='img_posts/Imagem13.jpg') }}" alt="Investigação de maus-tratos em Adamantina" class="noticia-img">
+            <p>A Polícia Civil de Adamantina (SP) instaurou inquérito para apurar crime ambiental após encontrar corpos de animais de pequeno e grande porte enterrados em um terreno.</p>
+            <p>As buscas iniciaram a partir de vídeos gravados por moradores. Cães sobreviventes encontrados no local foram acolhidos por uma ONG parceira.</p>
+
+            <div class="acoes">
+                <button class="btn-reacao" onclick="curtir(this, 'curtidas12')">
+                    🐾 <i class="bi bi-heart-fill"></i> Curtir <span id="curtidas12">0</span>
+                </button>
+                <button class="btn-comentario" onclick="mostrarComentarios('comentarios12')">
+                    <i class="bi bi-chat-fill"></i> Comentar <span id="contadorComentarios12">0</span>
+                </button>
+                <button class="btn-compartilhar" onclick="compartilharNoticia(this)">
+                    <i class="bi bi-share-fill"></i> Compartilhar
+                </button>
+            </div>
+
+            <div class="menu-compartilhar" id="menuCompartilhar12">
+                <a href="#" class="btn-whatsapp" onclick="compartilharWhatsApp(event, this)">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </a>
+                <a href="#" class="btn-facebook" onclick="compartilharFacebook(event, this)">
+                    <i class="bi bi-facebook"></i> Facebook
+                </a>
+                <a href="#" class="btn-x" onclick="compartilharX(event, this)">
+                    <i class="bi bi-twitter-x"></i> X
+                </a>
+                <button class="btn-copiar" onclick="copiarLinkNoticia(this)">
+                    <i class="bi bi-link-45deg"></i> Copiar link
+                </button>
+            </div>
+
+            <div class="comentarios" id="comentarios12">
+                <h5>💬 Comentários 🐾</h5>
+                <div id="listaComentarios12"></div>
+                <div class="form-comentario">
+                    <input type="text" id="inputComentario12" placeholder="Escreva um comentário...">
+                    <button class="btn-enviar" onclick="adicionarComentario('listaComentarios12', 'inputComentario12', 'contadorComentarios12')">Enviar 🐾</button>
+                </div>
+            </div>
+        </article>
+
+    </main>
+
+
+    <!-- RODAPÉ -->
+    <footer>
+        <div class="patas-footer">🐾 🐾 🐾</div>
+        <p><strong>Vozes que não podem gritar</strong> - Conscientização e Proteção Animal</p>
+        <p>&copy; Todos os direitos reservados.</p>
+    </footer>
+
+
+    <!-- JAVASCRIPT DA PÁGINA -->
+    <script>
+        // Função para alternar curtir/descurtir
+        function curtir(btn, idContador) {
+            let contador = document.getElementById(idContador);
+            let quantidade = parseInt(contador.innerText);
+
+            if (btn.classList.contains('ativo')) {
+                btn.classList.remove('ativo');
+                contador.innerText = quantidade - 1;
+            } else {
+                btn.classList.add('ativo');
+                contador.innerText = quantidade + 1;
+            }
+        }
+
+        // Função para abrir/fechar comentários
+        function mostrarComentarios(idComentario) {
+            let caixa = document.getElementById(idComentario);
+            caixa.classList.toggle('aberto');
+        }
+
+        // Abre as opções para compartilhar FORA do site
+        function compartilharNoticia(btn) {
+            const noticia = btn.closest('.noticia');
+            const menu = noticia.querySelector('.menu-compartilhar');
+
+            // Fecha outros menus de compartilhamento abertos
+            document.querySelectorAll('.menu-compartilhar.aberto').forEach(outroMenu => {
+                if (outroMenu !== menu) outroMenu.classList.remove('aberto');
+            });
+
+            menu.classList.toggle('aberto');
+
+            // No celular, também tenta abrir o compartilhamento nativo
+            // somente se o navegador oferecer essa função.
+            if (navigator.share && window.innerWidth <= 768) {
+                const titulo = noticia.querySelector('h2').innerText;
+                const texto = noticia.querySelector('p').innerText;
+                navigator.share({
+                    title: titulo,
+                    text: texto,
+                    url: window.location.href
+                }).catch(() => {});
+            }
+        }
+
+        function obterDadosCompartilhamento(elemento) {
+            const noticia = elemento.closest('.noticia');
+            const titulo = noticia.querySelector('h2').innerText;
+            const texto = noticia.querySelector('p').innerText;
+            const url = window.location.href;
+
+            return { titulo, texto, url };
+        }
+
+        function compartilharWhatsApp(event, elemento) {
+            event.preventDefault();
+            const dados = obterDadosCompartilhamento(elemento);
+            const mensagem = encodeURIComponent(
+                `${dados.titulo}\n\n${dados.texto}\n\nConfira: ${dados.url}`
+            );
+            window.open(`https://wa.me/?text=${mensagem}`, '_blank');
+        }
+
+        function compartilharFacebook(event, elemento) {
+            event.preventDefault();
+            const dados = obterDadosCompartilhamento(elemento);
+            const url = encodeURIComponent(dados.url);
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=700,height=500');
+        }
+
+        function compartilharX(event, elemento) {
+            event.preventDefault();
+            const dados = obterDadosCompartilhamento(elemento);
+            const texto = encodeURIComponent(`${dados.titulo} - ${dados.url}`);
+            window.open(`https://twitter.com/intent/tweet?text=${texto}`, '_blank', 'width=700,height=500');
+        }
+
+        function copiarLinkNoticia(elemento) {
+            const dados = obterDadosCompartilhamento(elemento);
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(dados.url)
+                    .then(() => alert("Link da notícia copiado! Agora é só colar onde quiser."))
+                    .catch(() => alert("Não foi possível copiar o link automaticamente."));
+            } else {
+                alert("Seu navegador não permite copiar o link automaticamente.");
+            }
+        }
+
+        // Função para adicionar comentário
+        function adicionarComentario(idLista, idInput, idContador) {
+            let input = document.getElementById(idInput);
+            let texto = input.value.trim();
+
+            if (texto !== "") {
+                let lista = document.getElementById(idLista);
+                let novoComentario = document.createElement('div');
+                novoComentario.className = 'comentario';
+                novoComentario.innerHTML = `<strong>Anônimo 🐾:</strong> ${texto}`;
+                
+                lista.appendChild(novoComentario);
+                
+                // Atualizar contador de comentários
+                let contador = document.getElementById(idContador);
+                contador.innerText = parseInt(contador.innerText) + 1;
+
+                // Limpar campo de texto
+                input.value = "";
+            }
+        }
+    </script>
+
+</body>
+</html>

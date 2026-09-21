@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin — Usuários</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <style>
+        /* ===== FUNDO DA APLICAÇÃO ===== */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #8e6bbd;
+            background-image:
+                radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 35%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130' viewBox='0 0 120 120'%3E%3Cg fill='%23d8b08c' fill-opacity='0.22'%3E%3Cellipse cx='60' cy='72' rx='12' ry='10'/%3E%3Ccircle cx='49' cy='58' r='5'/%3E%3Ccircle cx='59' cy='51' r='5'/%3E%3Ccircle cx='71' cy='58' r='5'/%3E%3Ccircle cx='61' cy='63' r='5'/%3E%3C/g%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-size: 130px;
+        }
+
+        .admin-layout { min-height: 100vh; }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar { 
+            background: rgba(255,255,255,.96) !important;
+            backdrop-filter: blur(8px);
+            border-right: 1px solid rgba(0,0,0,0.1); 
+        }
+
+        /* ===== CARDS DO PAINEL ===== */
+        .crud-card {
+            background: rgba(255,255,255,.98) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 15px 40px rgba(0,0,0,.25) !important;
+            border: none !important;
+        }
+
+        /* ===== CORES & TEXTOS ===== */
+        .text-brand { color: #7a4b00 !important; font-weight: bold; }
+        .border-brand-light { border-color: #e3d5c7 !important; }
+        .text-muted { color: #8B5E3C !important; }
+
+        /* ===== BOTÕES ===== */
+        .btn-brand {
+            background-color: #A67C52 !important;
+            color: white !important;
+            border: none;
+            border-radius: 30px !important;
+            font-weight: 600;
+            padding: 10px 24px;
+            transition: .3s;
+        }
+
+        .btn-brand:hover, .nav-link.active.btn-brand {
+            background-color: #8B5E3C !important;
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,.25);
+        }
+
+        .btn-outline-brand {
+            color: #A67C52 !important;
+            border: 2px solid #A67C52 !important;
+            background: transparent !important;
+            border-radius: 30px !important;
+            font-weight: 600;
+            transition: .3s;
+        }
+
+        .btn-outline-brand:hover {
+            background-color: #A67C52 !important;
+            color: white !important;
+        }
+
+        /* ===== FORMS & INPUTS ===== */
+        .form-label {
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #6c757d;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .form-control {
+            border-radius: 10px !important;
+            border: 1px solid #d9c7b5 !important;
+            background: #faf9f8 !important;
+            padding: 12px 14px;
+        }
+
+        .form-control:focus {
+            background: white !important;
+            border-color: #A67C52 !important;
+            box-shadow: 0 0 0 .25rem rgba(166,124,82,.20) !important;
+        }
+
+        /* ===== TABELAS ===== */
+        .table-light th { 
+            background-color: #f8f4ef !important; 
+            color: #7a4b00 !important; 
+            border-bottom: 2px solid #d9c7b5 !important; 
+        }
+
+        /* ===== RODAPÉ ===== */
+        footer, footer p { color: rgba(255,255,255,.85) !important; }
+    </style>
+</head>
+<body>
+
+    <div class="container-fluid p-0 admin-layout d-flex flex-column flex-md-row">
+        
+        <!-- SIDEBAR DE NAVEGAÇÃO ADMINISTRATIVA -->
+        <aside class="sidebar col-md-3 col-lg-2 p-3 d-flex flex-column shadow-sm z-1">
+            <div class="text-center py-4 border-bottom border-brand-light mb-4">
+                <h4 class="text-brand m-0 fw-bold"><i class="bi bi-shield-lock-fill"></i> Admin</h4>
+                <small class="text-muted d-block mt-1">Vozes que não podem gritar</small>
+            </div>
+            
+            <ul class="nav nav-pills flex-column mb-auto gap-2">
+                <li class="nav-item">
+                    <a href="/usuarios" class="nav-link active btn-brand d-flex align-items-center shadow-sm">
+                        <i class="bi bi-people-fill me-3"></i> Usuários
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/noticias" class="nav-link text-secondary d-flex align-items-center" style="font-weight: 500;">
+                        <i class="bi bi-newspaper me-3"></i> Notícias
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/ongs" class="nav-link text-secondary d-flex align-items-center" style="font-weight: 500;">
+                        <i class="bi bi-building-heart me-3"></i> ONGs
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/ajuda" class="nav-link text-secondary d-flex align-items-center" style="font-weight: 500;">
+                        <i class="bi bi-megaphone-fill me-3"></i> Denúncias
+                    </a>
+                </li>
+            </ul>
+
+            <div class="mt-4 pt-4 border-top border-brand-light">
+                <a href="/" class="btn btn-outline-brand w-100 d-inline-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-box-arrow-left fs-5"></i> Sair do Painel
+                </a>
+            </div>
+        </aside>
+
+        <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
+        <main class="col-md-9 col-lg-10 p-4 p-lg-5 d-flex flex-column flex-grow-1">
+            
+            <!-- HEADER DA PÁGINA -->
+            <header class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-brand-light">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-white p-3 rounded-4 shadow-sm text-brand fs-2 d-inline-flex">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div>
+                        <!-- Alterado para branco para contrastar com o fundo marrom escuro -->
+                        <h2 class="text-white m-0 fw-bold">Gerenciamento de Usuários</h2>
+                        <small style="color: rgba(255,255,255,0.7);">Painel Administrativo > Controle de Acesso</small>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CONTEÚDO CRUD -->
+            <div class="row g-4 flex-grow-1">
+                
+                <!-- COLUNA DOS FORMULÁRIOS (ESQUERDA) -->
+                <div class="col-xl-4 col-lg-5">
+                    
+                    <div class="crud-card p-4 mb-4">
+                        <h5 class="text-brand mb-4 d-flex align-items-center gap-2 fw-bold border-bottom border-brand-light pb-2">
+                            <i class="bi bi-plus-circle-fill opacity-75"></i> Cadastrar Novo Usuário
+                        </h5>
+                        <div class="mb-3">
+                            <label class="form-label">Nome de Usuário</label>
+                            <input type="text" id="c-nome" class="form-control" placeholder="Ex: joao_silva">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">E-mail corporativo / pessoal</label>
+                            <input type="email" id="c-email" class="form-control" placeholder="Ex: joao@email.com">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Senha de Acesso</label>
+                            <input type="password" id="c-senha" class="form-control" placeholder="Mínimo 8 caracteres">
+                        </div>
+                        <button class="btn btn-brand w-100 fw-semibold" onclick="createUsuario()">
+                            <i class="bi bi-check-lg me-1"></i> Salvar Registro
+                        </button>
+                    </div>
+
+                    <div class="crud-card p-4">
+                        <h5 class="text-brand mb-4 d-flex align-items-center gap-2 fw-bold border-bottom border-brand-light pb-2">
+                            <i class="bi bi-pencil-square opacity-75"></i> Modificar Cadastro
+                        </h5>
+                        <div class="mb-3">
+                            <label class="form-label">ID do Registro</label>
+                            <input type="text" id="u-id" class="form-control" style="background: #e9ecef !important; border: 1px dashed #d9c7b5 !important;" readonly placeholder="Selecione na tabela ao lado">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nome de Usuário</label>
+                            <input type="text" id="u-nome" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">E-mail de contato</label>
+                            <input type="email" id="u-email" class="form-control">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Nova Senha (Opcional)</label>
+                            <input type="password" id="u-senha" class="form-control" placeholder="••••••••">
+                        </div>
+                        <button class="btn btn-brand w-100 fw-semibold" onclick="updateUsuario()">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Atualizar Informações
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- COLUNA DA TABELA E LOGS (DIREITA) -->
+                <div class="col-xl-8 col-lg-7 d-flex flex-column gap-4">
+                    
+                    <div class="crud-card p-4 flex-grow-1">
+                        <h5 class="text-brand mb-4 d-flex align-items-center gap-2 fw-bold border-bottom border-brand-light pb-2">
+                            <i class="bi bi-table opacity-75"></i> Base de Usuários Cadastrados
+                        </h5>
+                        
+                        <div class="table-responsive-wrapper mt-3">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 70px;">ID</th>
+                                            <th>Nome de Usuário</th>
+                                            <th>E-mail Corporativo</th>
+                                            <th class="text-center" style="width: 120px;">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="table-group-divider border-top-0">
+                                        <!-- Preenchido via JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="crud-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center gap-2 text-secondary fw-semibold font-monospace small">
+                                <i class="bi bi-terminal-fill"></i> Log do Servidor
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary py-1" onclick="clearLog()">
+                                <i class="bi bi-trash3 small"></i> Limpar console
+                            </button>
+                        </div>
+                        <div class="rounded-3 p-3 text-light font-monospace small" style="background-color: #3b2a21; border: 1px solid #d9c7b5; max-height: 200px; overflow-y: auto;">
+                            <pre id="log" class="terminal-log mb-0 text-warning">— aguardando interações com o banco de dados —</pre>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <footer class="mt-auto pt-4 text-center small">
+                <p class="mb-0">© 2026 - Proteja • Respeite • Ame - Painel Administrativo</p>
+            </footer>
+            
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='Usuario/script.js') }}"></script>
+</body>
+</html>

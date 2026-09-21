@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.pytest_cache
+.python-version
+.env
+.env.*
+venv/
+.envrc
+.venv/
+env/
+ENV/
+.build/
+
+# PyCharm / VSCode
+.idea/
+.vscode/
+
+# Byte-compiled / distribution / packaging
+build/
+dist/
+eggs/
+parts/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Unit test / coverage reports
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+
+# Database files
+*.sqlite3
+*.db
+mariadb_data/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Others
+*.swp
+*~
