@@ -80,8 +80,11 @@
                         <textarea class="form-control" id="noticia-corpo" rows="6" placeholder="Escreva o corpo da notícia..." required></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="noticia-imagem" class="form-label text-dark fw-bold">URL ou Caminho da Imagem <span class="text-muted fw-normal">(Opcional)</span></label>
-                        <input type="text" class="form-control" id="noticia-imagem" placeholder="Ex: /static/img_posts/Imagem1.jpg ou URL externa">
+                        <label for="noticia-imagem" class="form-label text-dark fw-bold">Imagem <span class="text-muted fw-normal">(Opcional)</span></label>
+                        <input type="file" class="form-control" id="noticia-imagem" accept="image/*">
+                        <div id="imagem-preview-wrapper" class="mt-2 d-none">
+                            <img id="imagem-preview" src="" alt="Pré-visualização" class="img-fluid rounded" style="max-height:180px;">
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0 bg-light rounded-bottom-4">

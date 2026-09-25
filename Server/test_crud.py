@@ -81,7 +81,7 @@ class TestAutenticacaoEBloqueios:
 
     def test_usuario_comum_nao_cria_noticia(self):
         user_s, _ = get_user_session()
-        r = user_s.post(f"{API}/noticias", json={
+        r = user_s.post(f"{API}/noticias", data={
             "titulo": "Notícia não autorizada",
             "corpo": "Usuário comum não pode criar"
         })
@@ -161,39 +161,84 @@ class TestUsuarios:
 
 class TestNoticias:
     TS = str(int(time.time() * 1000))
-    VALID = {
-        "titulo": f"Notícia de Teste {TS}",
-        "corpo": "Conteúdo gerado por teste automatizado.",
-        "imagem_url": "/static/img_posts/Imagem1.jpg"
-    }
     created_id = None
 
-    def test_create_noticia_sucesso_admin_com_imagem(self):
+    def test_create_noticia_sucesso_admin_sem_imagem(self):
+        """Bottom-up: testa criação de notícia sem imagem via multipart/form-data."""
         admin_s = get_admin_session()
-        r = admin_s.post(f"{API}/noticias", json=self.VALID)
+        r = admin_s.post(f"{API}/noticias", data={
+            'titulo': f'Notícia de Teste {self.TS}',
+            'corpo': 'Conteúdo gerado por teste automatizado sem imagem.',
+        })
         assert r.status_code == 201, r.text
         body = r.json()
-        assert body["success"] is True
-        assert "id" in body["data"]
-        assert body["data"]["imagem_url"] == "/static/img_posts/Imagem1.jpg"
-        TestNoticias.created_id = body["data"]["id"]
+        assert body['success'] is True
+        assert 'id' in body['data']
+        assert body['data']['imagem_url'] is None
+        TestNoticias.created_id = body['data']['id']
+
+    def test_create_noticia_admin_com_imagem_binaria(self):
+        """Bottom-up + Incremental: testa criação de notícia com upload de imagem binária."""
+        import io
+        admin_s = get_admin_session()
+        # Create a minimal 1x1 white PNG in memory (binary)
+        png_1x1 = bytes([
+            0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a,0x00,0x00,0x00,0x0d,
+            0x49,0x48,0x44,0x52,0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x01,
+            0x08,0x02,0x00,0x00,0x00,0x90,0x77,0x53,0xde,0x00,0x00,0x00,
+            0x0c,0x49,0x44,0x41,0x54,0x08,0xd7,0x63,0xf8,0xff,0xff,0x3f,
+            0x00,0x05,0xfe,0x02,0xfe,0xdc,0xcc,0x59,0xe7,0x00,0x00,0x00,
+            0x00,0x49,0x45,0x4e,0x44,0xae,0x42,0x60,0x82
+        ])
+        r = admin_s.post(
+            f"{API}/noticias",
+            data={'titulo': f'Notícia com Imagem {self.TS}', 'corpo': 'Conteúdo com imagem binária.'},
+            files={'imagem': ('test.png', io.BytesIO(png_1x1), 'image/png')}
+        )
+        assert r.status_code == 201, r.text
+        body = r.json()
+        assert body['success'] is True
+        nid = body['data']['id']
+        # imagem_url deve apontar para o endpoint binário
+        assert body['data']['imagem_url'] == f'/api/noticias/{nid}/imagem'
+        # Verifica se o endpoint de imagem retorna a imagem
+        r_img = admin_s.get(f"{BASE_URL}/api/noticias/{nid}/imagem")
+        assert r_img.status_code == 200
+        assert 'image/' in r_img.headers.get('Content-Type', '')
+        # Cleanup
+        admin_s.delete(f"{API}/noticias/{nid}")
 
     def test_list_noticias_contem_pre_cadastradas(self):
         user_s, _ = get_user_session()
         r = user_s.get(f"{API}/noticias?limit=50")
         assert r.status_code == 200
-        items = r.json()["data"]
+        items = r.json()['data']
         assert len(items) >= 12
-        titulos = [n["titulo"] for n in items]
-        assert any("Mais de 100 animais" in t for t in titulos)
-        assert any("Serial killer" in t for t in titulos)
+        titulos = [n['titulo'] for n in items]
+        assert any('Mais de 100 animais' in t for t in titulos)
+        assert any('Serial killer' in t for t in titulos)
+
+    def test_list_noticias_pre_cadastradas_tem_imagem(self):
+        """Garante que as 12 notícias pré-cadastradas possuem imagem binária associada."""
+        user_s, _ = get_user_session()
+        r = user_s.get(f"{API}/noticias?limit=50")
+        assert r.status_code == 200
+        items = r.json()['data']
+        itens_com_img = [n for n in items if n.get('imagem_url')]
+        assert len(itens_com_img) >= 12, f"Esperado >= 12 notícias com imagem, encontrado {len(itens_com_img)}"
 
     def test_update_noticia_admin(self):
         admin_s = get_admin_session()
         assert TestNoticias.created_id
-        r = admin_s.put(f"{API}/noticias/{TestNoticias.created_id}", json={"titulo": "Título Notícia Atualizado"})
+        r = admin_s.put(f"{API}/noticias/{TestNoticias.created_id}", data={'titulo': 'Título Notícia Atualizado'})
         assert r.status_code == 200
-        assert "Atualizado" in r.json()["data"]["titulo"]
+        assert 'Atualizado' in r.json()['data']['titulo']
+
+    def test_delete_noticia_admin(self):
+        admin_s = get_admin_session()
+        assert TestNoticias.created_id
+        r = admin_s.delete(f"{API}/noticias/{TestNoticias.created_id}")
+        assert r.status_code == 204
 
 
 # ===========================================================================
@@ -203,53 +248,59 @@ class TestNoticias:
 class TestComentariosECurtidas:
     def test_curtir_e_descurtir_noticia(self):
         admin_s = get_admin_session()
-        r_not = admin_s.post(f"{API}/noticias", json={
-            "titulo": "Notícia para Curtida",
-            "corpo": "Corpo da notícia para teste de curtida."
+        r_not = admin_s.post(f"{API}/noticias", data={
+            'titulo': 'Notícia para Curtida',
+            'corpo': 'Corpo da notícia para teste de curtida.'
         })
         assert r_not.status_code == 201
-        nid = r_not.json()["data"]["id"]
+        nid = r_not.json()['data']['id']
 
         user_s, _ = get_user_session()
 
         # Dar curtida
         r_like = user_s.post(f"{API}/noticias/{nid}/curtida")
         assert r_like.status_code == 200
-        assert r_like.json()["data"]["curtidas_count"] >= 1
-        assert r_like.json()["data"]["curtido_pelo_usuario"] is True
+        assert r_like.json()['data']['curtidas_count'] >= 1
+        assert r_like.json()['data']['curtido_pelo_usuario'] is True
 
         # Descurtir
         r_unlike = user_s.delete(f"{API}/noticias/{nid}/curtida")
         assert r_unlike.status_code == 200
-        assert r_unlike.json()["data"]["curtido_pelo_usuario"] is False
+        assert r_unlike.json()['data']['curtido_pelo_usuario'] is False
+
+        # Cleanup
+        admin_s.delete(f"{API}/noticias/{nid}")
 
     def test_criar_e_moderar_comentario(self):
         admin_s = get_admin_session()
-        r_not = admin_s.post(f"{API}/noticias", json={
-            "titulo": "Notícia para Comentário",
-            "corpo": "Corpo da notícia para teste de comentário."
+        r_not = admin_s.post(f"{API}/noticias", data={
+            'titulo': 'Notícia para Comentário',
+            'corpo': 'Corpo da notícia para teste de comentário.'
         })
         assert r_not.status_code == 201
-        nid = r_not.json()["data"]["id"]
+        nid = r_not.json()['data']['id']
 
         user_s, _ = get_user_session()
 
         # Adicionar comentário com XSS potencial
         r_com = user_s.post(f"{API}/noticias/{nid}/comentarios", json={
-            "texto": "<script>alert('xss')</script>Comentário Válido"
+            'texto': "<script>alert('xss')</script>Comentário Válido"
         })
         assert r_com.status_code == 201
-        cid = r_com.json()["data"]["id"]
-        assert "&lt;script&gt;" in r_com.json()["data"]["texto"]
+        cid = r_com.json()['data']['id']
+        assert '&lt;script&gt;' in r_com.json()['data']['texto']
 
         # Editar próprio comentário
-        r_upd = user_s.put(f"{API}/comentarios/{cid}", json={"texto": "Comentário Editado com Sucesso"})
+        r_upd = user_s.put(f"{API}/comentarios/{cid}", json={'texto': 'Comentário Editado com Sucesso'})
         assert r_upd.status_code == 200
-        assert r_upd.json()["data"]["texto"] == "Comentário Editado com Sucesso"
+        assert r_upd.json()['data']['texto'] == 'Comentário Editado com Sucesso'
 
         # Admin exclui comentário
         r_del = admin_s.delete(f"{API}/comentarios/{cid}")
         assert r_del.status_code == 204
+
+        # Cleanup
+        admin_s.delete(f"{API}/noticias/{nid}")
 
 
 # ===========================================================================

@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import DateTime, String, Text, ForeignKey, UniqueConstraint, func, select
+from sqlalchemy import DateTime, LargeBinary, String, Text, ForeignKey, UniqueConstraint, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -13,7 +13,8 @@ class Noticia(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     titulo: Mapped[str] = mapped_column(String(255), nullable=False)
     corpo: Mapped[str] = mapped_column(Text, nullable=False)
-    imagem_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    imagem_blob: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    imagem_mime: Mapped[str | None] = mapped_column(String(100), nullable=True)
     data_hora: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
@@ -101,7 +102,7 @@ def list_noticias(limit, offset, current_user_id=None):
             'id': r.id,
             'titulo': r.titulo,
             'corpo': r.corpo,
-            'imagem_url': r.imagem_url,
+            'imagem_url': f'/api/noticias/{r.id}/imagem' if r.imagem_blob else None,
             'data_hora': r.data_hora.isoformat() if r.data_hora else None,
             'curtidas_count': curtidas,
             'comentarios_count': comentarios,
@@ -119,7 +120,7 @@ def get_noticia_by_id(nid, current_user_id=None):
             'id': row.id,
             'titulo': row.titulo,
             'corpo': row.corpo,
-            'imagem_url': row.imagem_url,
+            'imagem_url': f'/api/noticias/{row.id}/imagem' if row.imagem_blob else None,
             'data_hora': row.data_hora.isoformat() if row.data_hora else None,
             'curtidas_count': curtidas,
             'comentarios_count': comentarios,
@@ -128,10 +129,10 @@ def get_noticia_by_id(nid, current_user_id=None):
     return None
 
 
-def create_noticia(titulo, corpo, imagem_url=None):
+def create_noticia(titulo, corpo, imagem_blob=None, imagem_mime=None):
     db = next(get_db())
     try:
-        nova = Noticia(titulo=titulo, corpo=corpo, imagem_url=imagem_url)
+        nova = Noticia(titulo=titulo, corpo=corpo, imagem_blob=imagem_blob, imagem_mime=imagem_mime)
         db.add(nova)
         db.commit()
         return nova.id
@@ -153,7 +154,7 @@ def update_noticia_db(nid, update_data):
             'id': noticia.id,
             'titulo': noticia.titulo,
             'corpo': noticia.corpo,
-            'imagem_url': noticia.imagem_url,
+            'imagem_url': f'/api/noticias/{noticia.id}/imagem' if noticia.imagem_blob else None,
             'data_hora': noticia.data_hora.isoformat() if noticia.data_hora else None,
         }
     except IntegrityError:

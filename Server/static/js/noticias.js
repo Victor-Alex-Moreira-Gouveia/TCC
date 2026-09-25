@@ -1,5 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
     carregarNoticias();
+
+    // Image file preview in modal
+    const imgInput = document.getElementById('noticia-imagem');
+    if (imgInput) {
+        imgInput.addEventListener('change', () => {
+            const previewWrapper = document.getElementById('imagem-preview-wrapper');
+            const previewImg = document.getElementById('imagem-preview');
+            if (imgInput.files && imgInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    previewWrapper.classList.remove('d-none');
+                };
+                reader.readAsDataURL(imgInput.files[0]);
+            } else if (previewWrapper) {
+                previewWrapper.classList.add('d-none');
+            }
+        });
+    }
 });
 
 let modalNoticiaBS = null;
@@ -166,6 +185,8 @@ function abrirModalCriarNoticia() {
     document.getElementById('noticia-corpo').value = '';
     const imgInput = document.getElementById('noticia-imagem');
     if (imgInput) imgInput.value = '';
+    const previewWrapper = document.getElementById('imagem-preview-wrapper');
+    if (previewWrapper) previewWrapper.classList.add('d-none');
     document.getElementById('modalNoticiaLabel').textContent = 'Cadastrar Nova Notícia';
     document.getElementById('btnSalvarNoticia').textContent = 'Cadastrar Notícia';
 
@@ -185,8 +206,18 @@ async function abrirModalEditarNoticia(id) {
             document.getElementById('noticia-id').value = data.data.id;
             document.getElementById('noticia-titulo').value = data.data.titulo;
             document.getElementById('noticia-corpo').value = data.data.corpo;
+            // Clear file input — can't pre-fill file inputs for security reasons
             const imgInput = document.getElementById('noticia-imagem');
-            if (imgInput) imgInput.value = data.data.imagem_url || '';
+            if (imgInput) imgInput.value = '';
+            // Show existing image as preview if available
+            const previewWrapper = document.getElementById('imagem-preview-wrapper');
+            const previewImg = document.getElementById('imagem-preview');
+            if (previewWrapper && previewImg && data.data.imagem_url) {
+                previewImg.src = data.data.imagem_url;
+                previewWrapper.classList.remove('d-none');
+            } else if (previewWrapper) {
+                previewWrapper.classList.add('d-none');
+            }
             document.getElementById('modalNoticiaLabel').textContent = 'Editar Notícia';
             document.getElementById('btnSalvarNoticia').textContent = 'Atualizar Notícia';
 
@@ -202,13 +233,12 @@ async function abrirModalEditarNoticia(id) {
     }
 }
 
-// Admin: Salva (Criar ou Atualizar) notícia via API
+// Admin: Salva (Criar ou Atualizar) notícia via API usando FormData (suporte a imagem binária)
 async function salvarNoticia() {
     const id = document.getElementById('noticia-id').value;
     const titulo = document.getElementById('noticia-titulo').value.trim();
     const corpo = document.getElementById('noticia-corpo').value.trim();
     const imgInput = document.getElementById('noticia-imagem');
-    const imagem_url = imgInput ? imgInput.value.trim() : '';
 
     if (!titulo || !corpo) {
         alert('Preencha título e corpo da notícia.');
@@ -219,11 +249,17 @@ async function salvarNoticia() {
     const url = isEdit ? `/api/noticias/${id}` : '/api/noticias';
     const method = isEdit ? 'PUT' : 'POST';
 
+    const formData = new FormData();
+    formData.append('titulo', titulo);
+    formData.append('corpo', corpo);
+    if (imgInput && imgInput.files && imgInput.files.length > 0) {
+        formData.append('imagem', imgInput.files[0]);
+    }
+
     try {
         const response = await fetch(url, {
             method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ titulo, corpo, imagem_url })
+            body: formData  // No Content-Type header — browser sets multipart boundary automatically
         });
         const resultado = await response.json();
 

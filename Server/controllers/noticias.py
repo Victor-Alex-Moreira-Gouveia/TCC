@@ -72,12 +72,16 @@ def create_noticia_route():
     if not _is_admin():
         return error_response('Apenas administradores podem criar notícias', 'FORBIDDEN', status=403)
 
-    data = request.get_json(silent=True) or {}
+    # Expect multipart/form-data for optional image upload
     errors = {}
-
-    titulo = (data.get('titulo') or '').strip()
-    corpo = (data.get('corpo') or '').strip()
-    imagem_url = (data.get('imagem_url') or data.get('imagem') or '').strip() or None
+    titulo = (request.form.get('titulo') or '').strip()
+    corpo = (request.form.get('corpo') or '').strip()
+    imagem_file = request.files.get('imagem')
+    imagem_blob = None
+    imagem_mime = None
+    if imagem_file:
+        imagem_blob = imagem_file.read()
+        imagem_mime = imagem_file.mimetype
 
     if not titulo:
         errors['titulo'] = 'Campo obrigatório'
@@ -88,7 +92,7 @@ def create_noticia_route():
         return error_response('Validação falhou', 'VALIDATION_ERROR', errors, 400)
 
     try:
-        new_id = create_noticia(titulo, corpo, imagem_url=imagem_url)
+        new_id = create_noticia(titulo, corpo, imagem_blob=imagem_blob, imagem_mime=imagem_mime)
         row = get_noticia_by_id(new_id, current_user_id=session.get('usuario_id'))
         return success_response(row, 'Notícia cadastrada com sucesso.', 201)
     except SQLAlchemyError as exc:
@@ -107,28 +111,30 @@ def update_noticia_route(nid):
     if not existing:
         return error_response('Recurso não encontrado', 'NOT_FOUND', status=404)
 
-    data = request.get_json(silent=True) or {}
+    # Expect multipart/form-data
     errors = {}
     update_data = {}
 
-    if 'titulo' in data:
-        titulo = (data['titulo'] or '').strip()
+    titulo = request.form.get('titulo')
+    if titulo is not None:
+        titulo = titulo.strip()
         if not titulo:
             errors['titulo'] = 'Não pode ser vazio'
         else:
             update_data['titulo'] = titulo
 
-    if 'corpo' in data:
-        corpo = (data['corpo'] or '').strip()
+    corpo = request.form.get('corpo')
+    if corpo is not None:
+        corpo = corpo.strip()
         if not corpo:
             errors['corpo'] = 'Não pode ser vazio'
         else:
             update_data['corpo'] = corpo
 
-    if 'imagem_url' in data or 'imagem' in data:
-        raw_img = (data.get('imagem_url') if 'imagem_url' in data else data.get('imagem')) or ''
-        img = raw_img.strip()
-        update_data['imagem_url'] = img if img else None
+    imagem_file = request.files.get('imagem')
+    if imagem_file:
+        update_data['imagem_blob'] = imagem_file.read()
+        update_data['imagem_mime'] = imagem_file.mimetype
 
     if errors:
         return error_response('Validação falhou', 'VALIDATION_ERROR', errors, 400)
@@ -158,6 +164,19 @@ def delete_noticia_route(nid):
         return '', 204
     except SQLAlchemyError as exc:
         return error_response('Erro interno do servidor', 'DB_ERROR', str(exc), 500)
+
+
+@noticias_bp.route('/noticias/<int:nid>/imagem', methods=['GET'])
+def get_noticia_imagem_route(nid):
+    """Return the binary image for a news article."""
+    from flask import abort, Response
+    from models.noticias import Noticia
+    from config.config import get_db as _get_db
+    db = next(_get_db())
+    noticia = db.get(Noticia, nid)
+    if not noticia or not noticia.imagem_blob:
+        abort(404)
+    return Response(noticia.imagem_blob, mimetype=noticia.imagem_mime or 'image/jpeg')
 
 
 # ---------------------------------------------------------------------------
