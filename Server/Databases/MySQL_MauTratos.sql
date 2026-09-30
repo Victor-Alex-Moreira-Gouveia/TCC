@@ -7,7 +7,7 @@ CREATE TABLE usuarios (
     nome_usuario VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tabela Noticias
 CREATE TABLE noticias (
@@ -17,7 +17,7 @@ CREATE TABLE noticias (
     imagem_blob LONGBLOB NULL,
     imagem_mime VARCHAR(100) NULL,
     data_hora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tabela Ajuda (Denúncias)
 CREATE TABLE ajuda (
@@ -27,7 +27,7 @@ CREATE TABLE ajuda (
     tipo_denuncia VARCHAR(80) NOT NULL DEFAULT 'Animal doméstico',
     nivel_urgencia VARCHAR(80) NOT NULL DEFAULT 'Não informado',
     autor VARCHAR(150) NOT NULL DEFAULT 'anon'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tabela de Comentários em Notícias
 CREATE TABLE comentarios_noticias (
@@ -40,7 +40,7 @@ CREATE TABLE comentarios_noticias (
     data_atualizacao DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (noticia_id) REFERENCES noticias(id) ON DELETE CASCADE,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tabela de Curtidas em Notícias (1 curtida por usuário por notícia)
 CREATE TABLE curtidas_noticias (
@@ -51,6 +51,24 @@ CREATE TABLE curtidas_noticias (
     UNIQUE KEY uq_noticia_usuario (noticia_id, usuario_id),
     FOREIGN KEY (noticia_id) REFERENCES noticias(id) ON DELETE CASCADE,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Notícias pré-cadastradas são inseridas pelo script Python via ensure_ajuda_schema()
+-- View de Monitoramento Administrativo do Banco de Dados
+CREATE OR REPLACE VIEW vw_estatisticas_tabelas AS
+SELECT 
+    table_name AS tabela,
+    engine AS motor_armazenamento,
+    table_rows AS total_linhas_estimado,
+    ROUND(data_length / 1024, 2) AS tamanho_dados_kb,
+    ROUND(index_length / 1024, 2) AS tamanho_indices_kb,
+    ROUND((data_length + index_length) / (1024 * 1024), 3) AS tamanho_total_mb,
+    ROUND(data_free / 1024, 2) AS espaco_livre_kb,
+    create_time AS data_criacao,
+    update_time AS ultima_atualizacao
+FROM 
+    information_schema.TABLES
+WHERE 
+    table_schema = DATABASE()
+    AND table_type = 'BASE TABLE'
+ORDER BY 
+    (data_length + index_length) DESC;

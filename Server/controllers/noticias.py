@@ -1,5 +1,5 @@
 import html
-from flask import Blueprint, request, session
+from flask import Blueprint, Response, request, session
 from sqlalchemy.exc import SQLAlchemyError
 
 from models.noticias import (
@@ -10,6 +10,7 @@ from models.noticias import (
     delete_noticia_db,
     get_comentario_by_id,
     get_noticia_by_id,
+    get_noticia_raw_image,
     list_comentarios,
     list_noticias,
     update_comentario_db,
@@ -17,7 +18,7 @@ from models.noticias import (
     adicionar_curtida,
     remover_curtida,
 )
-from utils import build_pagination, error_response, parse_pagination, success_response
+from utils import build_pagination, detect_image_mime, error_response, parse_pagination, success_response
 
 noticias_bp = Blueprint('noticias', __name__, url_prefix='/api')
 
@@ -72,16 +73,26 @@ def create_noticia_route():
     if not _is_admin():
         return error_response('Apenas administradores podem criar notícias', 'FORBIDDEN', status=403)
 
-    # Expect multipart/form-data for optional image upload
     errors = {}
     titulo = (request.form.get('titulo') or '').strip()
     corpo = (request.form.get('corpo') or '').strip()
     imagem_file = request.files.get('imagem')
     imagem_blob = None
     imagem_mime = None
+
     if imagem_file:
-        imagem_blob = imagem_file.read()
-        imagem_mime = imagem_file.mimetype
+        raw_blob = imagem_file.read()
+        if len(raw_blob) > 15 * 1024 * 1024:
+            return error_response('O arquivo de imagem excede o tamanho máximo de 15MB', 'IMAGE_TOO_LARGE', status=400)
+        is_valid, detected_mime = detect_image_mime(imagem_file.filename, imagem_file.mimetype, raw_blob)
+        if not is_valid:
+            return error_response(
+                'Formato de imagem inválido ou não suportado. Envie uma imagem válida (PNG, JPG, JPEG, WEBP, GIF, SVG, BMP, AVIF, TIFF).',
+                'INVALID_IMAGE_FORMAT',
+                status=400
+            )
+        imagem_blob = raw_blob
+        imagem_mime = detected_mime
 
     if not titulo:
         errors['titulo'] = 'Campo obrigatório'
@@ -111,7 +122,6 @@ def update_noticia_route(nid):
     if not existing:
         return error_response('Recurso não encontrado', 'NOT_FOUND', status=404)
 
-    # Expect multipart/form-data
     errors = {}
     update_data = {}
 
@@ -133,8 +143,18 @@ def update_noticia_route(nid):
 
     imagem_file = request.files.get('imagem')
     if imagem_file:
-        update_data['imagem_blob'] = imagem_file.read()
-        update_data['imagem_mime'] = imagem_file.mimetype
+        raw_blob = imagem_file.read()
+        if len(raw_blob) > 15 * 1024 * 1024:
+            return error_response('O arquivo de imagem excede o tamanho máximo de 15MB', 'IMAGE_TOO_LARGE', status=400)
+        is_valid, detected_mime = detect_image_mime(imagem_file.filename, imagem_file.mimetype, raw_blob)
+        if not is_valid:
+            return error_response(
+                'Formato de imagem inválido ou não suportado. Envie uma imagem válida (PNG, JPG, JPEG, WEBP, GIF, SVG, BMP, AVIF, TIFF).',
+                'INVALID_IMAGE_FORMAT',
+                status=400
+            )
+        update_data['imagem_blob'] = raw_blob
+        update_data['imagem_mime'] = detected_mime
 
     if errors:
         return error_response('Validação falhou', 'VALIDATION_ERROR', errors, 400)
@@ -168,15 +188,13 @@ def delete_noticia_route(nid):
 
 @noticias_bp.route('/noticias/<int:nid>/imagem', methods=['GET'])
 def get_noticia_imagem_route(nid):
-    """Return the binary image for a news article."""
-    from flask import abort, Response
-    from models.noticias import Noticia
-    from config.config import get_db as _get_db
-    db = next(_get_db())
-    noticia = db.get(Noticia, nid)
-    if not noticia or not noticia.imagem_blob:
-        abort(404)
-    return Response(noticia.imagem_blob, mimetype=noticia.imagem_mime or 'image/jpeg')
+    """Retorna a imagem binária da notícia com MIME type dinâmico e suporte a cache HTTP no navegador."""
+    blob, mime = get_noticia_raw_image(nid)
+    if not blob:
+        return error_response('Imagem não encontrada para a notícia especificada.', 'NOT_FOUND', status=404)
+    response = Response(blob, mimetype=mime or 'image/jpeg')
+    response.headers['Cache-Control'] = 'public, max-age=86400'
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -217,7 +235,6 @@ def create_comentario_route(nid):
     if len(raw_texto) > 1000:
         return error_response('O comentário excede o tamanho máximo de 1000 caracteres', 'VALIDATION_ERROR', {'texto': 'Máximo 1000 caracteres'}, 400)
 
-    # Escapar XSS
     texto_seguro = html.escape(raw_texto)
     usuario_id = session.get('usuario_id')
     autor_nome = session.get('usuario_nome') or 'Usuário Registrado'

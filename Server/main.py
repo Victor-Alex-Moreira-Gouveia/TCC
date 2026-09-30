@@ -1,3 +1,4 @@
+import logging
 import os
 
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
@@ -6,7 +7,16 @@ from sqlalchemy import select
 from werkzeug.security import check_password_hash
 
 from config.config import MEMCACHED_HOST, MEMCACHED_PORT, detect_db_engine, get_db, init_db_schema, test_mariadb
+from config.cache import cache
 from models.usuarios import Usuario
+from utils import error_response
+
+# Configuração centralizada de logs para rastreio de diagnósticos
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(levelname)s em %(module)s: %(message)s'
+)
+logger = logging.getLogger('app_main')
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'admin1234@')
@@ -24,16 +34,61 @@ def verificar_autenticacao():
         return None
 
     # Apenas a área de notícias (página e API) exige que o usuário esteja logado.
-    # O restante do sistema é de livre acesso ao público / usuários anônimos.
     is_noticias_route = path == '/noticias' or path.startswith('/api/noticias')
 
     if is_noticias_route:
         if session.get('role') not in ('admin', 'user'):
             if path.startswith('/api/'):
-                return jsonify({'success': False, 'error': 'Acesso não autorizado', 'code': 'UNAUTHORIZED'}), 401
+                return error_response('Acesso não autorizado', 'UNAUTHORIZED', status=401)
             return redirect(url_for('tela_login'))
 
     return None
+
+
+# ---------------------------------------------------------------------------
+# Tratamento de Erros HTTP Globais (Melhoria de Diagnóstico)
+# ---------------------------------------------------------------------------
+
+@app.errorhandler(400)
+def handle_bad_request(e):
+    msg = str(e.description) if hasattr(e, 'description') else 'Requisição inválida'
+    if request.path.startswith('/api/'):
+        return error_response(msg, 'BAD_REQUEST', status=400)
+    return render_template('Tcc/index.html'), 400
+
+
+@app.errorhandler(404)
+def handle_not_found(e):
+    if request.path.startswith('/api/'):
+        return error_response('Recurso ou rota não encontrada', 'NOT_FOUND', status=404)
+    return render_template('Tcc/index.html'), 404
+
+
+@app.errorhandler(405)
+def handle_method_not_allowed(e):
+    if request.path.startswith('/api/'):
+        return error_response('Método HTTP não permitido para esta rota', 'METHOD_NOT_ALLOWED', status=405)
+    return render_template('Tcc/index.html'), 405
+
+
+@app.errorhandler(413)
+def handle_payload_too_large(e):
+    if request.path.startswith('/api/'):
+        return error_response('O arquivo enviado excede o limite máximo permitido', 'PAYLOAD_TOO_LARGE', status=413)
+    return render_template('Tcc/index.html'), 413
+
+
+@app.errorhandler(500)
+def handle_internal_server_error(e):
+    logger.error(f"Erro interno de servidor não capturado na rota {request.path}: {e}", exc_info=True)
+    if request.path.startswith('/api/'):
+        return error_response(
+            'Erro interno no servidor. O problema foi registrado para análise.',
+            'INTERNAL_SERVER_ERROR',
+            details=str(e) if app.debug else None,
+            status=500
+        )
+    return render_template('Tcc/index.html'), 500
 
 
 # ---------------------------------------------------------------------------
@@ -42,14 +97,14 @@ def verificar_autenticacao():
 
 def test_memcached():
     try:
-        client = Client((MEMCACHED_HOST, MEMCACHED_PORT))
-        client.set('test_key', 'funcionando')
-        result = client.get('test_key')
-        if result == b'funcionando':
+        client = Client((MEMCACHED_HOST, MEMCACHED_PORT), connect_timeout=1, timeout=1)
+        client.set('healthcheck_key', 'ok', expire=10)
+        result = client.get('healthcheck_key')
+        if result == b'ok':
             return True, 'Conexão com Memcached: OK'
-        return False, 'Memcached: Falha na integridade dos dados'
+        return False, 'Memcached: Resposta inesperada'
     except Exception as exc:
-        return False, f'Erro Memcached: {str(exc)}'
+        return False, f'Memcached indisponível (Modo Fallback Ativo): {str(exc)}'
 
 
 @app.route('/health')
@@ -58,17 +113,22 @@ def health_check():
     engine, engine_info = detect_db_engine()
     cache_status, cache_msg = test_memcached()
 
-    status_code = 200 if db_status and cache_status else 500
+    # O sistema permanece ONLINE caso o banco esteja operacional, mesmo sem cache
+    status_code = 200 if db_status else 500
     checks = {
         'database': {
             'status': db_msg,
             'engine': engine,
             'version_or_info': engine_info,
         },
-        'memcached': cache_msg,
+        'memcached': {
+            'status': cache_msg,
+            'cache_active': cache_status,
+            'fallback_mode': not cache_status,
+        },
     }
     return jsonify({
-        'status': 'online' if status_code == 200 else 'unstable',
+        'status': 'online' if db_status else 'unstable',
         'checks': checks,
     }), status_code
 
@@ -164,6 +224,7 @@ def api_login():
             return jsonify({'status': 'sucesso', 'redirect': '/'}), 200
 
     except Exception as exc:
+        logger.error(f"Erro no login: {exc}", exc_info=True)
         return jsonify({'status': 'erro', 'mensagem': f'Erro interno do servidor: {str(exc)}'}), 500
 
     return jsonify({'status': 'erro', 'mensagem': 'E-mail ou senha incorretos.'}), 401

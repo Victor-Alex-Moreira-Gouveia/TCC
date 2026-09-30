@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped, mapped_column
 
 from config.config import get_db
+from config.cache import cache
 from models.base import Base
 
 
@@ -59,14 +60,24 @@ class CurtidaNoticia(Base):
     )
 
 
+def _invalidate_noticias_cache():
+    """Invalida com segurança o cache de notícias (com fallback gracioso em exceção)."""
+    cache.flush()
+
+
 # ---------------------------------------------------------------------------
 # Notícias
 # ---------------------------------------------------------------------------
 
 def count_noticias():
+    cached = cache.get('noticias_count')
+    if cached is not None:
+        return cached
+
     db = next(get_db())
-    total = db.scalar(select(func.count()).select_from(Noticia))
-    return total or 0
+    total = db.scalar(select(func.count()).select_from(Noticia)) or 0
+    cache.set('noticias_count', total, expire=120)
+    return total
 
 
 def _get_counts_and_user_like(db, noticia_id: int, current_user_id: str = None):
@@ -91,6 +102,11 @@ def _get_counts_and_user_like(db, noticia_id: int, current_user_id: str = None):
 
 
 def list_noticias(limit, offset, current_user_id=None):
+    cache_key = f'noticias_list_{limit}_{offset}_{current_user_id or "anon"}'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     db = next(get_db())
     stmt = select(Noticia).order_by(Noticia.id.desc()).limit(limit).offset(offset)
     rows = db.scalars(stmt).all()
@@ -108,15 +124,22 @@ def list_noticias(limit, offset, current_user_id=None):
             'comentarios_count': comentarios,
             'curtido_pelo_usuario': curtido,
         })
+
+    cache.set(cache_key, result, expire=120)
     return result
 
 
 def get_noticia_by_id(nid, current_user_id=None):
+    cache_key = f'noticia_detail_{nid}_{current_user_id or "anon"}'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     db = next(get_db())
     row = db.get(Noticia, nid)
     if row:
         curtidas, comentarios, curtido = _get_counts_and_user_like(db, row.id, current_user_id)
-        return {
+        res = {
             'id': row.id,
             'titulo': row.titulo,
             'corpo': row.corpo,
@@ -126,7 +149,17 @@ def get_noticia_by_id(nid, current_user_id=None):
             'comentarios_count': comentarios,
             'curtido_pelo_usuario': curtido,
         }
+        cache.set(cache_key, res, expire=120)
+        return res
     return None
+
+
+def get_noticia_raw_image(nid):
+    db = next(get_db())
+    row = db.get(Noticia, nid)
+    if row and row.imagem_blob:
+        return row.imagem_blob, row.imagem_mime or 'image/jpeg'
+    return None, None
 
 
 def create_noticia(titulo, corpo, imagem_blob=None, imagem_mime=None):
@@ -135,6 +168,7 @@ def create_noticia(titulo, corpo, imagem_blob=None, imagem_mime=None):
         nova = Noticia(titulo=titulo, corpo=corpo, imagem_blob=imagem_blob, imagem_mime=imagem_mime)
         db.add(nova)
         db.commit()
+        _invalidate_noticias_cache()
         return nova.id
     except IntegrityError:
         db.rollback()
@@ -150,6 +184,7 @@ def update_noticia_db(nid, update_data):
         for key, value in update_data.items():
             setattr(noticia, key, value)
         db.commit()
+        _invalidate_noticias_cache()
         return {
             'id': noticia.id,
             'titulo': noticia.titulo,
@@ -169,6 +204,7 @@ def delete_noticia_db(nid):
         return False
     db.delete(noticia)
     db.commit()
+    _invalidate_noticias_cache()
     return True
 
 
@@ -222,6 +258,7 @@ def create_comentario(noticia_id: int, usuario_id: str, autor_nome: str, texto: 
     )
     db.add(novo)
     db.commit()
+    _invalidate_noticias_cache()
     return get_comentario_by_id(novo.id)
 
 
@@ -233,6 +270,7 @@ def update_comentario_db(comentario_id: int, texto: str):
     c.texto = texto
     c.data_atualizacao = datetime.utcnow()
     db.commit()
+    _invalidate_noticias_cache()
     return get_comentario_by_id(c.id)
 
 
@@ -243,6 +281,7 @@ def delete_comentario_db(comentario_id: int):
         return False
     db.delete(c)
     db.commit()
+    _invalidate_noticias_cache()
     return True
 
 
@@ -260,11 +299,12 @@ def adicionar_curtida(noticia_id: int, usuario_id: str):
         )
     )
     if existing:
-        return True  # Já curtiu
+        return True
     try:
         curtida = CurtidaNoticia(noticia_id=noticia_id, usuario_id=user_str)
         db.add(curtida)
         db.commit()
+        _invalidate_noticias_cache()
         return True
     except IntegrityError:
         db.rollback()
@@ -284,4 +324,5 @@ def remover_curtida(noticia_id: int, usuario_id: str):
         return False
     db.delete(existing)
     db.commit()
+    _invalidate_noticias_cache()
     return True

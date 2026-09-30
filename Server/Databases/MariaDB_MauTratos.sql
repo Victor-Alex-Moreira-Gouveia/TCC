@@ -53,4 +53,22 @@ CREATE TABLE curtidas_noticias (
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Notícias pré-cadastradas são inseridas pelo script Python via ensure_ajuda_schema()
+-- View de Monitoramento Administrativo do Banco de Dados
+CREATE OR REPLACE VIEW vw_estatisticas_tabelas AS
+SELECT 
+    table_name AS tabela,
+    engine AS motor_armazenamento,
+    table_rows AS total_linhas_estimado,
+    ROUND(data_length / 1024, 2) AS tamanho_dados_kb,
+    ROUND(index_length / 1024, 2) AS tamanho_indices_kb,
+    ROUND((data_length + index_length) / (1024 * 1024), 3) AS tamanho_total_mb,
+    ROUND(data_free / 1024, 2) AS espaco_livre_kb,
+    create_time AS data_criacao,
+    update_time AS ultima_atualizacao
+FROM 
+    information_schema.TABLES
+WHERE 
+    table_schema = DATABASE()
+    AND table_type = 'BASE TABLE'
+ORDER BY 
+    (data_length + index_length) DESC;

@@ -41,7 +41,7 @@ services:
       - app-network
     restart: unless-stopped
 
-# Banco de dados relacional
+  # Banco de dados relacional
   mariadb:
     image: mariadb:11.4
     container_name: db_mariadb
@@ -60,14 +60,30 @@ services:
       start_period: 15s
     volumes:
       - mariadb_data:/var/lib/mysql
-      # Linha adicionada para carregar o SQL automaticamente:
       - ./Server/Databases/MariaDB_MauTratos.sql:/docker-entrypoint-initdb.d/MariaDB_MauTratos.sql:ro,Z
     networks:
       - app-network
     restart: unless-stopped
 
+  # Interface Web Visual para Administração do Banco de Dados (phpMyAdmin)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: db_phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 0
+      UPLOAD_LIMIT: 64M
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
 volumes:
-  # Explicitamos que o mariadb_data usa o driver padrão (local) do Docker
   mariadb_data:
     driver: local
 
