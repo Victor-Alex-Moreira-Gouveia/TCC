@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin — Animais Perdidos</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
+</head>
+
+<body class="page-admin">
+    <div class="container-fluid p-0 admin-layout d-flex flex-column flex-md-row">
+
+        <aside class="sidebar col-md-3 col-lg-2 p-3 d-flex flex-column shadow-sm z-1">
+            <div class="text-center py-4 border-bottom border-brand-light mb-4">
+                <h4 class="text-brand m-0 fw-bold">
+                    <i class="bi bi-shield-lock-fill"></i> Admin
+                </h4>
+                <small class="text-muted d-block mt-1">
+                    Vozes que não podem gritar
+                </small>
+            </div>
+
+            <ul class="nav nav-pills flex-column mb-auto gap-2">
+                <li class="nav-item">
+                    <a href="/usuarios" class="nav-link text-secondary d-flex align-items-center admin-nav-link">
+                        <i class="bi bi-people-fill me-3"></i> Usuários
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/noticias" class="nav-link text-secondary d-flex align-items-center admin-nav-link">
+                        <i class="bi bi-newspaper me-3"></i> Notícias
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/ajuda" class="nav-link text-secondary d-flex align-items-center admin-nav-link">
+                        <i class="bi bi-megaphone-fill me-3"></i> Denúncias
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/animais-perdidos/admin" class="nav-link active btn-brand d-flex align-items-center shadow-sm">
+                        <i class="bi bi-search-heart-fill me-3"></i> Animais perdidos
+                    </a>
+                </li>
+            </ul>
+
+            <div class="mt-4 pt-4 border-top border-brand-light">
+                <a href="/" class="btn btn-outline-brand w-100 d-inline-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-box-arrow-left fs-5"></i> Sair do Painel
+                </a>
+            </div>
+        </aside>
+
+        <main class="col-md-9 col-lg-10 p-4 p-lg-5 d-flex flex-column flex-grow-1">
+
+            <header class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-brand-light">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-white p-3 rounded-4 shadow-sm text-brand fs-2 d-inline-flex">
+                        <i class="bi bi-search-heart-fill"></i>
+                    </div>
+
+                    <div>
+                        <h2 class="text-white m-0 fw-bold">Gerenciamento de Animais</h2>
+                        <small class="admin-subtitle">
+                            Painel Administrativo &gt; Animais perdidos e encontrados
+                        </small>
+                    </div>
+                </div>
+
+                <a href="/animais-perdidos/publicacoes" class="btn btn-outline-brand d-none d-lg-inline-flex">
+                    <i class="bi bi-eye me-1"></i> Ver página pública
+                </a>
+            </header>
+
+            <div id="admin-animal-alert" class="alert d-none"></div>
+
+            <div class="row g-4">
+
+                <div class="col-xl-4 col-lg-5">
+                    <div class="crud-card p-4 sticky-lg-top" style="top:20px;">
+                        <h5 class="text-brand mb-4 d-flex align-items-center gap-2 fw-bold border-bottom border-brand-light pb-2">
+                            <i class="bi bi-pencil-square"></i> Modificar cadastro
+                        </h5>
+
+                        <form id="formAdminAnimal" enctype="multipart/form-data">
+                            <input type="hidden" id="admin-id">
+
+                            <div class="mb-3">
+                                <label for="admin-nome" class="form-label">Nome do animal</label>
+                                <input id="admin-nome" class="form-control" required maxlength="120">
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="col-7">
+                                    <label for="admin-especie" class="form-label">Espécie</label>
+                                    <select id="admin-especie" class="form-select" required>
+                                        <option value="Cachorro">Cachorro</option>
+                                        <option value="Gato">Gato</option>
+                                        <option value="Ave">Ave</option>
+                                        <option value="Outro">Outro</option>
+                                    </select>
+                                </div>
+                                <div class="col-5">
+                                    <label for="admin-sexo" class="form-label">Sexo</label>
+                                    <select id="admin-sexo" class="form-select">
+                                        <option>Não informado</option>
+                                        <option>Macho</option>
+                                        <option>Fêmea</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row g-2 mt-1">
+                                <div class="col-6">
+                                    <label for="admin-status" class="form-label">Situação</label>
+                                    <select id="admin-status" class="form-select">
+                                        <option value="Perdido">Perdido</option>
+                                        <option value="Encontrado">Encontrado</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label for="admin-data" class="form-label">Data</label>
+                                    <input id="admin-data" type="date" class="form-control" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 mt-3">
+                                <label for="admin-local" class="form-label">Local</label>
+                                <input id="admin-local" class="form-control" required maxlength="255">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="admin-contato" class="form-label">Contato</label>
+                                <input id="admin-contato" class="form-control" required maxlength="180">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="admin-descricao" class="form-label">Características</label>
+                                <textarea id="admin-descricao" class="form-control" rows="4" required></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="admin-imagem" class="form-label">Trocar foto</label>
+                                <input id="admin-imagem" type="file" class="form-control"
+                                       accept="image/jpeg,image/png,image/webp,image/gif">
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input id="admin-remover-imagem" class="form-check-input" type="checkbox">
+                                <label class="form-check-label" for="admin-remover-imagem">
+                                    Remover foto atual
+                                </label>
+                            </div>
+
+                            <div id="admin-foto-atual" class="mb-3"></div>
+
+                            <div class="d-flex gap-2">
+                                <button type="button" id="admin-limpar" class="btn btn-outline-secondary flex-fill">
+                                    Limpar
+                                </button>
+                                <button type="submit" id="admin-salvar" class="btn btn-brand flex-fill">
+                                    Salvar alterações
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-xl-8 col-lg-7">
+                    <div class="crud-card p-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+                            <h5 class="text-brand mb-0 fw-bold">
+                                <i class="bi bi-table me-2"></i>Registros cadastrados
+                            </h5>
+                            <button id="admin-atualizar" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Atualizar
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Animal</th>
+                                        <th>Local</th>
+                                        <th>Situação</th>
+                                        <th>Data</th>
+                                        <th>Foto</th>
+                                        <th class="text-center">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-animais-tbody"></tbody>
+                            </table>
+                        </div>
+
+                        <div id="admin-vazio" class="animal-empty d-none mt-3">
+                            <i class="bi bi-inbox fs-1"></i>
+                            <p class="mb-0 mt-2">Nenhum animal cadastrado.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <footer class="mt-auto pt-4 text-center small">
+                <p class="mb-0">© 2026 - Proteja • Respeite • Ame - Painel Administrativo</p>
+            </footer>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/animais-admin.js') }}"></script>
+</body>
+</html>

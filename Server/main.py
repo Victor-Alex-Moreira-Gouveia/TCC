@@ -9,9 +9,9 @@ from werkzeug.security import check_password_hash
 from config.config import MEMCACHED_HOST, MEMCACHED_PORT, detect_db_engine, get_db, init_db_schema, test_mariadb
 from config.cache import cache
 from models.usuarios import Usuario
+from models.animais_perdidos import AnimalPerdido
 from utils import error_response
 
-# Configuração centralizada de logs para rastreio de diagnósticos
 logging.basicConfig(
     level=logging.INFO,
     format='[%(asctime)s] %(levelname)s em %(module)s: %(message)s'
@@ -21,7 +21,11 @@ logger = logging.getLogger('app_main')
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'admin1234@')
 
-# Garante a sincronização do schema e migrações no arranque
+# Limite para upload de fotos dos animais.
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
+
+# O model AnimalPerdido é importado antes desta chamada para que
+# Base.metadata.create_all() conheça a nova tabela.
 init_db_schema()
 
 
@@ -29,11 +33,9 @@ init_db_schema()
 def verificar_autenticacao():
     path = request.path
 
-    # Assets estáticos e endpoint de saúde são abertos
     if path.startswith('/static') or path == '/health':
         return None
 
-    # Apenas a área de notícias (página e API) exige que o usuário esteja logado.
     is_noticias_route = path == '/noticias' or path.startswith('/api/noticias')
 
     if is_noticias_route:
@@ -44,10 +46,6 @@ def verificar_autenticacao():
 
     return None
 
-
-# ---------------------------------------------------------------------------
-# Tratamento de Erros HTTP Globais (Melhoria de Diagnóstico)
-# ---------------------------------------------------------------------------
 
 @app.errorhandler(400)
 def handle_bad_request(e):
@@ -74,7 +72,7 @@ def handle_method_not_allowed(e):
 @app.errorhandler(413)
 def handle_payload_too_large(e):
     if request.path.startswith('/api/'):
-        return error_response('O arquivo enviado excede o limite máximo permitido', 'PAYLOAD_TOO_LARGE', status=413)
+        return error_response('O arquivo enviado excede o limite máximo permitido (5 MB).', 'PAYLOAD_TOO_LARGE', status=413)
     return render_template('Tcc/index.html'), 413
 
 
@@ -90,10 +88,6 @@ def handle_internal_server_error(e):
         )
     return render_template('Tcc/index.html'), 500
 
-
-# ---------------------------------------------------------------------------
-# Health check
-# ---------------------------------------------------------------------------
 
 def test_memcached():
     try:
@@ -113,7 +107,6 @@ def health_check():
     engine, engine_info = detect_db_engine()
     cache_status, cache_msg = test_memcached()
 
-    # O sistema permanece ONLINE caso o banco esteja operacional, mesmo sem cache
     status_code = 200 if db_status else 500
     checks = {
         'database': {
@@ -132,10 +125,6 @@ def health_check():
         'checks': checks,
     }), status_code
 
-
-# ---------------------------------------------------------------------------
-# Páginas do Sistema (Renderização de templates com travas de segurança)
-# ---------------------------------------------------------------------------
 
 @app.route('/')
 def test_index():
@@ -171,6 +160,27 @@ def pagina_leis():
     return render_template('Tcc/Leis/leis.html')
 
 
+# ---------------------------------------------------------------------------
+# Animais perdidos e encontrados
+# ---------------------------------------------------------------------------
+
+@app.route('/animais-perdidos')
+def pagina_animais_perdidos():
+    return render_template('Tcc/Animais/animais_perdidos.html')
+
+
+@app.route('/animais-perdidos/publicacoes')
+def publicacoes_animais_perdidos():
+    return render_template('Tcc/Animais/publicacoes_animais.html')
+
+
+@app.route('/animais-perdidos/admin')
+def admin_animais_perdidos():
+    if session.get('role') != 'admin':
+        return redirect('/')
+    return render_template('Tcc/Animais/animais_admin.html')
+
+
 @app.route('/login', methods=['GET'])
 def tela_login():
     if session.get('role') in ('admin', 'user'):
@@ -191,10 +201,6 @@ def logout():
     return redirect('/login')
 
 
-# ===========================================================================
-# Login Usuários
-# ===========================================================================
-
 @app.route('/api/login', methods=['POST'])
 def api_login():
     dados = request.get_json(silent=True) or {}
@@ -204,14 +210,12 @@ def api_login():
     if not email or not senha:
         return jsonify({'status': 'erro', 'mensagem': 'Preencha todos os campos.'}), 400
 
-    # Verificação estática para o Admin de sistema
     if email == 'admin@sistema.com' and senha == 'admin123':
         session['usuario_id'] = 'admin'
         session['usuario_nome'] = 'Administrador'
         session['role'] = 'admin'
         return jsonify({'status': 'sucesso', 'redirect': '/'}), 200
 
-    # Busca no banco pelo modelo Usuario
     try:
         db = next(get_db())
         stmt = select(Usuario).where(Usuario.email == email)
@@ -230,17 +234,15 @@ def api_login():
     return jsonify({'status': 'erro', 'mensagem': 'E-mail ou senha incorretos.'}), 401
 
 
-# ===========================================================================
-# Blueprints
-# ===========================================================================
-
 from controllers.usuarios import usuarios_bp
 from controllers.noticias import noticias_bp
 from controllers.ajuda import ajuda_bp
+from controllers.animais_perdidos import animais_perdidos_bp
 
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(noticias_bp)
 app.register_blueprint(ajuda_bp)
+app.register_blueprint(animais_perdidos_bp)
 
 
 if __name__ == '__main__':

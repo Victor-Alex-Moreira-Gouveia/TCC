@@ -207,19 +207,21 @@ def ensure_ajuda_schema():
     except Exception as exc:
         print(f'Alerta geral de migração: {exc}')
 
-
 def init_db_schema(Base=None):
     """Cria as tabelas do ORM quando a aplicação inicializa."""
     try:
         if Base is None:
             from models import Base as BaseModel
+            from models.animais_perdidos import AnimalPerdido
             BaseModel.metadata.create_all(bind=engine)
         else:
             Base.metadata.create_all(bind=engine)
         ensure_ajuda_schema()
         print('Migração automática: Tabelas sincronizadas com sucesso.')
+        print('Schema: modelo Animais Perdidos carregado.')
     except Exception as exc:
         print(f'Alerta de migração (inicialização rápida): {exc}')
+        print(f'Alerta de schema Animais Perdidos: {exc}')
 
 
 def test_mariadb():

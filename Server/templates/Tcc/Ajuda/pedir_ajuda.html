@@ -8,6 +8,71 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
+
+    <style>
+        .canal-atendimento {
+            height: 100%;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 17px;
+            border: 1px solid #e7dff0;
+            border-radius: 16px;
+            background: #fff;
+        }
+
+        .canal-emergencia {
+            border: 2px solid #dc3545;
+            background: #fff8f8;
+        }
+
+        .canal-icone {
+            width: 44px;
+            height: 44px;
+            flex: 0 0 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0e5f7;
+            color: #532396;
+            font-size: 1.25rem;
+        }
+
+        .canal-emergencia .canal-icone {
+            background: #fde2e2;
+            color: #dc3545;
+        }
+
+        .canal-atendimento .btn-brand {
+            color: #fff;
+            background: #532396;
+            border-color: #532396;
+        }
+
+        .canal-atendimento .btn-brand:hover {
+            color: #fff;
+            background: #3C196E;
+            border-color: #3C196E;
+        }
+
+        .canal-atendimento .btn-outline-brand {
+            color: #532396;
+            border-color: #532396;
+        }
+
+        .canal-atendimento .btn-outline-brand:hover {
+            color: #fff;
+            background: #532396;
+        }
+
+        @media (max-width: 576px) {
+            .canal-atendimento {
+                flex-direction: column;
+            }
+        }
+    </style>
+
 </head>
 <body class="page-help">
 
@@ -89,10 +154,16 @@
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mb-3">
-                            <button type="button" class="btn btn-outline-danger rounded-pill px-4 fw-bold"
-                                    data-bs-toggle="modal" data-bs-target="#modalContatoEmergencia">
-                                <i class="bi bi-telephone-fill me-1"></i> Precisa de atendimento imediato?
+                            <button type="button"
+                                    class="btn btn-outline-danger rounded-pill px-4 fw-bold"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalCanaisDenuncia">
+                                <i class="bi bi-telephone-fill me-1"></i>
+                                Precisa de atendimento imediato?
                             </button>
+                            <small class="text-muted">
+                                Escolha o canal de acordo com a situação.
+                            </small>
                         </div>
 
                         <div class="d-flex justify-content-end gap-3">
@@ -106,45 +177,208 @@
         </div>
     </div>
 
-    <!-- POPUP DE DIRECIONAMENTO IMEDIATO -->
-    <div class="modal fade" id="modalContatoEmergencia" tabindex="-1"
-         aria-labelledby="modalContatoEmergenciaLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+    <!-- POPUPS DE DIRECIONAMENTO IMEDIATO -->
+    <div class="modal fade" id="modalCanaisDenuncia" tabindex="-1"
+         aria-labelledby="modalCanaisDenunciaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg rounded-4">
+
                 <div class="modal-header bg-danger text-white border-0 rounded-top-4">
-                    <h5 class="modal-title fw-bold" id="modalContatoEmergenciaLabel">
-                        <i class="bi bi-telephone-fill me-2"></i>Atendimento imediato
+                    <h5 class="modal-title fw-bold" id="modalCanaisDenunciaLabel">
+                        <i class="bi bi-telephone-fill me-2"></i>
+                        Canais de atendimento
                     </h5>
                     <button type="button" class="btn-close btn-close-white"
                             data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
 
-                <div class="modal-body text-center p-4">
-                    <i class="bi bi-exclamation-triangle-fill text-danger"
-                       style="font-size: 3rem;"></i>
-
-                    <h4 class="fw-bold mt-3">O caso está acontecendo agora?</h4>
-
-                    <p class="text-muted mb-3">
-                        Se o animal estiver em perigo imediato ou houver uma situação
-                        que exija intervenção rápida, entre em contato com a polícia.
+                <div class="modal-body p-4">
+                    <p class="text-muted text-center mb-4">
+                        Escolha o canal conforme a situação.
+                        Em perigo imediato, priorize o <strong>190</strong>.
                     </p>
 
-                    <div class="bg-light rounded-4 p-3 mb-3">
-                        <p class="mb-1 fw-bold">Ligue para:</p>
-                        <a href="tel:190" class="fs-2 fw-bold text-danger text-decoration-none">
-                            <i class="bi bi-telephone-fill"></i> 190
-                        </a>
-                        <p class="small text-muted mb-0">
-                            Polícia Militar — atendimento de emergência
-                        </p>
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <div class="canal-atendimento canal-emergencia">
+                                <div class="canal-icone">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">
+                                        Polícia Militar — Emergência
+                                    </h6>
+                                    <p class="small text-muted mb-2">
+                                        Animal em perigo naquele momento,
+                                        violência acontecendo ou risco imediato.
+                                    </p>
+                                    <a href="tel:190"
+                                       class="btn btn-danger rounded-pill fw-bold">
+                                        <i class="bi bi-telephone-fill me-1"></i>
+                                        Ligar 190
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="canal-atendimento">
+                                <div class="canal-icone">
+                                    <i class="bi bi-shield-fill-check"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">
+                                        DEPA — Proteção Animal
+                                    </h6>
+                                    <p class="small text-muted mb-2">
+                                        Denúncias de maus-tratos contra animais
+                                        domésticos no Estado de São Paulo.
+                                    </p>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <a href="tel:08006006428"
+                                           class="btn btn-brand rounded-pill fw-bold">
+                                            <i class="bi bi-telephone-fill me-1"></i>
+                                            0800 600 6428
+                                        </a>
+                                        <a href="https://www.webdenuncia.sp.gov.br/depa"
+                                           target="_blank"
+                                           rel="noopener noreferrer"
+                                           class="btn btn-outline-brand rounded-pill fw-bold">
+                                            <i class="bi bi-globe2 me-1"></i>
+                                            Abrir DEPA
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="canal-atendimento">
+                                <div class="canal-icone">
+                                    <i class="bi bi-incognito"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">
+                                        Disque-Denúncia — 181
+                                    </h6>
+                                    <p class="small text-muted mb-2">
+                                        Canal gratuito para denúncia anônima
+                                        no Estado de São Paulo.
+                                    </p>
+                                    <a href="tel:181"
+                                       class="btn btn-brand rounded-pill fw-bold">
+                                        <i class="bi bi-telephone-fill me-1"></i>
+                                        Ligar 181
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="canal-atendimento">
+                                <div class="canal-icone">
+                                    <i class="bi bi-building-fill"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">
+                                        Divisão de Investigação — Maus-tratos
+                                    </h6>
+                                    <p class="small text-muted mb-2">
+                                        Polícia Civil de São Paulo — Divisão de
+                                        Investigação sobre Infrações de Maus-tratos a Animais.
+                                    </p>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <a href="tel:+551133380155"
+                                           class="btn btn-brand rounded-pill fw-bold">
+                                            <i class="bi bi-telephone-fill me-1"></i>
+                                            (11) 3338-0155
+                                        </a>
+                                        <a href="tel:+551133381380"
+                                           class="btn btn-outline-brand rounded-pill fw-bold">
+                                            (11) 3338-1380
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="canal-atendimento">
+                                <div class="canal-icone">
+                                    <i class="bi bi-tree-fill"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">
+                                        Fauna silvestre / crime ambiental
+                                    </h6>
+                                    <p class="small text-muted mb-2">
+                                        Para ocorrência ambiental em andamento,
+                                        a Polícia Militar Ambiental orienta o acionamento
+                                        pelo <strong>190</strong>.
+                                    </p>
+                                    <a href="tel:190"
+                                       class="btn btn-success rounded-pill fw-bold">
+                                        <i class="bi bi-telephone-fill me-1"></i>
+                                        Ligar 190
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="canal-atendimento">
+                                <div class="canal-icone">
+                                    <i class="bi bi-bank2"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">
+                                        Ministério Público de São Paulo
+                                    </h6>
+                                    <p class="small text-muted mb-2">
+                                        Para situações que possam exigir atuação
+                                        institucional ou judicial. O MPSP possui
+                                        atendimento digital para denúncias às Promotorias.
+                                    </p>
+                                    <a href="https://sis.mpsp.mp.br/atendimentocidadao"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="btn btn-brand rounded-pill fw-bold">
+                                        <i class="bi bi-globe2 me-1"></i>
+                                        Acessar atendimento
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="canal-atendimento">
+                                <div class="canal-icone">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">
+                                        Órgão municipal de proteção / bem-estar animal
+                                    </h6>
+                                    <p class="small text-muted mb-2">
+                                        O número varia conforme o município.
+                                        Por isso, o sistema não mostra um número
+                                        único para todo o Estado.
+                                    </p>
+                                    <span class="badge text-bg-secondary rounded-pill">
+                                        Número depende do município
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <p class="small text-muted mb-0">
-                        Este canal é indicado para situações que precisam de
-                        atendimento imediato. Para registrar o caso na plataforma,
-                        você pode continuar preenchendo a denúncia abaixo.
-                    </p>
+                    <div class="alert alert-warning mt-4 mb-0">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Atenção:</strong> utilize canais oficiais e
+                        forneça informações verdadeiras para a apuração do caso.
+                    </div>
                 </div>
 
                 <div class="modal-footer border-0 justify-content-center">
@@ -152,9 +386,6 @@
                             data-bs-dismiss="modal">
                         Fechar
                     </button>
-                    <a href="tel:190" class="btn btn-danger rounded-pill px-4 fw-bold">
-                        <i class="bi bi-telephone-fill me-1"></i> Ligar 190
-                    </a>
                 </div>
             </div>
         </div>

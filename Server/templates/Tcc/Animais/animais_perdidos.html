@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animais Perdidos | Vozes que não podem gritar</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
+</head>
+
+<body class="page-animals">
+    <nav class="navbar navbar-dark">
+        <div class="container page-animals-container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="bi bi-paw-fill me-2"></i>
+                Vozes que não podem gritar
+            </a>
+
+            <div class="d-flex gap-2">
+                <a href="/animais-perdidos/publicacoes" class="btn btn-voltar">
+                    <i class="bi bi-grid-3x3-gap-fill me-1"></i>
+                    Ver publicações
+                </a>
+                <a href="/" class="btn btn-voltar">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Voltar
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container page-animals-container py-5">
+        <header class="page-animals-header">
+            <div class="page-animals-icon">
+                <i class="bi bi-search-heart-fill"></i>
+            </div>
+            <h1>Animais perdidos e encontrados</h1>
+            <p>
+                Cadastre um animal perdido ou encontrado e ajude a reunir
+                animais às suas famílias.
+            </p>
+        </header>
+
+        <section class="animal-form-card mb-5">
+            <div class="animal-section-heading">
+                <i class="bi bi-plus-circle-fill"></i>
+                <div>
+                    <h2>Cadastrar animal</h2>
+                    <p>Preencha as informações e escolha uma foto do seu computador.</p>
+                </div>
+            </div>
+
+            <div id="animal-alert" class="alert d-none" role="alert"></div>
+
+            <form id="formAnimalPerdido" enctype="multipart/form-data">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="animal-nome" class="form-label">Nome do animal *</label>
+                        <input id="animal-nome" name="nome" class="form-control" maxlength="120"
+                               required placeholder="Ex.: Bob ou Não identificado">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="animal-especie" class="form-label">Espécie *</label>
+                        <select id="animal-especie" name="especie" class="form-select" required>
+                            <option value="">Selecione</option>
+                            <option value="Cachorro">Cachorro</option>
+                            <option value="Gato">Gato</option>
+                            <option value="Ave">Ave</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="animal-sexo" class="form-label">Sexo</label>
+                        <select id="animal-sexo" name="sexo" class="form-select">
+                            <option value="Não informado">Não informado</option>
+                            <option value="Macho">Macho</option>
+                            <option value="Fêmea">Fêmea</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="animal-status" class="form-label">Situação *</label>
+                        <select id="animal-status" name="status" class="form-select" required>
+                            <option value="Perdido">Animal perdido</option>
+                            <option value="Encontrado">Animal encontrado</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="animal-data" class="form-label">Data em que foi visto *</label>
+                        <input id="animal-data" name="data_ocorrido" type="date"
+                               class="form-control" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="animal-contato" class="form-label">Contato *</label>
+                        <input id="animal-contato" name="contato" class="form-control"
+                               maxlength="180" required
+                               placeholder="Telefone, e-mail ou outro contato">
+                    </div>
+
+                    <div class="col-12">
+                        <label for="animal-local" class="form-label">Local onde foi visto *</label>
+                        <input id="animal-local" name="local" class="form-control"
+                               maxlength="255" required
+                               placeholder="Bairro, cidade e ponto de referência">
+                    </div>
+
+                    <div class="col-lg-8">
+                        <label for="animal-descricao" class="form-label">
+                            Características e informações *
+                        </label>
+                        <textarea id="animal-descricao" name="descricao"
+                                  class="form-control" rows="5" required
+                                  placeholder="Cor, porte, coleira, características marcantes e outras informações importantes."></textarea>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <label for="animal-imagem" class="form-label">Foto do animal</label>
+                        <input id="animal-imagem" name="imagem" type="file"
+                               class="form-control" accept="image/jpeg,image/png,image/webp,image/gif">
+                        <div class="form-text">
+                            JPG, PNG, WEBP ou GIF — máximo de 5 MB.
+                        </div>
+
+                        <div id="animal-preview-box" class="animal-image-preview d-none mt-3">
+                            <img id="animal-preview" alt="Pré-visualização da foto">
+                        </div>
+                    </div>
+
+                    <div class="col-12 d-flex flex-wrap justify-content-end gap-2 mt-3">
+                        <button type="reset" class="btn btn-animals-outline">
+                            <i class="bi bi-eraser me-1"></i> Limpar
+                        </button>
+
+                        <button type="submit" id="animal-submit" class="btn btn-animals">
+                            <i class="bi bi-send-fill me-1"></i> Publicar cadastro
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <section>
+            <div class="animal-recent-heading">
+                <div>
+                    <h2>Publicações recentes</h2>
+                    <p>As publicações mais recentes aparecem aqui.</p>
+                </div>
+                <a href="/animais-perdidos/publicacoes" class="btn btn-animals-outline">
+                    Ver todas
+                    <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+
+            <div id="animais-recentes" class="row g-4">
+                <div class="col-12">
+                    <div class="animal-empty">
+                        <div class="spinner-border" role="status"></div>
+                        <p class="mb-0 mt-3">Carregando publicações...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center">
+        <small>Proteja • Respeite • Ame</small>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/animais-perdidos.js') }}"></script>
+</body>
+</html>

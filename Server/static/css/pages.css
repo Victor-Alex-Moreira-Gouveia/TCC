@@ -139,6 +139,347 @@ body.page-news {
     font-family: Arial, Helvetica, sans-serif;
 }
 
+
+
+/* =======================================================================
+   ANIMAIS PERDIDOS / ENCONTRADOS
+   Mantém o padrão visual do pages.css: roxo, lilás, branco e patinhas.
+   ======================================================================= */
+
+.page-animals {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-page-bg);
+    background-image:
+        radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 35%),
+        var(--paw-pattern);
+    background-repeat: repeat;
+    background-size: auto, var(--paw-size);
+    color: #fff;
+    font-family: var(--font-primary);
+}
+
+.page-animals .navbar {
+    background-color: #532396 !important;
+    padding: 15px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,.15);
+}
+
+.page-animals-container {
+    max-width: 1180px;
+}
+
+.page-animals .navbar-brand {
+    color: #fff !important;
+    font-weight: 700;
+}
+
+.page-animals .btn-voltar {
+    color: #fff;
+    border: 2px solid #261045;
+    border-radius: 25px;
+    padding: 8px 16px;
+    text-decoration: none;
+    background: transparent;
+}
+
+.page-animals .btn-voltar:hover {
+    color: #fff;
+    background: #3C196E;
+    border-color: #3C196E;
+}
+
+.page-animals-header {
+    text-align: center;
+    padding: 25px 15px 40px;
+}
+
+.page-animals-header h1 {
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.page-animals-header p {
+    margin: 0 auto;
+    max-width: 760px;
+    color: rgba(255,255,255,.88);
+    font-size: 1.05rem;
+}
+
+.page-animals-icon {
+    width: 76px;
+    height: 76px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    border-radius: 22px;
+    background: #e8b0f3;
+    color: #532396;
+    font-size: 2.1rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,.16);
+}
+
+.animal-form-card,
+.animal-filter-card {
+    background: rgba(255,255,255,.98);
+    border-radius: 20px;
+    padding: clamp(1.25rem, 3vw, 2.2rem);
+    box-shadow: 0 15px 40px rgba(0,0,0,.2);
+}
+
+.animal-section-heading,
+.animal-recent-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.animal-section-heading {
+    justify-content: flex-start;
+    margin-bottom: 25px;
+}
+
+.animal-section-heading > i {
+    color: #692CBF;
+    font-size: 2rem;
+}
+
+.animal-section-heading h2,
+.animal-recent-heading h2 {
+    margin: 0;
+    color: #532396;
+    font-weight: 800;
+}
+
+.animal-section-heading p,
+.animal-recent-heading p {
+    margin: 5px 0 0;
+    color: #6b6672;
+}
+
+.page-animals .form-label {
+    color: #3C196E;
+    font-weight: 700;
+}
+
+.page-animals .form-control,
+.page-animals .form-select {
+    border-radius: 11px;
+    border: 1px solid #d9c7e8;
+    background: #faf9fc;
+    padding: 11px 13px;
+}
+
+.page-animals .form-control:focus,
+.page-animals .form-select:focus {
+    border-color: #692CBF;
+    background: #fff;
+    box-shadow: 0 0 0 .2rem rgba(105,44,191,.15);
+}
+
+.btn-animals {
+    color: #fff;
+    background: #532396;
+    border: 1px solid #532396;
+    border-radius: 12px;
+    padding: 10px 17px;
+    font-weight: 700;
+}
+
+.btn-animals:hover {
+    color: #fff;
+    background: #3C196E;
+    border-color: #3C196E;
+}
+
+.btn-animals-outline {
+    color: #532396;
+    background: transparent;
+    border: 1px solid #532396;
+    border-radius: 12px;
+    padding: 10px 17px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.btn-animals-outline:hover {
+    color: #fff;
+    background: #532396;
+    border-color: #532396;
+}
+
+.animal-image-preview {
+    overflow: hidden;
+    border: 1px dashed #c9b7dc;
+    border-radius: 14px;
+    background: #f8f4ff;
+}
+
+.animal-image-preview img {
+    width: 100%;
+    max-height: 210px;
+    object-fit: cover;
+    display: block;
+}
+
+.animal-recent-heading {
+    margin-bottom: 20px;
+}
+
+.animal-card {
+    height: 100%;
+    overflow: hidden;
+    background: #fff;
+    border-radius: 18px;
+    color: #333;
+    box-shadow: 0 10px 28px rgba(0,0,0,.18);
+}
+
+.animal-card-image,
+.animal-card-placeholder {
+    width: 100%;
+    height: 220px;
+}
+
+.animal-card-image {
+    display: block;
+    object-fit: cover;
+    background: #eee7f8;
+}
+
+.animal-card-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #692CBF;
+    background: #eee7f8;
+    font-size: 3.2rem;
+}
+
+.animal-card-body {
+    padding: 20px;
+}
+
+.animal-card-body h3 {
+    color: #532396;
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+.animal-meta {
+    color: #696371;
+    font-size: .92rem;
+    margin-bottom: 8px;
+}
+
+.animal-meta i {
+    color: #692CBF;
+}
+
+.animal-description {
+    color: #3d3943;
+    margin-bottom: 14px;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.animal-contact {
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #f8f4ff;
+    color: #3C196E;
+    word-break: break-word;
+}
+
+.animal-status {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 30px;
+    padding: 6px 10px;
+    font-size: .75rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.animal-status-lost {
+    color: #3C196E;
+    background: #e8b0f3;
+}
+
+.animal-status-found {
+    color: #fff;
+    background: #198754;
+}
+
+.animal-empty {
+    padding: 35px 20px;
+    border-radius: 16px;
+    background: rgba(255,255,255,.97);
+    color: #625d68;
+    text-align: center;
+}
+
+.animal-empty > i {
+    color: #692CBF;
+}
+
+.animal-counter {
+    background: rgba(255,255,255,.16);
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 30px;
+    padding: 7px 12px;
+}
+
+.animal-admin-thumb {
+    width: 100%;
+    max-height: 180px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: #f1ebfa;
+}
+
+.page-animals.page-admin .sidebar {
+    min-height: 100vh;
+}
+
+@media (max-width: 768px) {
+    .page-animals .navbar-brand {
+        font-size: 1.05rem;
+    }
+
+    .page-animals .navbar .container {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .page-animals .navbar .btn-voltar {
+        padding: 7px 11px;
+        font-size: .9rem;
+    }
+
+    .animal-recent-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .animal-recent-heading .btn {
+        width: 100%;
+    }
+
+    .animal-card-image,
+    .animal-card-placeholder {
+        height: 190px;
+    }
+}
+
+
 .page-home .navbar {
     background-color: #532396;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
