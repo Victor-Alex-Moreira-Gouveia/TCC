@@ -1,8 +1,9 @@
 from flask import Blueprint, request, session
 from sqlalchemy.exc import SQLAlchemyError
+from uuid import UUID
 from models.ajuda import (
     count_ajuda, list_ajuda, get_ajuda_by_id,
-    create_ajuda_db, update_ajuda_db, delete_ajuda_db
+    create_ajuda_db, get_ajuda_by_idempotency_key, update_ajuda_db, delete_ajuda_db
 )
 from services.orientacoes import obter_orientacao_imediata
 from utils import parse_pagination, build_pagination, success_response, error_response
@@ -38,6 +39,7 @@ def create_ajuda():
     corpo = (data.get('corpo') or '').strip()
     tipo_denuncia = (data.get('tipo_denuncia') or '').strip() or 'Animal doméstico'
     nivel_urgencia = (data.get('nivel_urgencia') or '').strip() or 'Não informado'
+    idempotency_key = (data.get('idempotency_key') or '').strip()
 
     if not titulo:
         errors['titulo'] = 'Campo obrigatório'
@@ -45,6 +47,11 @@ def create_ajuda():
         errors['titulo'] = 'Máximo 255 caracteres'
     if not corpo:
         errors['corpo'] = 'Campo obrigatório'
+    if idempotency_key:
+        try:
+            UUID(idempotency_key)
+        except (ValueError, TypeError, AttributeError):
+            errors['idempotency_key'] = 'Identificador de envio inválido'
 
     if errors:
         return error_response("Validação falhou", "VALIDATION_ERROR", errors, 400)
@@ -52,14 +59,42 @@ def create_ajuda():
     autor_nome = session.get('usuario_nome') or session.get('usuario_id') or 'Visitante'
 
     try:
-        new_id = create_ajuda_db(titulo, corpo, autor_nome, tipo_denuncia, nivel_urgencia)
-        row = get_ajuda_by_id(new_id)
+        row, created = create_ajuda_db(
+            titulo, corpo, autor_nome, tipo_denuncia, nivel_urgencia, idempotency_key or None
+        )
+        if idempotency_key and not created and (
+            row['titulo'] != titulo or row['corpo'] != corpo
+            or row['autor'] != autor_nome or row['tipo_denuncia'] != tipo_denuncia
+            or row['nivel_urgencia'] != nivel_urgencia
+        ):
+            return error_response(
+                'Este envio já foi registrado com outros dados. Confira a confirmação antes de iniciar uma nova denúncia.',
+                'IDEMPOTENCY_CONFLICT', status=409
+            )
         orientacao = obter_orientacao_imediata(nivel_urgencia, tipo_denuncia)
-        if row:
-            row['orientacao_imediata'] = orientacao
-        return success_response(row, "Denúncia registrada com sucesso.", 201)
+        row['orientacao_imediata'] = orientacao
+        return success_response(
+            row, "Denúncia registrada com sucesso.", 201 if created else 200
+        )
     except SQLAlchemyError as e:
         return error_response("Erro interno do servidor", "DB_ERROR", str(e), 500)
+
+
+@ajuda_bp.route('/ajuda/confirmar/<string:idempotency_key>', methods=['GET'])
+def confirmar_ajuda(idempotency_key):
+    try:
+        UUID(idempotency_key)
+    except (ValueError, TypeError, AttributeError):
+        return error_response('Identificador de envio inválido.', 'VALIDATION_ERROR', status=400)
+
+    try:
+        row = get_ajuda_by_idempotency_key(idempotency_key)
+        if not row:
+            return error_response('Ainda não há registro confirmado para este envio.', 'NOT_FOUND', status=404)
+        # This endpoint only reconciles persistence; it does not expose complaint content.
+        return success_response({'id': row['id']}, 'Denúncia registrada com sucesso.')
+    except SQLAlchemyError as e:
+        return error_response('Não foi possível confirmar o registro.', 'DB_ERROR', str(e), 500)
 
 @ajuda_bp.route('/ajuda/<int:aid>', methods=['PUT'])
 def update_ajuda(aid):

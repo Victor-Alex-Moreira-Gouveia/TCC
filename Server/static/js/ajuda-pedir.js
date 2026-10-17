@@ -13,9 +13,11 @@ const selectUrgencia = document.getElementById('nivel_urgencia');
 const guidanceBox = document.getElementById('urgencia-guidance-box');
 const spanTituloAlerta = document.getElementById('urgencia-titulo-alerta');
 const pTextoAlerta = document.getElementById('urgencia-texto-alerta');
+const PENDING_SUBMISSION_KEY = 'ajuda:pending-submission';
+let pendingSubmissionInMemory = null;
 
 function atualizarCondutaImediata() {
-    if (checkboxUrgencia && checkboxUrgencia.checked) {
+    if (checkboxUrgencia && checkboxUrgencia.checked && guidanceBox && spanTituloAlerta && pTextoAlerta) {
         const nivel = selectUrgencia ? selectUrgencia.value : '';
         spanTituloAlerta.textContent = nivel;
         pTextoAlerta.innerHTML = instrucoesUrgencia[nivel] || 'Siga as orientações veterinárias de emergência padrão.';
@@ -42,11 +44,101 @@ if (selectUrgencia) {
     });
 }
 
+function showAlert(alertMsg, message, style) {
+    if (!alertMsg) return;
+    alertMsg.textContent = message;
+    alertMsg.classList.remove('d-none', 'alert-danger', 'alert-success');
+    alertMsg.classList.add(style);
+}
+
+function criarIdempotencyKey() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+    }
+    if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+        const bytes = window.crypto.getRandomValues(new Uint8Array(16));
+        bytes[6] = (bytes[6] & 0x0f) | 0x40;
+        bytes[8] = (bytes[8] & 0x3f) | 0x80;
+        const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+        return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
+        const random = Math.random() * 16 | 0;
+        return (char === 'x' ? random : (random & 0x3 | 0x8)).toString(16);
+    });
+}
+
+function lerEnvioPendente() {
+    if (pendingSubmissionInMemory) return pendingSubmissionInMemory;
+    try {
+        return JSON.parse(sessionStorage.getItem(PENDING_SUBMISSION_KEY) || 'null');
+    } catch (_) {
+        return null;
+    }
+}
+
+function salvarEnvioPendente(envio) {
+    pendingSubmissionInMemory = envio;
+    try {
+        sessionStorage.setItem(PENDING_SUBMISSION_KEY, JSON.stringify(envio));
+    } catch (_) {
+        // The API still receives an idempotency key for this page lifetime.
+    }
+}
+
+function limparEnvioPendente() {
+    pendingSubmissionInMemory = null;
+    try { sessionStorage.removeItem(PENDING_SUBMISSION_KEY); } catch (_) { /* unavailable storage */ }
+}
+
+async function reconciliarEnvio(idempotencyKey) {
+    try {
+        const response = await fetch(`/api/ajuda/confirmar/${encodeURIComponent(idempotencyKey)}`, {
+            headers: { 'Accept': 'application/json' },
+            cache: 'no-store'
+        });
+        let data = null;
+        try { data = await response.json(); } catch (_) { /* handled as unknown below */ }
+        if (response.ok && data && data.success && data.data) {
+            return { found: true, id: data.data.id };
+        }
+        if (response.status === 404) return { found: false };
+        return { found: false, unknown: true };
+    } catch (_) {
+        return { found: false, unknown: true };
+    }
+}
+
+function exibirOrientacao(nivelUrgencia, orientacao) {
+    if (!guidanceBox || !spanTituloAlerta || !pTextoAlerta) return;
+    spanTituloAlerta.textContent = nivelUrgencia;
+    pTextoAlerta.innerHTML = orientacao || instrucoesUrgencia[nivelUrgencia] ||
+        'Caso de emergência: contate assistência veterinária ou autoridade local.';
+    guidanceBox.dataset.persist = 'true';
+    guidanceBox.classList.remove('d-none');
+}
+
+function confirmarSucesso(alertMsg, form, nivelUrgencia, dados, resetForm = true) {
+    showAlert(alertMsg, 'Denúncia registrada com sucesso.', 'alert-success');
+    try {
+        exibirOrientacao(nivelUrgencia, dados && dados.orientacao_imediata);
+        if (resetForm && form) {
+            form.reset();
+            document.getElementById('tipo_denuncia').value = 'Animal doméstico';
+            document.getElementById('nivel_urgencia').value = 'Ferimento grave';
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (_) {
+        // A successful persistence response remains successful if optional UI updates fail.
+    }
+}
+
 document.getElementById('formAjuda').addEventListener('submit', async (event) => {
     event.preventDefault();
     const alertMsg = document.getElementById('alert-message');
     alertMsg.classList.add('d-none');
     alertMsg.classList.remove('alert-danger', 'alert-success');
+    alertMsg.textContent = '';
 
     const titulo = document.getElementById('titulo').value.trim();
     const corpo = document.getElementById('corpo').value.trim();
@@ -54,58 +146,83 @@ document.getElementById('formAjuda').addEventListener('submit', async (event) =>
     const nivelUrgencia = document.getElementById('nivel_urgencia').value.trim();
 
     if (!titulo || !corpo) {
-        alertMsg.textContent = 'Preencha o título e a descrição da denúncia antes de enviar.';
-        alertMsg.classList.add('alert-danger');
-        alertMsg.classList.remove('d-none');
+        showAlert(alertMsg, 'Preencha o título e a descrição da denúncia antes de enviar.', 'alert-danger');
         return;
     }
 
+    const form = document.getElementById('formAjuda');
+    const submitButton = form.querySelector('[type="submit"]');
+    const originalButtonText = submitButton.textContent;
+    submitButton.disabled = true;
+    submitButton.textContent = 'Enviando…';
+
+    const payload = { titulo, corpo, tipo_denuncia: tipoDenuncia, nivel_urgencia: nivelUrgencia };
+    const pending = lerEnvioPendente();
+    const idempotencyKey = pending?.idempotency_key || criarIdempotencyKey();
+    salvarEnvioPendente({ idempotency_key: idempotencyKey, payload });
+    let response = null;
+    let dados = null;
+
     try {
-        const response = await fetch('/api/ajuda', {
+        response = await fetch('/api/ajuda', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                titulo,
-                corpo,
-                tipo_denuncia: tipoDenuncia,
-                nivel_urgencia: nivelUrgencia
-            })
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ ...payload, idempotency_key: idempotencyKey })
         });
-        const dados = await response.json();
+        try { dados = await response.json(); } catch (_) { /* reconcile below */ }
 
-        if (response.ok && dados.success) {
-            alertMsg.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i> ${dados.message || 'Denúncia registrada com sucesso.'}`;
-            alertMsg.classList.add('alert-success');
-            alertMsg.classList.remove('d-none');
-
-            // Exibe a orientação imediata retornada pelo backend
-            const orientacao = (dados.data && dados.data.orientacao_imediata)
-                || instrucoesUrgencia[nivelUrgencia]
-                || 'Caso de emergência: contate assistência veterinária ou autoridade local.';
-
-            spanTituloAlerta.textContent = nivelUrgencia;
-            pTextoAlerta.innerHTML = orientacao;
-            guidanceBox.dataset.persist = "true";
-            guidanceBox.classList.remove('d-none');
-
-            document.getElementById('formAjuda').reset();
-            document.getElementById('tipo_denuncia').value = 'Animal doméstico';
-            document.getElementById('nivel_urgencia').value = 'Ferimento grave';
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-            let message = dados.error || 'Erro ao registrar denúncia.';
-            if (dados.details) {
-                const det = typeof dados.details === 'object' ? Object.values(dados.details).join(' | ') : dados.details;
-                message += ` (${det})`;
-            }
-            alertMsg.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i> ${message}`;
-            alertMsg.classList.add('alert-danger');
-            alertMsg.classList.remove('d-none');
+        if (response.ok && dados && dados.success) {
+            limparEnvioPendente();
+            confirmarSucesso(alertMsg, form, nivelUrgencia, dados.data);
+            return;
         }
-    } catch (error) {
-        alertMsg.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i> Erro de conexão com o servidor ao salvar denúncia.';
-        alertMsg.classList.add('alert-danger');
-        alertMsg.classList.remove('d-none');
+
+        if (response.status >= 500 || !dados || response.status === 409) {
+            const confirmacao = await reconciliarEnvio(idempotencyKey);
+            if (confirmacao.found) {
+                limparEnvioPendente();
+                const dadosIguais = JSON.stringify(pending?.payload || payload) === JSON.stringify(payload);
+                confirmarSucesso(alertMsg, form, nivelUrgencia, null, dadosIguais);
+                if (!dadosIguais) {
+                    showAlert(
+                        alertMsg,
+                        'Uma denúncia anterior foi confirmada. Os dados que estão no formulário agora não foram enviados; confira o registro antes de enviar outra denúncia.',
+                        'alert-success'
+                    );
+                }
+                return;
+            }
+            showAlert(
+                alertMsg,
+                'Ainda não foi possível confirmar o resultado. Não envie outra denúncia com um novo formulário: tente novamente; a mesma chave impede duplicação.',
+                'alert-danger'
+            );
+            return;
+        }
+
+        limparEnvioPendente();
+        let message = (dados && dados.error) || `Erro ao registrar denúncia (HTTP ${response.status}).`;
+        if (dados && dados.details) {
+            const det = typeof dados.details === 'object'
+                ? Object.values(dados.details).join(' | ')
+                : String(dados.details);
+            message += ` (${det})`;
+        }
+        showAlert(alertMsg, message, 'alert-danger');
+    } catch (_) {
+        const confirmacao = await reconciliarEnvio(idempotencyKey);
+        if (confirmacao.found) {
+            limparEnvioPendente();
+            confirmarSucesso(alertMsg, form, nivelUrgencia, null);
+        } else {
+            showAlert(
+                alertMsg,
+                'A confirmação ainda não chegou. Sua tentativa está protegida contra duplicação; tente enviar novamente para confirmar o mesmo registro.',
+                'alert-danger'
+            );
+        }
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = originalButtonText;
     }
 });

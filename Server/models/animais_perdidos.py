@@ -1,4 +1,4 @@
-from sqlalchemy import String, Text, Date, DateTime, LargeBinary, func, select
+from sqlalchemy import String, Text, Date, DateTime, LargeBinary, func, select, update
 from sqlalchemy.orm import Mapped, mapped_column
 
 from config.config import get_db
@@ -31,13 +31,14 @@ class AnimalPerdido(Base):
     autor: Mapped[str] = mapped_column(
         String(150), nullable=False, default="Visitante"
     )
+    usuario_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     criado_em: Mapped[DateTime] = mapped_column(
         DateTime, nullable=False, server_default=func.now()
     )
 
 
-def _to_dict(row):
-    return {
+def _to_dict(row, current_user_id=None):
+    result = {
         "id": row.id,
         "nome": row.nome,
         "especie": row.especie,
@@ -51,16 +52,21 @@ def _to_dict(row):
         "autor": row.autor,
         "criado_em": row.criado_em.isoformat() if row.criado_em else "",
     }
+    if current_user_id is not None:
+        result["pode_marcar_encontrado"] = (
+            row.status == "Perdido" and row.usuario_id == str(current_user_id)
+        )
+    return result
 
 
-def listar_animais(limit=None):
+def listar_animais(limit=None, current_user_id=None):
     db = next(get_db())
     try:
         stmt = select(AnimalPerdido).order_by(AnimalPerdido.criado_em.desc())
         if limit:
             stmt = stmt.limit(limit)
         rows = db.scalars(stmt).all()
-        return [_to_dict(row) for row in rows]
+        return [_to_dict(row, current_user_id) for row in rows]
     finally:
         db.close()
 
@@ -141,5 +147,39 @@ def excluir_animal(animal_id):
         db.delete(row)
         db.commit()
         return True
+    finally:
+        db.close()
+
+
+def marcar_animal_encontrado(animal_id, usuario_id):
+    """Atualiza o status somente quando a postagem pertence a quem solicitou."""
+    db = next(get_db())
+    try:
+        result = db.execute(
+            update(AnimalPerdido)
+            .where(
+                AnimalPerdido.id == animal_id,
+                AnimalPerdido.usuario_id == str(usuario_id),
+                AnimalPerdido.status == "Perdido",
+            )
+            .values(status="Encontrado")
+        )
+        if result.rowcount:
+            db.commit()
+            row = db.get(AnimalPerdido, animal_id)
+            return "updated", _to_dict(row)
+
+        db.rollback()
+        row = db.get(AnimalPerdido, animal_id)
+        if not row:
+            return "not_found", None
+        if row.usuario_id != str(usuario_id):
+            return "forbidden", None
+        if row.status == "Encontrado":
+            return "already_found", _to_dict(row)
+        return "not_found", None
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()

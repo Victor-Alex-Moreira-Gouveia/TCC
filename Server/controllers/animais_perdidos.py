@@ -1,7 +1,7 @@
 from datetime import date
+from sqlalchemy.exc import SQLAlchemyError
 
 from flask import Blueprint, request, session, send_file
-from sqlalchemy.exc import SQLAlchemyError
 from io import BytesIO
 
 from models.animais_perdidos import (
@@ -11,6 +11,7 @@ from models.animais_perdidos import (
     obter_imagem_animal,
     atualizar_animal,
     excluir_animal,
+    marcar_animal_encontrado,
 )
 from utils import success_response, error_response
 
@@ -104,7 +105,12 @@ def get_animais_perdidos():
         limite = request.args.get("limit", type=int)
         if limite is not None:
             limite = max(1, min(limite, 50))
-        return success_response(listar_animais(limite))
+        current_user_id = (
+            session.get("usuario_id")
+            if session.get("role") in ("admin", "user") else None
+        )
+        rows = listar_animais(limite, current_user_id)
+        return success_response(rows)
     except SQLAlchemyError as exc:
         return error_response(
             "Não foi possível carregar os animais.",
@@ -116,6 +122,9 @@ def get_animais_perdidos():
 
 @animais_perdidos_bp.route("/animais-perdidos", methods=["POST"])
 def post_animal_perdido():
+    if session.get("role") not in ("admin", "user") or session.get("usuario_id") is None:
+        return error_response("Entre na sua conta para publicar um animal.", "UNAUTHORIZED", status=401)
+
     dados, erros = _validar_campos(request.form)
 
     imagem_blob, imagem_mime, erro_imagem = _ler_imagem(
@@ -129,6 +138,7 @@ def post_animal_perdido():
         or session.get("usuario_id")
         or "Visitante"
     )
+    dados["usuario_id"] = str(session.get("usuario_id"))
 
     if erros:
         return error_response(
@@ -156,6 +166,53 @@ def post_animal_perdido():
             str(exc),
             500
         )
+
+
+@animais_perdidos_bp.route(
+    "/animais-perdidos/<int:animal_id>/status",
+    methods=["PATCH"]
+)
+def patch_status_animal_perdido(animal_id):
+    if session.get("role") not in ("admin", "user") or session.get("usuario_id") is None:
+        return error_response("Entre na sua conta para alterar a publicação.", "UNAUTHORIZED", status=401)
+
+    dados = request.get_json(silent=True) or {}
+    if dados.get("status") != "Encontrado":
+        return error_response(
+            "A ação disponível é marcar o animal como encontrado.",
+            "VALIDATION_ERROR",
+            status=400
+        )
+
+    try:
+        outcome, animal = marcar_animal_encontrado(
+            animal_id, session.get("usuario_id")
+        )
+        if outcome == "updated":
+            animal["pode_marcar_encontrado"] = False
+            return success_response(animal, "Publicação atualizada para encontrado.")
+        if outcome == "not_found":
+            return error_response("Animal não encontrado.", "NOT_FOUND", status=404)
+        if outcome == "forbidden":
+            return error_response(
+                "Somente quem criou esta publicação pode marcá-la como encontrada.",
+                "FORBIDDEN",
+                status=403
+            )
+        return error_response(
+            "Esta publicação já está marcada como encontrada.",
+            "ALREADY_FOUND",
+            status=409
+        )
+    except SQLAlchemyError as exc:
+        return error_response(
+            "Não foi possível atualizar a publicação.",
+            "DB_ERROR",
+            str(exc),
+            500
+        )
+
+
 
 
 @animais_perdidos_bp.route(

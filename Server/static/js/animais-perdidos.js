@@ -35,6 +35,12 @@
             ? "animal-status-found"
             : "animal-status-lost";
 
+        const acaoEncontrado = animal.pode_marcar_encontrado
+            ? `<button type="button" class="btn btn-sm btn-outline-success mt-3 marcar-encontrado" data-animal-id="${animal.id}">
+                    <i class="bi bi-check-circle me-1"></i> Marcar como encontrado
+               </button>`
+            : "";
+
         return `
             <div class="col-md-6 col-xl-4">
                 <article class="animal-card">
@@ -64,6 +70,7 @@
                             <strong><i class="bi bi-telephone-fill me-1"></i> Contato</strong>
                             <div>${esc(animal.contato)}</div>
                         </div>
+                        ${acaoEncontrado}
                     </div>
                 </article>
             </div>
@@ -132,6 +139,28 @@
             previewBox.classList.add("d-none");
             preview.removeAttribute("src");
         }, 0);
+    });
+
+    lista?.addEventListener("click", async (event) => {
+        const button = event.target.closest(".marcar-encontrado");
+        if (!button) return;
+        button.disabled = true;
+        try {
+            const response = await fetch(`/api/animais-perdidos/${button.dataset.animalId}/status`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                body: JSON.stringify({ status: "Encontrado" })
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || "Não foi possível atualizar a publicação.");
+            }
+            mostrarAlerta(result.message || "Animal marcado como encontrado.", "success");
+            await carregarRecentes();
+        } catch (error) {
+            mostrarAlerta(error.message || "Não foi possível atualizar a publicação.", "danger");
+            button.disabled = false;
+        }
     });
 
     form?.addEventListener("submit", async (event) => {

@@ -1,7 +1,7 @@
 import json
 import logging
 from pymemcache.client.base import Client
-from config.config import MEMCACHED_HOST, MEMCACHED_PORT
+from config.config import CACHE_ENABLED, MEMCACHED_HOST, MEMCACHED_PORT
 
 logger = logging.getLogger('app_cache')
 
@@ -12,12 +12,15 @@ class GracefulCache:
     Caso a instância do Memcached esteja ausente ou indisponível,
     o sistema continua operando normalmente realizando as consultas no banco de dados relacional.
     """
-    def __init__(self, host=MEMCACHED_HOST, port=MEMCACHED_PORT):
+    def __init__(self, host=MEMCACHED_HOST, port=MEMCACHED_PORT, enabled=CACHE_ENABLED):
         self.host = host
         self.port = port
+        self.enabled = enabled
         self._client = None
 
     def get_client(self):
+        if not self.enabled:
+            return None
         try:
             if self._client is None:
                 self._client = Client(

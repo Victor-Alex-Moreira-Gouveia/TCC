@@ -729,6 +729,89 @@ footer {
 .page-news footer .patas-footer { font-size: 28px; margin-bottom: 8px; }
 .page-news footer p { margin: 5px 0; }
 
+/* Marca uniforme nos cabeçalhos, seguindo a tipografia do registro de denúncia. */
+.site-brand {
+    color: #fff !important;
+    font-family: 'Brastika-Black', Arial, sans-serif !important;
+    font-size: clamp(1.05rem, 2vw, 1.25rem);
+    font-weight: normal !important;
+    text-decoration: none;
+}
+
+.site-brand:hover,
+.site-brand:focus {
+    color: #fff !important;
+}
+
+/* As páginas de leis e notícias usam o mesmo cabeçalho roxo das demais áreas. */
+.page-laws .navbar,
+.page-news .navbar {
+    background-color: var(--color-brand) !important;
+}
+
+.page-laws .back-link,
+.page-news .btn-voltar {
+    color: #fff !important;
+    border-color: var(--color-accent-soft) !important;
+}
+
+.page-laws .back-link:hover,
+.page-news .btn-voltar:hover {
+    color: var(--color-brand-dark) !important;
+    background: var(--color-accent-soft) !important;
+    border-color: var(--color-accent-soft) !important;
+}
+
+/* Cabeçalho de publicações fica sobre o fundo roxo, fora dos cartões brancos. */
+.page-animals .animal-recent-heading h2 {
+    color: #fff;
+}
+
+.page-animals .animal-recent-heading p {
+    color: rgba(255, 255, 255, .9);
+}
+
+.page-animals .animal-recent-heading .btn-animals-outline {
+    color: #fff;
+    border-color: var(--color-accent-soft);
+    background: rgba(83, 35, 150, .45);
+}
+
+.page-animals .animal-recent-heading .btn-animals-outline:hover {
+    color: var(--color-brand-dark);
+    border-color: var(--color-accent-soft);
+    background: var(--color-accent-soft);
+}
+
+/* Texto da conta/visitante permanece legível sobre a barra roxa inicial. */
+.page-home .navbar-nav .text-secondary,
+.page-home .navbar-nav .text-muted {
+    color: rgba(255, 255, 255, .94) !important;
+}
+
+.page-home .navbar-nav .text-brand {
+    color: var(--color-accent-soft) !important;
+}
+
+.page-admin .admin-wordmark {
+    color: var(--color-brand) !important;
+    font-family: 'Brastika-Black', Arial, sans-serif !important;
+}
+
+/* Notícias usam os roxos da marca também nos títulos e estados de interação. */
+.page-news .noticia h2 {
+    color: var(--color-brand) !important;
+}
+
+.page-news .btn-reacao:hover {
+    color: #fff;
+    background: var(--color-brand);
+}
+
+.page-news .btn-enviar:hover {
+    background: var(--color-brand-dark);
+}
+
 /* Página inicial. */
 .page-home .conscientizacao { padding: 70px 20px; text-align: center; }
 .page-home .conscientizacao h1 { color: var(--color-brand); font-size: 3rem; font-weight: bold; margin-bottom: 25px; }
@@ -858,4 +941,13 @@ footer {
     background-color: #532396 !important;
     border-color: #532396 !important;
     color: #fff !important;
+}
+
+/* Maior especificidade mantém a marca branca nas páginas que tinham regra antiga lilás. */
+.page-laws .navbar-brand.site-brand,
+.page-news .navbar-brand.site-brand {
+    color: #fff !important;
+    font-family: 'Brastika-Black', Arial, sans-serif !important;
+    font-size: clamp(1.05rem, 2vw, 1.25rem);
+    font-weight: normal !important;
 }

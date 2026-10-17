@@ -61,7 +61,7 @@ async function createUsuario() {
     const res = await apiFetch(BASE, { method: 'POST', body: JSON.stringify(body) });
     log(res);
 
-    if (res.success || r.status === 201 || res.id) { // Adaptado para checar sucesso de forma ampla
+    if (res.success || res.id) {
         loadUsuarios();
         // Limpa os campos após o sucesso
         nomeInput.value = '';
@@ -73,21 +73,33 @@ async function createUsuario() {
 /**
  * CRUD: Leitura/Listagem de Usuários
  */
-async function loadUsuarios() {
+async function loadUsuarios(options = {}) {
     const tbody = document.querySelector('table tbody');
     if (!tbody) return; // Proteção caso a tabela sumpa por algum motivo
-
-    const res = await apiFetch(BASE);
-    
-    // Se o backend retornar erro ou não for uma lista, avisa no console
-    if (!Array.isArray(res)) {
-        log(res);
-        return;
+    const button = document.getElementById('btn-sync-users');
+    const buttonText = button?.innerHTML;
+    if (button && options.announce) {
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Sincronizando…';
     }
 
-    tbody.innerHTML = ''; // Limpa as linhas antigas
+    try {
+        const allUsers = [];
+        let page = 1;
+        let pages = 1;
+        do {
+            const res = await apiFetch(`${BASE}?page=${page}&limit=100`);
+            if (!res || !res.success || !Array.isArray(res.data)) {
+                log(res || { success: false, message: 'Não foi possível sincronizar os usuários.' });
+                return;
+            }
+            allUsers.push(...res.data);
+            pages = Number(res.pagination?.pages || 1);
+            page += 1;
+        } while (page <= pages);
 
-    res.forEach(u => {
+        tbody.innerHTML = '';
+        allUsers.forEach(u => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${escHtml(String(u.id))}</td>
@@ -104,7 +116,18 @@ async function loadUsuarios() {
                 </div>
             </td>`;
         tbody.appendChild(tr);
-    });
+        });
+        if (options.announce) {
+            log({ success: true, message: `Base sincronizada: ${allUsers.length} usuário(s) carregado(s).` });
+        }
+    } catch (error) {
+        log({ success: false, message: 'Falha ao sincronizar a base de usuários.' });
+    } finally {
+        if (button && options.announce) {
+            button.disabled = false;
+            button.innerHTML = buttonText;
+        }
+    }
 }
 
 /**

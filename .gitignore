@@ -7,6 +7,8 @@ __pycache__/
 .python-version
 .env
 .env.*
+!.env.example
+!.env.local.example
 venv/
 .envrc
 .venv/

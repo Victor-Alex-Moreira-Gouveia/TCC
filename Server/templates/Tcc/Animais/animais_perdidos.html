@@ -7,13 +7,13 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261017-brand-contrast') }}">
 </head>
 
 <body class="page-animals">
     <nav class="navbar navbar-dark">
         <div class="container page-animals-container">
-            <a class="navbar-brand fw-bold" href="/">
+            <a class="navbar-brand fw-bold site-brand" href="/">
                 <i class="bi bi-paw-fill me-2"></i>
                 Vozes que não podem gritar
             </a>
@@ -48,12 +48,13 @@
                 <i class="bi bi-plus-circle-fill"></i>
                 <div>
                     <h2>Cadastrar animal</h2>
-                    <p>Preencha as informações e escolha uma foto do seu computador.</p>
+                    <p>Entre na sua conta para publicar e gerenciar o status do seu animal.</p>
                 </div>
             </div>
 
             <div id="animal-alert" class="alert d-none" role="alert"></div>
 
+            {% if session.get('role') in ('admin', 'user') and session.get('usuario_id') is not none %}
             <form id="formAnimalPerdido" enctype="multipart/form-data">
                 <div class="row g-3">
                     <div class="col-md-6">
@@ -143,6 +144,13 @@
                     </div>
                 </div>
             </form>
+            {% else %}
+            <div class="alert alert-info mb-0" role="status">
+                <i class="bi bi-person-lock me-2"></i>
+                Faça login para cadastrar uma publicação e poder marcá-la como encontrada.
+                <a href="/login" class="alert-link ms-1">Entrar na conta</a>
+            </div>
+            {% endif %}
         </section>
 
         <section>
@@ -172,6 +180,6 @@
         <small>Proteja • Respeite • Ame</small>
     </footer>
 
-    <script src="{{ url_for('static', filename='js/animais-perdidos.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/animais-perdidos.js', v='1') }}"></script>
 </body>
 </html>

@@ -17,6 +17,7 @@ import os
 import time
 import pytest
 import requests
+import uuid
 
 BASE_URL = os.getenv('BASE_URL', 'http://localhost:8080').rstrip('/')
 API = f"{BASE_URL}/api"
@@ -103,6 +104,15 @@ class TestBottomUpUnidade:
         assert bad_cache.set('qualquer_chave', {'dados': 1}) is False
         assert bad_cache.delete('qualquer_chave') is False
         assert bad_cache.flush() is False
+
+    def test_cache_desativado_nao_tenta_conectar(self):
+        """O perfil local sem Memcached deve operar sem tentar abrir conexão."""
+        from config.cache import GracefulCache
+
+        disabled_cache = GracefulCache(host='host-inexistente', enabled=False)
+        assert disabled_cache.get_client() is None
+        assert disabled_cache.get('chave') is None
+        assert disabled_cache.set('chave', {'dados': 1}) is False
 
 
 # ===========================================================================
@@ -255,7 +265,7 @@ class TestMultiFormatosDeImagemENoticias:
 class TestInteratividadeSocial:
     def test_curtidas_e_comentarios_com_seguranca(self):
         admin_s = get_admin_session()
-        user_s, _ = get_user_session()
+        user_s, user_id = get_user_session()
 
         # Cria notícia
         r_not = admin_s.post(f"{API}/noticias", data={
@@ -277,8 +287,36 @@ class TestInteratividadeSocial:
         assert r_com.status_code == 201
         assert '&lt;script&gt;' in r_com.json()['data']['texto']
 
+        # O admin usa um registro real de usuarios para satisfazer as FKs das
+        # interações sociais sem remover a integridade referencial do schema.
+        admin_like = admin_s.post(f"{API}/noticias/{nid}/curtida")
+        assert admin_like.status_code == 200, admin_like.text
+        assert admin_like.json()['data']['curtido_pelo_usuario'] is True
+
+        admin_comment_text = 'Comentário publicado pela conta administrativa.'
+        admin_comment = admin_s.post(f"{API}/noticias/{nid}/comentarios", json={
+            'texto': admin_comment_text
+        })
+        assert admin_comment.status_code == 201, admin_comment.text
+        assert admin_comment.json()['data']['texto'] == admin_comment_text
+        assert isinstance(admin_comment.json()['data']['usuario_id'], int)
+        admin_user_id = admin_comment.json()['data']['usuario_id']
+        assert admin_s.delete(f"{API}/usuarios/{admin_user_id}").status_code == 409
+
+        admin_comments = admin_s.get(f"{API}/noticias/{nid}/comentarios")
+        assert admin_comments.status_code == 200, admin_comments.text
+        assert any(
+            comment['texto'] == admin_comment_text
+            for comment in admin_comments.json()['data']
+        )
+
+        admin_unlike = admin_s.delete(f"{API}/noticias/{nid}/curtida")
+        assert admin_unlike.status_code == 200, admin_unlike.text
+        assert admin_unlike.json()['data']['curtido_pelo_usuario'] is False
+
         # Cleanup
         admin_s.delete(f"{API}/noticias/{nid}")
+        admin_s.delete(f"{API}/usuarios/{user_id}")
 
 
 # ===========================================================================
@@ -340,3 +378,166 @@ class TestTratamentoErrosEDiagnostico:
         body = r.json()
         assert body['success'] is False
         assert body['code'] == 'METHOD_NOT_ALLOWED'
+
+
+class TestRegistroDenuncia:
+    def test_registro_retorna_confirmacao_e_dados_persistidos(self):
+        titulo = f'Teste de registro {int(time.time() * 1000)}'
+        payload = {
+            'titulo': titulo,
+            'corpo': 'Relato temporário criado pela suíte de integração.',
+            'tipo_denuncia': 'Animal doméstico',
+            'nivel_urgencia': 'Ferimento grave',
+        }
+        created_ids = []
+
+        try:
+            response = requests.post(f'{API}/ajuda', json=payload)
+            assert response.status_code == 201, response.text
+            body = response.json()
+            assert body['success'] is True
+            assert body['message'] == 'Denúncia registrada com sucesso.'
+            assert body['data']['titulo'] == titulo
+            assert body['data']['orientacao_imediata']
+
+            record_id = body['data']['id']
+            created_ids.append(record_id)
+            persisted = requests.get(f'{API}/ajuda/{record_id}')
+            assert persisted.status_code == 200, persisted.text
+            assert persisted.json()['data']['corpo'] == payload['corpo']
+        finally:
+            # If the POST committed but its response was malformed, locate and
+            # remove only this unique test row so the integration suite is safe.
+            try:
+                if not created_ids:
+                    listing = requests.get(f'{API}/ajuda?limit=100').json()
+                    created_ids.extend(
+                        row['id'] for row in listing.get('data', [])
+                        if row.get('titulo') == titulo
+                    )
+                for record_id in created_ids:
+                    requests.delete(f'{API}/ajuda/{record_id}')
+            except requests.RequestException:
+                pass
+
+    def test_reenvio_da_mesma_denuncia_nao_cria_duplicata_e_permite_confirmar(self):
+        key = str(uuid.uuid4())
+        payload = {
+            'titulo': f'Teste idempotente {key}',
+            'corpo': 'Relato temporário para testar reenvio seguro.',
+            'tipo_denuncia': 'Animal doméstico',
+            'nivel_urgencia': 'Ferimento grave',
+            'idempotency_key': key,
+        }
+        record_id = None
+        try:
+            first = requests.post(f'{API}/ajuda', json=payload)
+            assert first.status_code == 201, first.text
+            record_id = first.json()['data']['id']
+
+            retry = requests.post(f'{API}/ajuda', json=payload)
+            assert retry.status_code == 200, retry.text
+            assert retry.json()['data']['id'] == record_id
+
+            changed_payload = {**payload, 'corpo': 'Conteúdo diferente com a mesma chave.'}
+            conflict = requests.post(f'{API}/ajuda', json=changed_payload)
+            assert conflict.status_code == 409, conflict.text
+
+            confirmation = requests.get(f'{API}/ajuda/confirmar/{key}')
+            assert confirmation.status_code == 200, confirmation.text
+            assert confirmation.json()['data']['id'] == record_id
+        finally:
+            if record_id is not None:
+                requests.delete(f'{API}/ajuda/{record_id}')
+
+
+class TestPropriedadeEStatusAnimalPerdido:
+    def test_somente_autor_pode_marcar_animal_como_encontrado(self):
+        owner_session, owner_id = get_user_session()
+        other_session, other_id = get_user_session()
+        admin_session = get_admin_session()
+        created_id = None
+        payload = {
+            'nome': f'Animal de teste {owner_id}',
+            'especie': 'Cachorro',
+            'sexo': 'Não informado',
+            'descricao': 'Cadastro temporário para testar a propriedade.',
+            'local': 'Local de teste',
+            'data_ocorrido': '2026-10-17',
+            'contato': 'teste@example.invalid',
+            'status': 'Perdido',
+        }
+
+        try:
+            public_page = requests.get(f'{BASE_URL}/animais-perdidos')
+            assert public_page.status_code == 200, public_page.text
+            assert 'Entrar na conta' in public_page.text
+            assert 'id="formAnimalPerdido"' not in public_page.text
+
+            anonymous = requests.post(f'{API}/animais-perdidos', data=payload)
+            assert anonymous.status_code == 401, anonymous.text
+
+            owner_page = owner_session.get(f'{BASE_URL}/animais-perdidos')
+            assert owner_page.status_code == 200, owner_page.text
+            assert 'id="formAnimalPerdido"' in owner_page.text
+
+            created = owner_session.post(f'{API}/animais-perdidos', data=payload)
+            assert created.status_code == 201, created.text
+            body = created.json()['data']
+            created_id = body['id']
+            assert body['autor']
+            assert body['status'] == 'Perdido'
+
+            own_listing = owner_session.get(f'{API}/animais-perdidos?limit=50').json()['data']
+            own_record = next(item for item in own_listing if item['id'] == created_id)
+            assert own_record['pode_marcar_encontrado'] is True
+
+            anonymous_update = requests.patch(
+                f'{API}/animais-perdidos/{created_id}/status',
+                json={'status': 'Encontrado'}
+            )
+            assert anonymous_update.status_code == 401, anonymous_update.text
+
+            forbidden = other_session.patch(
+                f'{API}/animais-perdidos/{created_id}/status',
+                json={'status': 'Encontrado'}
+            )
+            assert forbidden.status_code == 403, forbidden.text
+            still_lost = owner_session.get(f'{API}/animais-perdidos?limit=50').json()['data']
+            assert next(item for item in still_lost if item['id'] == created_id)['status'] == 'Perdido'
+
+            found = owner_session.patch(
+                f'{API}/animais-perdidos/{created_id}/status',
+                json={'status': 'Encontrado'}
+            )
+            assert found.status_code == 200, found.text
+            assert found.json()['data']['status'] == 'Encontrado'
+
+            other_listing = other_session.get(f'{API}/animais-perdidos?limit=50').json()['data']
+            other_record = next(item for item in other_listing if item['id'] == created_id)
+            assert other_record['status'] == 'Encontrado'
+            assert other_record['pode_marcar_encontrado'] is False
+        finally:
+            if created_id is not None:
+                admin_session.delete(f'{API}/animais-perdidos/{created_id}')
+            admin_session.delete(f'{API}/usuarios/{owner_id}')
+            admin_session.delete(f'{API}/usuarios/{other_id}')
+
+
+class TestTelasAdminAtualizadas:
+    def test_pagina_ajuda_tem_menu_lateral_e_usuarios_tem_sincronizar(self):
+        admin_session = get_admin_session()
+        ajuda = admin_session.get(f'{BASE_URL}/ajuda')
+        assert ajuda.status_code == 200, ajuda.text
+        assert 'class="sidebar' in ajuda.text
+        assert 'Denúncias' in ajuda.text
+
+        usuarios = admin_session.get(f'{BASE_URL}/usuarios')
+        assert usuarios.status_code == 200, usuarios.text
+        assert 'btn-sync-users' in usuarios.text
+        assert 'Sincronizar' in usuarios.text
+
+        formulario = admin_session.get(f'{BASE_URL}/ajuda/pedir')
+        assert formulario.status_code == 200, formulario.text
+        assert 'urgencia-guidance-box' in formulario.text
+        assert 'ajuda-pedir.js?v=3' in formulario.text

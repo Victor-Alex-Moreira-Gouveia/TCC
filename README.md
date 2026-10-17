@@ -46,6 +46,16 @@ docker compose down
 
 O comando `docker compose down -v` remove também o volume do MariaDB e apaga os dados locais.
 
+## Executando Flask localmente com WampServer/MySQL
+
+O Flask serve as páginas e a API em `http://127.0.0.1:8080`; o WampServer/phpMyAdmin fornece e administra o MySQL/MariaDB, mas não serve a API Flask. Para executar o Flask fora do Docker:
+
+1. Inicie o MySQL/MariaDB no WampServer e crie/inicialize o banco `MausTratosDB` com o script SQL correspondente, se necessário.
+2. Copie `.env.local.example` para `.env.local` e ajuste usuário, senha, host e porta do seu banco. O arquivo `.env.local` sobrescreve os valores de `.env` apenas no processo Flask local e não altera a configuração do Compose.
+3. Execute `./scripts/start_local.sh` no Linux (ou `scripts/start_local.ps1` no Windows) e abra `http://127.0.0.1:8080/ajuda/pedir`.
+
+O cache fica desativado nesse perfil e o sistema consulta diretamente o banco. Para usá-lo localmente, defina `CACHE_ENABLED=true` e ajuste `MEMCACHED_HOST`/`MEMCACHED_PORT`.
+
 ## Serviços e portas
 
 | Serviço | Porta local | Uso |
@@ -54,7 +64,7 @@ O comando `docker compose down -v` remove também o volume do MariaDB e apaga os
 | `mariadb` | 3307 | Banco MariaDB (3306 dentro da rede Docker) |
 | `memcached` | 11211 | Cache |
 
-O backend espera MariaDB e Memcached ficarem saudáveis antes de iniciar. O script `Server/Databases/MariaDB_MauTratos.sql` inicializa o banco em um volume novo.
+O backend espera o MariaDB ficar saudável antes de iniciar. O Memcached é opcional: quando desativado ou indisponível, as consultas seguem diretamente para o banco. O script `Server/Databases/MariaDB_MauTratos.sql` inicializa o banco em um volume novo.
 
 ## Configuração
 

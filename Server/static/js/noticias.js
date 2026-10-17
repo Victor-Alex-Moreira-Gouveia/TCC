@@ -131,7 +131,7 @@ function criarCardNoticiaHTML(noticia) {
                 ${adminButtons}
             </div>
 
-            <h2 class="h4 font-weight-bold my-2" style="color: #7a4b00;">${escapeHTML(noticia.titulo)}</h2>
+            <h2 class="h4 font-weight-bold my-2">${escapeHTML(noticia.titulo)}</h2>
             ${imageTag}
             <div class="card-text text-secondary mb-3" style="line-height: 1.7;">
                 ${corpoFormatado}
@@ -309,28 +309,68 @@ async function toggleCurtida(noticiaId, estaCurtidoAtual) {
     const btn = document.getElementById(`btn-like-${noticiaId}`);
     const isCurrentlyActive = btn ? btn.classList.contains('ativo') : Boolean(estaCurtidoAtual);
     const method = isCurrentlyActive ? 'DELETE' : 'POST';
+    const estadoDesejado = !isCurrentlyActive;
+    if (btn) btn.disabled = true;
 
     try {
         const response = await fetch(`/api/noticias/${noticiaId}/curtida`, { method: method });
-        const data = await response.json();
+        const data = await response.json().catch(() => null);
 
-        if (response.ok && data.success) {
-            const countSpan = document.getElementById(`curtidas-count-${noticiaId}`);
-            if (countSpan) countSpan.textContent = data.data.curtidas_count;
-
-            if (data.data.curtido_pelo_usuario) {
-                btn.classList.add('ativo');
-                btn.setAttribute('onclick', `toggleCurtida(${noticiaId}, true)`);
-            } else {
-                btn.classList.remove('ativo');
-                btn.setAttribute('onclick', `toggleCurtida(${noticiaId}, false)`);
-            }
-        } else {
-            exibirAlerta(data.error || 'Erro ao processar curtida.', 'warning');
+        if (response.ok && data?.success) {
+            atualizarEstadoCurtida(noticiaId, data.data);
+            return;
         }
+
+        // Se a gravação ocorreu e apenas a resposta veio inválida, consulta o
+        // estado persistido antes de pedir que a pessoa tente novamente.
+        if (!data || response.ok) {
+            const confirmado = await reconciliarCurtida(noticiaId, estadoDesejado);
+            if (confirmado) {
+                exibirAlerta('Sua curtida foi registrada.', 'success');
+                return;
+            }
+        }
+        exibirAlerta(data?.error || 'Não foi possível confirmar a curtida. Atualize a notícia antes de tentar novamente.', 'warning');
     } catch (e) {
         console.error('Erro de conexão na curtida:', e);
+        const confirmado = await reconciliarCurtida(noticiaId, estadoDesejado);
+        if (confirmado) {
+            exibirAlerta('Sua curtida foi registrada.', 'success');
+        } else {
+            exibirAlerta('Não foi possível confirmar a curtida. Atualize a notícia antes de tentar novamente.', 'warning');
+        }
+    } finally {
+        if (btn) btn.disabled = false;
     }
+}
+
+function atualizarEstadoCurtida(noticiaId, noticia) {
+    const btn = document.getElementById(`btn-like-${noticiaId}`);
+    const countSpan = document.getElementById(`curtidas-count-${noticiaId}`);
+    if (countSpan) countSpan.textContent = noticia.curtidas_count;
+    if (!btn) return;
+
+    if (noticia.curtido_pelo_usuario) {
+        btn.classList.add('ativo');
+        btn.setAttribute('onclick', `toggleCurtida(${noticiaId}, true)`);
+    } else {
+        btn.classList.remove('ativo');
+        btn.setAttribute('onclick', `toggleCurtida(${noticiaId}, false)`);
+    }
+}
+
+async function reconciliarCurtida(noticiaId, estadoDesejado) {
+    try {
+        const response = await fetch(`/api/noticias/${noticiaId}`, { cache: 'no-store' });
+        const result = await response.json().catch(() => null);
+        if (response.ok && result?.success && result.data) {
+            atualizarEstadoCurtida(noticiaId, result.data);
+            return Boolean(result.data.curtido_pelo_usuario) === estadoDesejado;
+        }
+    } catch (error) {
+        console.error('Não foi possível reconciliar o estado da curtida:', error);
+    }
+    return false;
 }
 
 // Alterna exibição e carrega lista de comentários da notícia
@@ -350,11 +390,13 @@ async function carregarComentarios(noticiaId) {
     if (!listDiv) return;
 
     try {
-        const response = await fetch(`/api/noticias/${noticiaId}/comentarios`);
-        const data = await response.json();
+        const comments = await consultarComentarios(noticiaId);
+        if (comments === null) {
+            listDiv.innerHTML = '<p class="text-danger small">Não foi possível atualizar a lista de comentários.</p>';
+            return;
+        }
 
-        if (response.ok && data.success) {
-            const comments = data.data || [];
+        {
             const countSpan = document.getElementById(`comentarios-count-${noticiaId}`);
             if (countSpan) countSpan.textContent = comments.length;
 
@@ -402,6 +444,13 @@ async function carregarComentarios(noticiaId) {
     }
 }
 
+async function consultarComentarios(noticiaId) {
+    const response = await fetch(`/api/noticias/${noticiaId}/comentarios`, { cache: 'no-store' });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data?.success || !Array.isArray(data.data)) return null;
+    return data.data;
+}
+
 // Envia novo comentário
 async function enviarComentario(noticiaId) {
     const input = document.getElementById(`input-comentario-${noticiaId}`);
@@ -409,6 +458,9 @@ async function enviarComentario(noticiaId) {
 
     const texto = input.value.trim();
     if (!texto) return;
+    const button = input.parentElement?.querySelector('.btn-enviar');
+    if (button) button.disabled = true;
+    input.disabled = true;
 
     try {
         const response = await fetch(`/api/noticias/${noticiaId}/comentarios`, {
@@ -416,17 +468,51 @@ async function enviarComentario(noticiaId) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ texto })
         });
-        const data = await response.json();
+        const data = await response.json().catch(() => null);
 
-        if (response.ok && data.success) {
+        if (response.ok && data?.success) {
             input.value = '';
             exibirAlerta('Comentário adicionado com sucesso.', 'success');
             carregarComentarios(noticiaId);
+            return;
+        }
+
+        const comments = (!data || response.ok) ? await consultarComentarios(noticiaId) : null;
+        if (comments?.some(comment =>
+            String(comment.usuario_id) === String(window.CURRENT_USER_ID) &&
+            comment.texto === texto.replace(/[&<>"']/g, character => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;'
+            }[character]))
+        )) {
+            input.value = '';
+            exibirAlerta('Comentário confirmado na publicação.', 'success');
+            carregarComentarios(noticiaId);
         } else {
-            exibirAlerta(data.error || 'Erro ao publicar comentário.', 'danger');
+            exibirAlerta(data?.error || 'Não foi possível confirmar o comentário. A lista foi consultada; confira-a antes de enviar novamente.', 'warning');
         }
     } catch (e) {
-        exibirAlerta('Erro de conexão ao enviar comentário.', 'danger');
+        console.error('Erro de conexão ao enviar comentário:', e);
+        let comments = null;
+        try {
+            comments = await consultarComentarios(noticiaId);
+        } catch (reconcileError) {
+            console.error('Não foi possível reconciliar o comentário:', reconcileError);
+        }
+        const textoEscapado = texto.replace(/[&<>"']/g, character => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;'
+        }[character]));
+        if (comments?.some(comment =>
+            String(comment.usuario_id) === String(window.CURRENT_USER_ID) && comment.texto === textoEscapado
+        )) {
+            input.value = '';
+            exibirAlerta('Comentário confirmado na publicação.', 'success');
+            carregarComentarios(noticiaId);
+        } else {
+            exibirAlerta('Não foi possível confirmar o comentário. A lista foi consultada; confira-a antes de enviar novamente.', 'warning');
+        }
+    } finally {
+        input.disabled = false;
+        if (button) button.disabled = false;
     }
 }
 

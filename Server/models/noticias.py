@@ -29,7 +29,9 @@ class ComentarioNoticia(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     noticia_id: Mapped[int] = mapped_column(ForeignKey('noticias.id', ondelete='CASCADE'), nullable=False)
-    usuario_id: Mapped[str] = mapped_column(String(80), nullable=False)
+    usuario_id: Mapped[int] = mapped_column(
+        ForeignKey('usuarios.id', ondelete='CASCADE'), nullable=False
+    )
     autor_nome: Mapped[str] = mapped_column(String(150), nullable=False)
     texto: Mapped[str] = mapped_column(Text, nullable=False)
     data_criacao: Mapped[datetime] = mapped_column(
@@ -51,7 +53,9 @@ class CurtidaNoticia(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     noticia_id: Mapped[int] = mapped_column(ForeignKey('noticias.id', ondelete='CASCADE'), nullable=False)
-    usuario_id: Mapped[str] = mapped_column(String(80), nullable=False)
+    usuario_id: Mapped[int] = mapped_column(
+        ForeignKey('usuarios.id', ondelete='CASCADE'), nullable=False
+    )
     data_hora: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
@@ -80,7 +84,7 @@ def count_noticias():
     return total
 
 
-def _get_counts_and_user_like(db, noticia_id: int, current_user_id: str = None):
+def _get_counts_and_user_like(db, noticia_id: int, current_user_id: int = None):
     curtidas_count = db.scalar(
         select(func.count()).select_from(CurtidaNoticia).where(CurtidaNoticia.noticia_id == noticia_id)
     ) or 0
@@ -93,7 +97,7 @@ def _get_counts_and_user_like(db, noticia_id: int, current_user_id: str = None):
         user_like = db.scalar(
             select(CurtidaNoticia).where(
                 CurtidaNoticia.noticia_id == noticia_id,
-                CurtidaNoticia.usuario_id == str(current_user_id)
+                CurtidaNoticia.usuario_id == int(current_user_id)
             )
         )
         curtido_pelo_usuario = user_like is not None
@@ -248,11 +252,11 @@ def get_comentario_by_id(comentario_id: int):
     return None
 
 
-def create_comentario(noticia_id: int, usuario_id: str, autor_nome: str, texto: str):
+def create_comentario(noticia_id: int, usuario_id: int, autor_nome: str, texto: str):
     db = next(get_db())
     novo = ComentarioNoticia(
         noticia_id=noticia_id,
-        usuario_id=str(usuario_id),
+        usuario_id=int(usuario_id),
         autor_nome=autor_nome,
         texto=texto,
     )
@@ -289,19 +293,19 @@ def delete_comentario_db(comentario_id: int):
 # Curtidas
 # ---------------------------------------------------------------------------
 
-def adicionar_curtida(noticia_id: int, usuario_id: str):
+def adicionar_curtida(noticia_id: int, usuario_id: int):
     db = next(get_db())
-    user_str = str(usuario_id)
+    user_id = int(usuario_id)
     existing = db.scalar(
         select(CurtidaNoticia).where(
             CurtidaNoticia.noticia_id == noticia_id,
-            CurtidaNoticia.usuario_id == user_str
+            CurtidaNoticia.usuario_id == user_id
         )
     )
     if existing:
         return True
     try:
-        curtida = CurtidaNoticia(noticia_id=noticia_id, usuario_id=user_str)
+        curtida = CurtidaNoticia(noticia_id=noticia_id, usuario_id=user_id)
         db.add(curtida)
         db.commit()
         _invalidate_noticias_cache()
@@ -311,13 +315,13 @@ def adicionar_curtida(noticia_id: int, usuario_id: str):
         return True
 
 
-def remover_curtida(noticia_id: int, usuario_id: str):
+def remover_curtida(noticia_id: int, usuario_id: int):
     db = next(get_db())
-    user_str = str(usuario_id)
+    user_id = int(usuario_id)
     existing = db.scalar(
         select(CurtidaNoticia).where(
             CurtidaNoticia.noticia_id == noticia_id,
-            CurtidaNoticia.usuario_id == user_str
+            CurtidaNoticia.usuario_id == user_id
         )
     )
     if not existing:

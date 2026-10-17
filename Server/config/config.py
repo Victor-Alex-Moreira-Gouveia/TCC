@@ -1,12 +1,17 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, text
+from sqlalchemy import URL, create_engine, text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-# Carrega o .env a partir da raiz do projeto
-load_dotenv()
+# Use paths rooted at the project so startup works from either the repository
+# root or Server/. A local profile can override the Docker .env without changing
+# the Compose configuration.
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(PROJECT_ROOT / '.env')
+load_dotenv(PROJECT_ROOT / '.env.local', override=True)
 
 DB_CONFIG = {
     'host': os.getenv('DATABASE_HOST', 'localhost'),
@@ -18,14 +23,19 @@ DB_CONFIG = {
 
 MEMCACHED_HOST = os.getenv('MEMCACHED_HOST', 'memcached')
 MEMCACHED_PORT = int(os.getenv('MEMCACHED_PORT', 11211))
+CACHE_ENABLED = os.getenv('CACHE_ENABLED', 'true').strip().lower() in {'1', 'true', 'yes', 'on'}
 
 ROOT_USER = os.getenv('ROOT_USERNAME', 'admin')
 ROOT_EMAIL = os.getenv('ROOT_EMAIL', 'admin@sistema.com')
 ROOT_PASSWORD = os.getenv('ROOT_PASSWORD', 'admin123')
 
-DATABASE_URL = (
-    f"mysql+pymysql://{DB_CONFIG['user']}:{DB_CONFIG['password']}"
-    f"@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
+DATABASE_URL = URL.create(
+    'mysql+pymysql',
+    username=DB_CONFIG['user'],
+    password=DB_CONFIG['password'],
+    host=DB_CONFIG['host'],
+    port=DB_CONFIG['port'],
+    database=DB_CONFIG['database'],
 )
 
 engine = create_engine(DATABASE_URL, echo=False, pool_pre_ping=True)
@@ -204,6 +214,35 @@ def ensure_ajuda_schema():
                 conn.execute(text('DROP TABLE IF EXISTS ongs'))
             except Exception as exc:
                 print(f'Alerta remoção ongs: {exc}')
+
+            # ---------------------------------------------------------------
+            # 5. Migração de denúncias idempotentes e autoria de animais
+            # ---------------------------------------------------------------
+            try:
+                cols_ajuda = conn.execute(text('SHOW COLUMNS FROM ajuda')).fetchall()
+                existing_ajuda = {row[0] for row in cols_ajuda}
+                if 'idempotency_key' not in existing_ajuda:
+                    conn.execute(text(
+                        'ALTER TABLE ajuda ADD COLUMN idempotency_key VARCHAR(36) NULL UNIQUE'
+                    ))
+            except Exception as exc:
+                print(f'Alerta de schema Ajuda (idempotência): {exc}')
+
+            try:
+                cols_animais = conn.execute(text('SHOW COLUMNS FROM animais_perdidos')).fetchall()
+                existing_animais = {row[0] for row in cols_animais}
+                if 'usuario_id' not in existing_animais:
+                    conn.execute(text(
+                        'ALTER TABLE animais_perdidos ADD COLUMN usuario_id VARCHAR(64) NULL'
+                    ))
+                if 'ix_animais_perdidos_usuario_id' not in {
+                    row[2] for row in conn.execute(text('SHOW INDEX FROM animais_perdidos')).fetchall()
+                }:
+                    conn.execute(text(
+                        'CREATE INDEX ix_animais_perdidos_usuario_id ON animais_perdidos (usuario_id)'
+                    ))
+            except Exception as exc:
+                print(f'Alerta de schema Animais Perdidos (proprietário): {exc}')
     except Exception as exc:
         print(f'Alerta geral de migração: {exc}')
 

@@ -1,5 +1,5 @@
 from sqlalchemy import String, Text, func, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Mapped, mapped_column
 
 from config.config import get_db
@@ -15,6 +15,7 @@ class Ajuda(Base):
     tipo_denuncia: Mapped[str] = mapped_column(String(80), nullable=False, default='Animal doméstico')
     nivel_urgencia: Mapped[str] = mapped_column(String(80), nullable=False, default='Não informado')
     autor: Mapped[str] = mapped_column(String(150), nullable=False, default='anon')
+    idempotency_key: Mapped[str | None] = mapped_column(String(36), unique=True, nullable=True)
 
 
 def count_ajuda():
@@ -55,20 +56,57 @@ def get_ajuda_by_id(aid):
     return None
 
 
-def create_ajuda_db(titulo, corpo, autor, tipo_denuncia='Animal doméstico', nivel_urgencia='Não informado'):
+def _ajuda_to_dict(row):
+    return {
+        'id': row.id,
+        'titulo': row.titulo,
+        'corpo': row.corpo,
+        'tipo_denuncia': row.tipo_denuncia,
+        'nivel_urgencia': row.nivel_urgencia,
+        'autor': row.autor,
+    }
+
+
+def get_ajuda_by_idempotency_key(key):
     db = next(get_db())
     try:
+        row = db.scalar(select(Ajuda).where(Ajuda.idempotency_key == key))
+        return _ajuda_to_dict(row) if row else None
+    finally:
+        db.close()
+
+
+def create_ajuda_db(titulo, corpo, autor, tipo_denuncia='Animal doméstico', nivel_urgencia='Não informado', idempotency_key=None):
+    db = next(get_db())
+    try:
+        if idempotency_key:
+            existing = db.scalar(select(Ajuda).where(Ajuda.idempotency_key == idempotency_key))
+            if existing:
+                return _ajuda_to_dict(existing), False
+
         nova_ajuda = Ajuda(
             titulo=titulo,
             corpo=corpo,
             autor=autor,
             tipo_denuncia=tipo_denuncia,
             nivel_urgencia=nivel_urgencia,
+            idempotency_key=idempotency_key,
         )
         db.add(nova_ajuda)
+        # The ID is assigned by the database during flush. Build the response
+        # before committing so we do not need a second query after the commit.
+        db.flush()
+        result = _ajuda_to_dict(nova_ajuda)
         db.commit()
-        return nova_ajuda.id
+        return result, True
     except IntegrityError:
+        db.rollback()
+        if idempotency_key:
+            existing = db.scalar(select(Ajuda).where(Ajuda.idempotency_key == idempotency_key))
+            if existing:
+                return _ajuda_to_dict(existing), False
+        raise
+    except SQLAlchemyError:
         db.rollback()
         raise
 

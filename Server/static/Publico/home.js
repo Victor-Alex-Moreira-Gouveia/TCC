@@ -29,10 +29,10 @@ async function carregarNoticias() {
                     <div class="col-12">
                         <div class="card border-0 shadow-sm p-4 mb-2 bg-white" style="border-radius: 12px;">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <span class="badge text-white" style="background-color: #7a4b00; font-size: 0.75rem;">Notícia</span>
+                                <span class="badge text-white" style="background-color: #692CBF; font-size: 0.75rem;">Notícia</span>
                                 <small class="text-muted"><i class="bi bi-clock"></i> ${dataFormatada}</small>
                             </div>
-                            <h4 class="h5 fw-bold mb-3" style="color: #7a4b00;">${escapeHTML(noticia.titulo)}</h4>
+                            <h4 class="h5 fw-bold mb-3" style="color: #532396;">${escapeHTML(noticia.titulo)}</h4>
                             <p class="card-text text-secondary mb-0" style="line-height: 1.6; font-size: 0.95rem;">
                                 ${corpoFormatado}
                             </p>
@@ -43,7 +43,7 @@ async function carregarNoticias() {
             });
         } else {
             container.innerHTML = `
-                <div class="text-center py-5 text-muted">
+                <div class="text-center py-5 text-light">
                     <i class="bi bi-newspaper fs-1"></i>
                     <p class="mt-2 mb-0">Nenhuma notícia publicada no momento.</p>
                 </div>

@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, session, redirect
 from werkzeug.security import generate_password_hash
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from config.config import ROOT_EMAIL
 from models.usuarios import count_users, list_users, get_usuario_by_id, create_usuario, update_usuario_db, delete_usuario_db
 import re
 import math
@@ -101,6 +102,8 @@ def update_usuario_route(uid):
     existing = get_usuario_by_id(uid)
     if not existing:
         return error_response("Recurso não encontrado", "NOT_FOUND", status=404)
+    if existing.get('email') == ROOT_EMAIL:
+        return error_response("A conta administrativa principal não pode ser alterada", "PROTECTED_USER", status=409)
 
     update_data = {}
     errors = {}
@@ -145,6 +148,9 @@ def update_usuario_route(uid):
 @usuarios_bp.route('/usuarios/<int:uid>', methods=['DELETE'])
 def delete_usuario_route(uid):
     try:
+        existing = get_usuario_by_id(uid)
+        if existing and existing.get('email') == ROOT_EMAIL:
+            return error_response("A conta administrativa principal não pode ser removida", "PROTECTED_USER", status=409)
         ok = delete_usuario_db(uid)
         if not ok:
             return error_response("Recurso não encontrado", "NOT_FOUND", status=404)

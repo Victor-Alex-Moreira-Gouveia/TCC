@@ -26,7 +26,27 @@ CREATE TABLE ajuda (
     corpo TEXT NOT NULL,
     tipo_denuncia VARCHAR(80) NOT NULL DEFAULT 'Animal doméstico',
     nivel_urgencia VARCHAR(80) NOT NULL DEFAULT 'Não informado',
-    autor VARCHAR(150) NOT NULL DEFAULT 'anon'
+    autor VARCHAR(150) NOT NULL DEFAULT 'anon',
+    idempotency_key VARCHAR(36) NULL UNIQUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Publicações de animais perdidos e encontrados, vinculadas ao usuário autor.
+CREATE TABLE animais_perdidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(120) NOT NULL,
+    especie VARCHAR(40) NOT NULL,
+    sexo VARCHAR(30) NOT NULL DEFAULT 'Não informado',
+    descricao TEXT NOT NULL,
+    `local` VARCHAR(255) NOT NULL,
+    data_ocorrido DATE NOT NULL,
+    contato VARCHAR(180) NOT NULL,
+    imagem_blob LONGBLOB NULL,
+    imagem_mime VARCHAR(100) NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'Perdido',
+    autor VARCHAR(150) NOT NULL DEFAULT 'Visitante',
+    usuario_id VARCHAR(64) NULL,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX ix_animais_perdidos_usuario_id (usuario_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Tabela de Comentários em Notícias

@@ -236,11 +236,11 @@ def create_comentario_route(nid):
         return error_response('O comentário excede o tamanho máximo de 1000 caracteres', 'VALIDATION_ERROR', {'texto': 'Máximo 1000 caracteres'}, 400)
 
     texto_seguro = html.escape(raw_texto)
-    usuario_id = session.get('usuario_id')
+    usuario_id = int(session.get('usuario_id'))
     autor_nome = session.get('usuario_nome') or 'Usuário Registrado'
 
     try:
-        novo = create_comentario(nid, str(usuario_id), autor_nome, texto_seguro)
+        novo = create_comentario(nid, usuario_id, autor_nome, texto_seguro)
         return success_response(novo, 'Comentário adicionado com sucesso.', 201)
     except SQLAlchemyError as exc:
         return error_response('Erro interno do servidor', 'DB_ERROR', str(exc), 500)

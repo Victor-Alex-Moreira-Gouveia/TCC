@@ -4,9 +4,10 @@ import os
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 from pymemcache.client.base import Client
 from sqlalchemy import select
-from werkzeug.security import check_password_hash
+from sqlalchemy.exc import IntegrityError
+from werkzeug.security import check_password_hash, generate_password_hash
 
-from config.config import MEMCACHED_HOST, MEMCACHED_PORT, detect_db_engine, get_db, init_db_schema, test_mariadb
+from config.config import CACHE_ENABLED, MEMCACHED_HOST, MEMCACHED_PORT, ROOT_EMAIL, ROOT_PASSWORD, ROOT_USER, detect_db_engine, get_db, init_db_schema, test_mariadb
 from config.cache import cache
 from models.usuarios import Usuario
 from models.animais_perdidos import AnimalPerdido
@@ -36,6 +37,17 @@ def verificar_autenticacao():
     if path.startswith('/static') or path == '/health':
         return None
 
+    # Sessões de admin criadas por versões anteriores usavam o ID virtual
+    # "admin". Migra para o usuário administrativo real para manter as FKs
+    # de curtidas, comentários e publicações de animais válidas.
+    if session.get('role') == 'admin' and str(session.get('usuario_id')) == 'admin':
+        try:
+            admin = _get_or_create_admin_user()
+            session['usuario_id'] = admin['id']
+            session['usuario_nome'] = admin['nome_usuario']
+        except Exception as exc:
+            logger.error('Não foi possível atualizar a sessão administrativa: %s', exc, exc_info=True)
+
     is_noticias_route = path == '/noticias' or path.startswith('/api/noticias')
 
     if is_noticias_route:
@@ -45,6 +57,33 @@ def verificar_autenticacao():
             return redirect(url_for('tela_login'))
 
     return None
+
+
+def _get_or_create_admin_user():
+    """Retorna o registro administrativo persistente usado pelas FKs sociais."""
+    db = next(get_db())
+    try:
+        admin = db.scalar(select(Usuario).where(Usuario.email == ROOT_EMAIL))
+        if admin is None:
+            admin = Usuario(
+                nome_usuario=ROOT_USER,
+                email=ROOT_EMAIL,
+                senha=generate_password_hash(ROOT_PASSWORD),
+            )
+            db.add(admin)
+            try:
+                db.commit()
+            except IntegrityError:
+                # Evita falha se duas sessões de admin forem abertas juntas.
+                db.rollback()
+                admin = db.scalar(select(Usuario).where(Usuario.email == ROOT_EMAIL))
+                if admin is None:
+                    raise
+            else:
+                db.refresh(admin)
+        return {'id': admin.id, 'nome_usuario': admin.nome_usuario}
+    finally:
+        db.close()
 
 
 @app.errorhandler(400)
@@ -90,6 +129,8 @@ def handle_internal_server_error(e):
 
 
 def test_memcached():
+    if not CACHE_ENABLED:
+        return False, 'Memcached desativado pela configuração'
     try:
         client = Client((MEMCACHED_HOST, MEMCACHED_PORT), connect_timeout=1, timeout=1)
         client.set('healthcheck_key', 'ok', expire=10)
@@ -116,6 +157,7 @@ def health_check():
         },
         'memcached': {
             'status': cache_msg,
+            'enabled': CACHE_ENABLED,
             'cache_active': cache_status,
             'fallback_mode': not cache_status,
         },
@@ -210,11 +252,16 @@ def api_login():
     if not email or not senha:
         return jsonify({'status': 'erro', 'mensagem': 'Preencha todos os campos.'}), 400
 
-    if email == 'admin@sistema.com' and senha == 'admin123':
-        session['usuario_id'] = 'admin'
-        session['usuario_nome'] = 'Administrador'
-        session['role'] = 'admin'
-        return jsonify({'status': 'sucesso', 'redirect': '/'}), 200
+    if email == ROOT_EMAIL and senha == ROOT_PASSWORD:
+        try:
+            admin = _get_or_create_admin_user()
+            session['usuario_id'] = admin['id']
+            session['usuario_nome'] = admin['nome_usuario']
+            session['role'] = 'admin'
+            return jsonify({'status': 'sucesso', 'redirect': '/'}), 200
+        except Exception as exc:
+            logger.error('Erro ao preparar o usuário administrativo: %s', exc, exc_info=True)
+            return jsonify({'status': 'erro', 'mensagem': 'Não foi possível iniciar a sessão administrativa.'}), 500
 
     try:
         db = next(get_db())

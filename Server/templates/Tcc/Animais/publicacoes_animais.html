@@ -7,13 +7,13 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261017-brand-contrast') }}">
 </head>
 
 <body class="page-animals">
     <nav class="navbar navbar-dark">
         <div class="container page-animals-container">
-            <a class="navbar-brand fw-bold" href="/">
+            <a class="navbar-brand fw-bold site-brand" href="/">
                 <i class="bi bi-paw-fill me-2"></i>
                 Vozes que não podem gritar
             </a>
@@ -87,6 +87,6 @@
         <small>Proteja • Respeite • Ame</small>
     </footer>
 
-    <script src="{{ url_for('static', filename='js/animais-publicacoes.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/animais-publicacoes.js', v='1') }}"></script>
 </body>
 </html>

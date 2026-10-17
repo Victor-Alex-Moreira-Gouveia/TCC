@@ -14,12 +14,11 @@ services:
       DATABASE_USER: "${DATABASE_USER}"
       DATABASE_PASSWORD: "${DATABASE_PASSWORD}"
       DATABASE_NAME: "${DATABASE_NAME}"
+      CACHE_ENABLED: "${CACHE_ENABLED:-true}"
       MEMCACHED_HOST: "${MEMCACHED_HOST}"
       MEMCACHED_PORT: "${MEMCACHED_PORT}"
     depends_on:
       mariadb:
-        condition: service_healthy
-      memcached:
         condition: service_healthy
     networks:
       - app-network
