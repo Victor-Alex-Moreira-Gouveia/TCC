@@ -7,7 +7,7 @@
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261017-brand-contrast') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261021-home-law-promo') }}">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
 
 
@@ -40,7 +40,7 @@
                     <a class="btn btn-outline-brand" href="/ajuda/pedir">Denúncia</a>
                 </li>
                 <li class="nav-item">
-                    <a class="btn btn-outline-brand" href="/leis">Informações de Denúncia</a>
+                    <a class="btn btn-outline-brand" href="/leis">Legislações</a>
                 </li>
 
 
@@ -91,9 +91,108 @@
     <section class="hero">
         <img src="{{ url_for('static', filename='banner2.png') }}" alt="Combate aos Maus-Tratos aos Animais">
     </section>
-    
-    <!-- TEXTO DE CONSCIENTIZAÇÃO -->
-    
+
+    <!-- PRÉVIA DE ANIMAIS ENCONTRADOS -->
+    <section class="home-preview-section" aria-labelledby="home-found-title">
+        <div class="container">
+            <div class="home-preview-heading">
+                <div>
+                    <span class="home-preview-eyebrow">Reencontros</span>
+                    <h2 id="home-found-title">Animais encontrados recentemente</h2>
+                    <p>Confira alguns animais já marcados como encontrados.</p>
+                </div>
+                <i class="bi bi-paw-fill home-preview-heading-icon" aria-hidden="true"></i>
+            </div>
+
+            <div class="row g-4" id="container-animais-encontrados" aria-live="polite" aria-busy="true">
+                <div class="col-12">
+                    <p class="home-preview-feedback">Carregando animais encontrados...</p>
+                </div>
+            </div>
+
+            <div class="home-preview-action">
+                <a class="btn btn-light" href="{{ url_for('publicacoes_animais_perdidos') }}">
+                    Ver publicações de animais <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRÉVIA DAS NOTÍCIAS -->
+    <section class="home-preview-section" aria-labelledby="home-news-title">
+        <div class="container">
+            <div class="home-preview-heading">
+                <div>
+                    <span class="home-preview-eyebrow">Informação e conscientização</span>
+                    <h2 id="home-news-title">Notícias recentes</h2>
+                    <p>Acompanhe atualizações sobre proteção animal e combate aos maus-tratos.</p>
+                </div>
+                <i class="bi bi-newspaper home-preview-heading-icon" aria-hidden="true"></i>
+            </div>
+
+            {% if session.get('role') not in ('admin', 'user') %}
+                <div class="home-news-registration-note" role="note">
+                    <i class="bi bi-person-vcard-fill" aria-hidden="true"></i>
+                    <div class="home-news-registration-copy">
+                        <strong>Quer acompanhar todas as notícias?</strong>
+                        <span>É necessário ter uma conta cadastrada para acessar a lista completa.</span>
+                    </div>
+                    <a class="btn btn-brand" href="{{ url_for('tela_cadastro') }}">Criar cadastro</a>
+                </div>
+            {% endif %}
+
+            <div class="row g-4" id="container-noticias-preview" aria-live="polite" aria-busy="true">
+                <div class="col-12">
+                    <p class="home-preview-feedback">Carregando notícias...</p>
+                </div>
+            </div>
+
+            <div class="home-preview-action">
+                {% if session.get('role') in ('admin', 'user') %}
+                    <a class="btn btn-light" href="{{ url_for('test_noticias') }}">
+                        Ver todas as notícias <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+                    </a>
+                {% else %}
+                    <a class="btn btn-light" href="{{ url_for('tela_login') }}">
+                        Já tenho cadastro — entrar <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- BLOCO DE DESTAQUE DA LEGISLAÇÃO -->
+    <section class="home-law-promo-wrap" aria-labelledby="home-law-title">
+        <div class="container">
+            <article class="home-law-promo">
+                <div class="home-law-promo-content">
+                    <span class="home-preview-eyebrow">Proteção e direitos</span>
+                    <div class="home-law-promo-title-row">
+                        <span class="home-law-promo-icon" aria-hidden="true">
+                            <i class="bi bi-shield-check"></i>
+                        </span>
+                        <span class="home-preview-label">Lei Federal nº 14.064/2020</span>
+                    </div>
+                    <h2 id="home-law-title">Lei Sansão</h2>
+                    <p>
+                        A lei alterou a Lei de Crimes Ambientais e estabeleceu, para maus-tratos contra cães e gatos,
+                        pena de reclusão de 2 a 5 anos, multa e proibição da guarda do animal.
+                    </p>
+                    <div class="home-law-highlight">
+                        <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+                        <span>Conheça as normas que protegem os animais e saiba mais sobre seus direitos.</span>
+                    </div>
+                </div>
+                <div class="home-law-promo-action">
+                    <i class="bi bi-journal-bookmark-fill" aria-hidden="true"></i>
+                    <p>Veja esta e outras legislações na página completa.</p>
+                    <a class="btn btn-light" href="{{ url_for('pagina_leis') }}">
+                        Acompanhar legislações <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </article>
+        </div>
+    </section>
 
     <!-- RODAPÉ -->
     <footer>
@@ -105,7 +204,7 @@
     <!-- Bootstrap & Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='Publico/home.js') }}"></script>
+    <script src="{{ url_for('static', filename='Publico/home-previews.js') }}"></script>
 
 </body>
 </html>

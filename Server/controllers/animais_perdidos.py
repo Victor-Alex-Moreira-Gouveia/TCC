@@ -120,6 +120,38 @@ def get_animais_perdidos():
         )
 
 
+@animais_perdidos_bp.route("/preview/animais-encontrados", methods=["GET"])
+def get_animais_encontrados_preview():
+    try:
+        rows = listar_animais(limit=3, status="Encontrado")
+        preview = []
+        for row in rows:
+            descricao = (row.get("descricao") or "").strip()
+            resumo = descricao[:140].rstrip()
+            if len(descricao) > 140:
+                resumo += "…"
+            preview.append({
+                "id": row["id"],
+                "nome": row.get("nome") or "Animal encontrado",
+                "especie": row.get("especie") or "Espécie não informada",
+                "local": row.get("local") or "Local não informado",
+                "data_ocorrido": row.get("data_ocorrido"),
+                "resumo": resumo,
+                "imagem_url": (
+                    f"/api/animais-perdidos/{row['id']}/imagem"
+                    if row.get("tem_imagem") else None
+                ),
+            })
+        return success_response(preview)
+    except SQLAlchemyError as exc:
+        return error_response(
+            "Não foi possível carregar os animais encontrados.",
+            "DB_ERROR",
+            str(exc),
+            500
+        )
+
+
 @animais_perdidos_bp.route("/animais-perdidos", methods=["POST"])
 def post_animal_perdido():
     if session.get("role") not in ("admin", "user") or session.get("usuario_id") is None:

@@ -59,10 +59,13 @@ def _to_dict(row, current_user_id=None):
     return result
 
 
-def listar_animais(limit=None, current_user_id=None):
+def listar_animais(limit=None, current_user_id=None, status=None):
     db = next(get_db())
     try:
-        stmt = select(AnimalPerdido).order_by(AnimalPerdido.criado_em.desc())
+        stmt = select(AnimalPerdido)
+        if status:
+            stmt = stmt.where(AnimalPerdido.status == status)
+        stmt = stmt.order_by(AnimalPerdido.criado_em.desc())
         if limit:
             stmt = stmt.limit(limit)
         rows = db.scalars(stmt).all()

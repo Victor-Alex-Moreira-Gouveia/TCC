@@ -35,6 +35,27 @@ def _is_admin():
 # Notícias
 # ---------------------------------------------------------------------------
 
+@noticias_bp.route('/preview/noticias', methods=['GET'])
+def get_noticias_preview():
+    """Disponibiliza apenas três resumos para a prévia pública da página inicial."""
+    try:
+        rows = list_noticias(limit=3, offset=0)
+        preview = []
+        for row in rows:
+            corpo = (row.get('corpo') or '').strip()
+            resumo = corpo[:180].rstrip()
+            if len(corpo) > 180:
+                resumo += '…'
+            preview.append({
+                'titulo': row.get('titulo') or '',
+                'resumo': resumo,
+                'data_hora': row.get('data_hora'),
+            })
+        return success_response(preview)
+    except SQLAlchemyError as exc:
+        return error_response('Erro interno do servidor', 'DB_ERROR', str(exc), 500)
+
+
 @noticias_bp.route('/noticias', methods=['GET'])
 def get_noticias():
     if not _is_authenticated():
