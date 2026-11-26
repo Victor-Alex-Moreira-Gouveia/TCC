@@ -32,7 +32,7 @@ async function loadAjuda() {
     tbody.innerHTML = '';
 
     if (!res.data || res.data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">Nenhum registro encontrado.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Nenhum registro encontrado.</td></tr>`;
         return;
     }
 
@@ -42,6 +42,7 @@ async function loadAjuda() {
         <td class="fw-bold text-secondary">${escHtml(String(a.id))}</td>
         <td class="fw-semibold">${escHtml(a.titulo)}</td>
         <td class="corpo-cell-truncated text-muted" title="${escHtml(a.corpo)}">${escHtml(a.corpo)}</td>
+        <td>${escHtml(a.situacao_ocorrencia || 'Não informada')}</td>
         <td>
             <div class="d-flex gap-2 justify-content-center">
             <button class="btn btn-sm btn-outline-primary" title="Editar" onclick="fillUpdate(${a.id},'${esc(a.titulo)}','${esc(a.corpo)}')">

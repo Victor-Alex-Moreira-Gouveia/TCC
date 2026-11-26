@@ -5,13 +5,30 @@ from models.ajuda import (
     count_ajuda, list_ajuda, get_ajuda_by_id,
     create_ajuda_db, get_ajuda_by_idempotency_key, update_ajuda_db, delete_ajuda_db
 )
-from services.orientacoes import obter_orientacao_imediata
+from services.orientacoes import obter_orientacao_imediata, obter_canal_recomendado
 from utils import parse_pagination, build_pagination, success_response, error_response
 
 ajuda_bp = Blueprint('ajuda', __name__, url_prefix='/api')
 
+SITUACOES_OCORRENCIA = {
+    'violencia_em_andamento', 'risco_imediato', 'animal_ferido',
+    'relato_passado', 'resgate'
+}
+TIPOS_ANIMAL = {'Animal doméstico', 'Animal Silvestre', 'Resgate e acolhimento'}
+NIVEIS_URGENCIA = {
+    'Ferimento grave', 'Engasgo', 'Convulsão', 'Doença contagiosa',
+    'Envenenamento', 'Atropelamento',
+    'Queimaduras ou exposição a produtos químicos', 'Não informado'
+}
+
+
+def _admin_required():
+    return session.get('role') == 'admin'
+
 @ajuda_bp.route('/ajuda', methods=['GET'])
 def get_ajuda_list():
+    if not _admin_required():
+        return error_response("Acesso não autorizado.", "UNAUTHORIZED", status=403)
     page, limit, offset = parse_pagination(request.args)
     try:
         total = count_ajuda()
@@ -22,6 +39,8 @@ def get_ajuda_list():
 
 @ajuda_bp.route('/ajuda/<int:aid>', methods=['GET'])
 def get_ajuda(aid):
+    if not _admin_required():
+        return error_response("Acesso não autorizado.", "UNAUTHORIZED", status=403)
     try:
         row = get_ajuda_by_id(aid)
         if not row:
@@ -39,6 +58,7 @@ def create_ajuda():
     corpo = (data.get('corpo') or '').strip()
     tipo_denuncia = (data.get('tipo_denuncia') or '').strip() or 'Animal doméstico'
     nivel_urgencia = (data.get('nivel_urgencia') or '').strip() or 'Não informado'
+    situacao_ocorrencia = (data.get('situacao_ocorrencia') or '').strip() or 'relato_passado'
     idempotency_key = (data.get('idempotency_key') or '').strip()
 
     if not titulo:
@@ -47,6 +67,12 @@ def create_ajuda():
         errors['titulo'] = 'Máximo 255 caracteres'
     if not corpo:
         errors['corpo'] = 'Campo obrigatório'
+    if tipo_denuncia not in TIPOS_ANIMAL:
+        errors['tipo_denuncia'] = 'Selecione um tipo de animal válido.'
+    if nivel_urgencia not in NIVEIS_URGENCIA:
+        errors['nivel_urgencia'] = 'Selecione uma condição válida.'
+    if situacao_ocorrencia not in SITUACOES_OCORRENCIA:
+        errors['situacao_ocorrencia'] = 'Selecione uma situação válida.'
     if idempotency_key:
         try:
             UUID(idempotency_key)
@@ -60,12 +86,14 @@ def create_ajuda():
 
     try:
         row, created = create_ajuda_db(
-            titulo, corpo, autor_nome, tipo_denuncia, nivel_urgencia, idempotency_key or None
+            titulo, corpo, autor_nome, tipo_denuncia, nivel_urgencia,
+            situacao_ocorrencia, idempotency_key or None
         )
         if idempotency_key and not created and (
             row['titulo'] != titulo or row['corpo'] != corpo
             or row['autor'] != autor_nome or row['tipo_denuncia'] != tipo_denuncia
             or row['nivel_urgencia'] != nivel_urgencia
+            or row['situacao_ocorrencia'] != situacao_ocorrencia
         ):
             return error_response(
                 'Este envio já foi registrado com outros dados. Confira a confirmação antes de iniciar uma nova denúncia.',
@@ -73,6 +101,7 @@ def create_ajuda():
             )
         orientacao = obter_orientacao_imediata(nivel_urgencia, tipo_denuncia)
         row['orientacao_imediata'] = orientacao
+        row['canal_recomendado'] = obter_canal_recomendado(tipo_denuncia, situacao_ocorrencia)
         return success_response(
             row, "Denúncia registrada com sucesso.", 201 if created else 200
         )
@@ -92,12 +121,19 @@ def confirmar_ajuda(idempotency_key):
         if not row:
             return error_response('Ainda não há registro confirmado para este envio.', 'NOT_FOUND', status=404)
         # This endpoint only reconciles persistence; it does not expose complaint content.
-        return success_response({'id': row['id']}, 'Denúncia registrada com sucesso.')
+        return success_response({
+            'id': row['id'],
+            'canal_recomendado': obter_canal_recomendado(
+                row['tipo_denuncia'], row['situacao_ocorrencia']
+            ),
+        }, 'Denúncia registrada com sucesso.')
     except SQLAlchemyError as e:
         return error_response('Não foi possível confirmar o registro.', 'DB_ERROR', str(e), 500)
 
 @ajuda_bp.route('/ajuda/<int:aid>', methods=['PUT'])
 def update_ajuda(aid):
+    if not _admin_required():
+        return error_response("Acesso não autorizado.", "UNAUTHORIZED", status=403)
     data = request.get_json(silent=True) or {}
 
     try:
@@ -135,17 +171,24 @@ def update_ajuda(aid):
 
     if 'tipo_denuncia' in data:
         tipo = (data['tipo_denuncia'] or '').strip()
-        if not tipo:
-            errors['tipo_denuncia'] = 'Não pode ser vazio'
+        if tipo not in TIPOS_ANIMAL:
+            errors['tipo_denuncia'] = 'Selecione um tipo de animal válido.'
         else:
             update_data['tipo_denuncia'] = tipo
 
     if 'nivel_urgencia' in data:
         nivel = (data['nivel_urgencia'] or '').strip()
-        if not nivel:
-            errors['nivel_urgencia'] = 'Não pode ser vazio'
+        if nivel not in NIVEIS_URGENCIA:
+            errors['nivel_urgencia'] = 'Selecione uma condição válida.'
         else:
             update_data['nivel_urgencia'] = nivel
+
+    if 'situacao_ocorrencia' in data:
+        situacao = (data['situacao_ocorrencia'] or '').strip()
+        if situacao not in SITUACOES_OCORRENCIA:
+            errors['situacao_ocorrencia'] = 'Selecione uma situação válida.'
+        else:
+            update_data['situacao_ocorrencia'] = situacao
 
     if errors:
         return error_response("Validação falhou", "VALIDATION_ERROR", errors, 400)
@@ -161,6 +204,8 @@ def update_ajuda(aid):
 
 @ajuda_bp.route('/ajuda/<int:aid>', methods=['DELETE'])
 def delete_ajuda(aid):
+    if not _admin_required():
+        return error_response("Acesso não autorizado.", "UNAUTHORIZED", status=403)
     try:
         ok = delete_ajuda_db(aid)
         if not ok:

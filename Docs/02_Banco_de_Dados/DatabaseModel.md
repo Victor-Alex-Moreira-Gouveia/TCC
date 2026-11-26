@@ -49,6 +49,7 @@ erDiagram
         TEXT corpo
         VARCHAR tipo_denuncia
         VARCHAR nivel_urgencia
+        VARCHAR situacao_ocorrencia
         VARCHAR autor
         VARCHAR idempotency_key UK
     }
@@ -65,6 +66,7 @@ erDiagram
         LONGBLOB imagem_blob
         VARCHAR imagem_mime
         VARCHAR status
+        VARCHAR status_aprovacao
         VARCHAR autor
         VARCHAR usuario_id
         DATETIME criado_em
@@ -157,8 +159,9 @@ Há uma restrição UNIQUE composta em (`noticia_id`, `usuario_id`), que impede 
 | `id` | INT | PK, auto incremento | Identificador do registro de ajuda/denúncia. |
 | `titulo` | VARCHAR(255) | NOT NULL | Resumo do caso. |
 | `corpo` | TEXT | NOT NULL | Relato enviado pela pessoa. |
-| `tipo_denuncia` | VARCHAR(80) | NOT NULL, DEFAULT “Animal doméstico” | Tipo de caso informado. |
+| `tipo_denuncia` | VARCHAR(80) | NOT NULL, DEFAULT “Animal doméstico” | Tipo de animal informado. |
 | `nivel_urgencia` | VARCHAR(80) | NOT NULL, DEFAULT “Não informado” | Urgência selecionada. |
+| `situacao_ocorrencia` | VARCHAR(40) | NOT NULL, DEFAULT “relato_passado” | Situação estruturada usada para recomendar um canal de contato. |
 | `autor` | VARCHAR(150) | NOT NULL, DEFAULT “anon” | Nome textual associado ao registro. |
 | `idempotency_key` | VARCHAR(36) | NULL, UNIQUE | Chave que permite reconhecer um reenvio do mesmo formulário. |
 
@@ -179,6 +182,7 @@ Há uma restrição UNIQUE composta em (`noticia_id`, `usuario_id`), que impede 
 | `imagem_blob` | LONGBLOB | NULL | Imagem opcional armazenada no banco. |
 | `imagem_mime` | VARCHAR(100) | NULL | Tipo MIME da imagem, quando presente. |
 | `status` | VARCHAR(30) | NOT NULL, DEFAULT “Perdido” | Situação, por exemplo “Perdido” ou “Encontrado”. |
+| `status_aprovacao` | VARCHAR(20) | NOT NULL, DEFAULT “Pendente” | Estado de moderação separado da situação do animal. Solicitações negadas são excluídas. |
 | `autor` | VARCHAR(150) | NOT NULL, DEFAULT “Visitante” | Nome textual apresentado como autor. |
 | `usuario_id` | VARCHAR(64) | NULL, INDEX | Identificador da conta criadora; associação lógica sem FK. |
 | `criado_em` | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP | Momento de criação da publicação. |
@@ -221,6 +225,14 @@ flowchart TD
 ~~~
 
 O controle ocorre no backend. Esconder ou mostrar um botão na interface não substitui esta validação.
+
+### 4.3 Aprovar uma solicitação de publicação
+
+Novos anúncios são gravados como `Pendente`. A listagem pública, os previews e as imagens retornam apenas anúncios `Aprovado`. O administrador consulta a fila privada, aprova a publicação ou a nega; negar exclui a linha e sua imagem. Na migração, anúncios existentes recebem `Aprovado` para preservar sua visibilidade. `status_aprovacao` é separado de `status`, que continua representando “Perdido” ou “Encontrado”.
+
+### 4.4 Encaminhamento informativo de denúncias
+
+`situacao_ocorrencia`, junto com `tipo_denuncia`, seleciona a recomendação de canal oficial. O sistema apenas armazena o relato e exibe orientações; não liga, não envia a denúncia e não gera protocolo oficial. Leitura, atualização e exclusão dos relatos são restritas ao administrador.
 
 ## 5. Objetos que não são entidades de negócio
 

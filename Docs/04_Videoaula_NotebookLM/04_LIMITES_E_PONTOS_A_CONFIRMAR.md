@@ -9,6 +9,10 @@ Este arquivo distingue fatos implementados de resultados ainda não demonstrados
 - Há páginas e fluxos para notícias, denúncias, comentários, curtidas e publicações de animais.
 - Denúncias usam chave de idempotência e têm rota de consulta de confirmação.
 - O cadastro de animais exige sessão; o backend registra autoria e identificador do usuário.
+- Cadastros novos de animais ficam pendentes até aprovação administrativa; anúncios existentes são preservados como aprovados na migração.
+- O administrador pode aprovar uma solicitação para publicação pública ou negá-la, caso em que ela é excluída.
+- A denúncia fica armazenada internamente; a tela recomenda canais conforme tipo e situação, mas não liga, não encaminha o relato a órgãos nem gera protocolo oficial.
+- A leitura e a alteração de denúncias e decisões de aprovação exigem papel administrativo no backend.
 - O endpoint de mudança para “Encontrado” verifica propriedade no servidor.
 - A página de usuários tem botão “Sincronizar”, que recarrega a listagem paginada da API.
 - O dossiê integrado relata uma execução histórica de 17 testes aprovados em 29/09/2026; o arquivo original do relatório não está disponível nesta pasta organizada.
@@ -22,11 +26,12 @@ O registro histórico de 17 testes é anterior a alterações posteriores e não
 
 ## Pendência de autorização identificada
 
-A página de gerenciamento de usuários exige perfil administrativo. Porém, na leitura do código atual, as rotas CRUD do controller de usuários não verificam papel administrativo dentro do controller. Um pedido direto à API pode não estar coberto pela proteção da página. Não diga que todas as operações administrativas estão protegidas até que isso seja corrigido e testado. Não use dados reais nem exponha publicamente o sistema enquanto essa revisão estiver pendente.
+A página de gerenciamento de usuários exige perfil administrativo. As rotas CRUD de usuários ainda precisam de revisão independente: a proteção da página, sozinha, não comprova a autorização de cada endpoint. Não use dados reais nem exponha publicamente o sistema enquanto essa revisão permanecer pendente.
 
 ## Outros limites
 
-- **Canal de denúncia:** o sistema grava informações internamente; não envia automaticamente para polícia, prefeitura, ONG ou serviço de emergência e não gera protocolo oficial.
+- **Canal de denúncia:** o sistema grava relatos internamente para consulta administrativa; não os envia automaticamente à polícia, prefeitura, ONG ou serviço de emergência e não gera protocolo oficial. O encaminhamento exibido é orientação para a pessoa iniciar o contato.
+- **Responsabilidade operacional:** a plataforma não realiza resgate, atendimento veterinário ou acionamento de serviços. A pessoa decide e inicia o contato com o canal indicado.
 - **Orientações de urgência:** são mensagens informativas, não diagnóstico ou tratamento. Recomenda-se revisão veterinária antes de divulgação ampla.
 - **Impacto:** não há estudo de campo ou métrica que demonstre aumento de resgates, redução de maus-tratos ou satisfação de usuários.
 - **Acessibilidade:** não há evidência de auditoria formal ou conformidade WCAG.

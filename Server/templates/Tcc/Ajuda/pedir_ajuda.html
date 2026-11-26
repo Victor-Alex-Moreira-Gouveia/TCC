@@ -7,7 +7,7 @@
     <!-- Bootstrap 5 & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261017-brand-contrast') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css', v='20261125-routing') }}">
 
     <style>
         .canal-atendimento {
@@ -99,7 +99,7 @@
                         </div>
                         <div>
                             <h2 class="h3 fw-bold text-brand m-0">Registro de Denúncia</h2>
-                            <p class="text-muted small mb-0">Registre um caso de maus-tratos para averiguação e providências comunitárias/oficiais.</p>
+                            <p class="text-muted small mb-0">Guarde um registro interno do relato e receba orientação sobre canais de contato.</p>
                         </div>
                     </div>
 
@@ -118,6 +118,21 @@
 
                     <!-- Alerta Reutilizável de Confirmação de Persistência / Erro -->
                     <div id="alert-message" class="alert d-none shadow-sm" role="alert" aria-live="polite"></div>
+
+                    <section id="encaminhamento-box" class="alert alert-danger d-none" aria-live="polite">
+                        <h3 id="encaminhamento-titulo" class="h5 fw-bold"></h3>
+                        <p id="encaminhamento-descricao" class="mb-2"></p>
+                        <div id="encaminhamento-telefones" class="d-flex flex-wrap gap-2 mb-2"></div>
+                        <div id="encaminhamento-links" class="d-flex flex-wrap gap-2 mb-2"></div>
+                        <p id="encaminhamento-aviso" class="small mb-0"></p>
+                    </section>
+
+                    <div class="alert alert-info" role="note">
+                        Este site apenas registra o relato e oferece orientação. Ele não contata órgãos,
+                        não realiza resgates e não presta atendimento veterinário. A pessoa denunciante
+                        decide como agir e deve iniciar diretamente o contato com o serviço indicado.
+                        O registro fica armazenado neste sistema e não gera protocolo oficial.
+                    </div>
 
                     <section id="urgencia-guidance-box" class="alert alert-warning d-none" aria-live="polite">
                         <h3 id="urgencia-titulo-alerta" class="h6 fw-bold"></h3>
@@ -152,9 +167,22 @@
                                 <option value="Ferimento grave" selected>Ferimento grave</option>
                                 <option value="Envenenamento">Envenenamento</option>
                                 <option value="Atropelamento">Atropelamento</option>
-                                <option value="Atropelamento">outros</option>
-                                <!-- Colocar opção para escrever -->
+                                <option value="Engasgo">Engasgo</option>
+                                <option value="Convulsão">Convulsão</option>
+                                <option value="Doença contagiosa">Doença contagiosa</option>
                                 <option value="Queimaduras ou exposição a produtos químicos">Queimaduras ou exposição a produtos químicos</option>
+                                <option value="Não informado">Não informado</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="situacao_ocorrencia" class="form-label fw-bold">O que está acontecendo? *</label>
+                            <select id="situacao_ocorrencia" class="form-select" required>
+                                <option value="relato_passado" selected>Situação já aconteceu ou não é imediata</option>
+                                <option value="violencia_em_andamento">Violência ou maus-tratos acontecendo agora</option>
+                                <option value="risco_imediato">Animal em risco imediato de vida</option>
+                                <option value="animal_ferido">Animal ferido ou doente e precisa de atendimento</option>
+                                <option value="resgate">Precisa de resgate ou acolhimento</option>
                             </select>
                         </div>
 
@@ -200,7 +228,7 @@
                 <div class="modal-body p-4">
                     <p class="text-muted text-center mb-4">
                         Escolha o canal conforme a situação.
-                        Em perigo imediato, priorize o <strong>190</strong>.
+                        Violência acontecendo agora: <strong>190</strong>. Fauna silvestre ferida: <strong>193</strong>.
                     </p>
 
                     <div class="row g-3">
@@ -215,8 +243,7 @@
                                         Polícia Militar — Emergência
                                     </h6>
                                     <p class="small text-muted mb-2">
-                                        Animal em perigo naquele momento,
-                                        violência acontecendo ou risco imediato.
+                                        Violência acontecendo agora ou perigo imediato que exija resposta policial.
                                     </p>
                                     <a href="tel:190"
                                        class="btn btn-danger rounded-pill fw-bold">
@@ -241,11 +268,6 @@
                                         domésticos no Estado de São Paulo.
                                     </p>
                                     <div class="d-flex gap-2 flex-wrap">
-                                        <a href="tel:08006006428"
-                                           class="btn btn-brand rounded-pill fw-bold">
-                                            <i class="bi bi-telephone-fill me-1"></i>
-                                            0800 600 6428
-                                        </a>
                                         <a href="https://www.webdenuncia.sp.gov.br/depa"
                                            target="_blank"
                                            rel="noopener noreferrer"
@@ -259,6 +281,18 @@
                         </div>
 
                         <div class="col-md-6">
+                            <div class="canal-atendimento canal-emergencia">
+                                <div class="canal-icone"><i class="bi bi-heart-pulse-fill"></i></div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">Fauna silvestre ferida</h6>
+                                    <p class="small text-muted mb-2">A Polícia Ambiental de SP orienta acionar os Bombeiros pelo 193 ou a unidade ambiental local. Não tente capturar o animal.</p>
+                                    <a href="tel:193" class="btn btn-danger rounded-pill fw-bold"><i class="bi bi-telephone-fill me-1"></i>Ligar 193</a>
+                                    <a href="https://www.policiamilitar.sp.gov.br/unidades/ambiental/faq.html" target="_blank" rel="noopener noreferrer" class="btn btn-outline-brand rounded-pill fw-bold">Polícia Ambiental</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
                             <div class="canal-atendimento">
                                 <div class="canal-icone">
                                     <i class="bi bi-incognito"></i>
@@ -267,15 +301,24 @@
                                     <h6 class="fw-bold mb-1">
                                         Disque-Denúncia — 181
                                     </h6>
-                                    <p class="small text-muted mb-2">
-                                        Canal gratuito para denúncia anônima
-                                        no Estado de São Paulo.
-                                    </p>
+                                    <p class="small text-muted mb-2">Canal estadual para informações e denúncias não emergenciais. Para risco imediato, use o serviço de emergência apropriado.</p>
                                     <a href="tel:181"
                                        class="btn btn-brand rounded-pill fw-bold">
                                         <i class="bi bi-telephone-fill me-1"></i>
                                         Ligar 181
                                     </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="canal-atendimento">
+                                <div class="canal-icone"><i class="bi bi-tree-fill"></i></div>
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">IBAMA — Linha Verde</h6>
+                                    <p class="small text-muted mb-2">Canal para denúncias e informações ambientais; atendimento telefônico em dias úteis, das 7h às 19h. Não é serviço de resgate emergencial.</p>
+                                    <a href="tel:08000618080" class="btn btn-brand rounded-pill fw-bold"><i class="bi bi-telephone-fill me-1"></i>0800 061 8080</a>
+                                    <a href="https://www.gov.br/ibama/pt-br/canais_atendimento/fale-conosco" target="_blank" rel="noopener noreferrer" class="btn btn-outline-brand rounded-pill fw-bold">Canais oficiais</a>
                                 </div>
                             </div>
                         </div>
@@ -303,6 +346,7 @@
                                            class="btn btn-outline-brand rounded-pill fw-bold">
                                             (11) 3338-1380
                                         </a>
+                                        <a href="https://semil.sp.gov.br/duvidas-frequentes/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-brand rounded-pill fw-bold">Fonte SEMIL</a>
                                     </div>
                                 </div>
                             </div>
@@ -404,6 +448,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/ajuda-pedir.js', v='3') }}"></script>
+    <script src="{{ url_for('static', filename='js/ajuda-pedir.js', v='4') }}"></script>
 </body>
 </html>

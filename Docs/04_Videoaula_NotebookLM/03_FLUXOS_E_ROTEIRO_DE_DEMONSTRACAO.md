@@ -2,9 +2,9 @@
 
 ## 1. Registrar uma denúncia
 
-**O que a pessoa faz:** informa título, descrição, tipo de caso e urgência e envia o formulário.
+**O que a pessoa faz:** informa título, descrição, tipo de animal, urgência e situação atual e envia o formulário.
 
-**O que o sistema faz:** valida os campos, associa a autoria à sessão, grava o registro e prepara uma orientação inicial. Uma chave de idempotência permite encontrar o mesmo registro caso a resposta de sucesso não chegue corretamente à tela.
+**O que o sistema faz:** valida os campos, associa a autoria à sessão quando disponível, grava o relato internamente e recomenda um canal oficial conforme tipo e situação. A pessoa inicia o contato. Uma chave de idempotência permite encontrar o mesmo registro caso a resposta de sucesso não chegue corretamente à tela.
 
 **Como explicar:** “O site não considera que falhou só porque a tela não conseguiu mostrar a resposta. Ele consulta o servidor com o identificador do envio para saber se o registro foi salvo, evitando pedir que a pessoa envie tudo outra vez sem necessidade.”
 
@@ -12,9 +12,9 @@
 
 ## 2. Publicar e encontrar um animal
 
-**O que a pessoa faz:** entra na conta, preenche os dados do animal perdido e publica. Quando o animal for encontrado, o autor usa a ação disponível para mudar o estado.
+**O que a pessoa faz:** entra na conta e envia os dados de um animal perdido para análise. Após a aprovação do administrador, a publicação aparece publicamente. Quando o animal for encontrado, o autor usa a ação disponível para mudar o estado.
 
-**O que o sistema faz:** grava a publicação com o identificador da conta que criou o anúncio. Antes de alterar o estado, o backend compara a conta ativa com a autoria registrada.
+**O que o sistema faz:** grava a solicitação como pendente e com o identificador da conta que a criou. O administrador aprova ou nega; a negação exclui a solicitação. Antes de alterar o estado de um anúncio publicado, o backend compara a conta ativa com a autoria registrada.
 
 **Como explicar:** “A permissão não depende só do botão aparecer. O servidor confere quem criou o anúncio antes de aceitar a mudança.”
 

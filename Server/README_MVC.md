@@ -34,7 +34,11 @@ Server/
 
 ## Contrato do formulário de denúncia
 
-O formulário `templates/Tcc/Ajuda/pedir_ajuda.html` envia `titulo`, `corpo`, `tipo_denuncia` e `nivel_urgencia`. O backend acrescenta `autor` com base na sessão autenticada. Todos esses campos possuem correspondência direta no modelo `Ajuda`.
+O formulário `templates/Tcc/Ajuda/pedir_ajuda.html` envia `titulo`, `corpo`, `tipo_denuncia`, `nivel_urgencia` e `situacao_ocorrencia`. O backend acrescenta `autor` com base na sessão quando disponível. O relato é interno; após gravá-lo, a API retorna canais recomendados a partir do tipo e da situação, mas não aciona serviços externos. Consultas e alterações de relatos são administrativas.
+
+## Aprovação de publicações de animais
+
+Novos registros recebem `status_aprovacao=Pendente`. A API pública lista apenas os aprovados; o painel usa `/api/admin/animais-perdidos` e `/api/admin/animais-perdidos/<id>/aprovacao`, restritos a administradores. Aprovar publica; negar exclui a solicitação. O campo de moderação é separado de `status` (Perdido/Encontrado). A migração marca anúncios antigos como aprovados.
 
 ## Evolução
 

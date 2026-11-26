@@ -13,6 +13,7 @@ const selectUrgencia = document.getElementById('nivel_urgencia');
 const guidanceBox = document.getElementById('urgencia-guidance-box');
 const spanTituloAlerta = document.getElementById('urgencia-titulo-alerta');
 const pTextoAlerta = document.getElementById('urgencia-texto-alerta');
+const encaminhamentoBox = document.getElementById('encaminhamento-box');
 const PENDING_SUBMISSION_KEY = 'ajuda:pending-submission';
 let pendingSubmissionInMemory = null;
 
@@ -100,7 +101,7 @@ async function reconciliarEnvio(idempotencyKey) {
         let data = null;
         try { data = await response.json(); } catch (_) { /* handled as unknown below */ }
         if (response.ok && data && data.success && data.data) {
-            return { found: true, id: data.data.id };
+            return { found: true, id: data.data.id, canal_recomendado: data.data.canal_recomendado };
         }
         if (response.status === 404) return { found: false };
         return { found: false, unknown: true };
@@ -122,6 +123,7 @@ function confirmarSucesso(alertMsg, form, nivelUrgencia, dados, resetForm = true
     showAlert(alertMsg, 'Denúncia registrada com sucesso.', 'alert-success');
     try {
         exibirOrientacao(nivelUrgencia, dados && dados.orientacao_imediata);
+        exibirEncaminhamento(dados && dados.canal_recomendado);
         if (resetForm && form) {
             form.reset();
             document.getElementById('tipo_denuncia').value = 'Animal doméstico';
@@ -131,6 +133,37 @@ function confirmarSucesso(alertMsg, form, nivelUrgencia, dados, resetForm = true
     } catch (_) {
         // A successful persistence response remains successful if optional UI updates fail.
     }
+}
+
+function exibirEncaminhamento(canal) {
+    if (!canal || !encaminhamentoBox) return;
+    document.getElementById('encaminhamento-titulo').textContent = canal.titulo || 'Canais para esta situação';
+    document.getElementById('encaminhamento-descricao').textContent = canal.descricao || '';
+    document.getElementById('encaminhamento-aviso').textContent = canal.aviso || '';
+    const telefones = document.getElementById('encaminhamento-telefones');
+    const links = document.getElementById('encaminhamento-links');
+    telefones.replaceChildren();
+    links.replaceChildren();
+
+    for (const item of canal.telefones || []) {
+        if (!/^tel:[+0-9]+$/.test(item.href || '')) continue;
+        const link = document.createElement('a');
+        link.className = 'btn btn-danger';
+        link.href = item.href;
+        link.textContent = `${item.rotulo || 'Ligar'} · ${item.numero || ''}`;
+        telefones.append(link);
+    }
+    for (const item of canal.links || []) {
+        if (!/^https:\/\//.test(item.href || '')) continue;
+        const link = document.createElement('a');
+        link.className = 'btn btn-outline-primary';
+        link.href = item.href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = item.rotulo || 'Abrir canal oficial';
+        links.append(link);
+    }
+    encaminhamentoBox.classList.remove('d-none');
 }
 
 document.getElementById('formAjuda').addEventListener('submit', async (event) => {
@@ -144,6 +177,7 @@ document.getElementById('formAjuda').addEventListener('submit', async (event) =>
     const corpo = document.getElementById('corpo').value.trim();
     const tipoDenuncia = document.getElementById('tipo_denuncia').value.trim();
     const nivelUrgencia = document.getElementById('nivel_urgencia').value.trim();
+    const situacaoOcorrencia = document.getElementById('situacao_ocorrencia').value;
 
     if (!titulo || !corpo) {
         showAlert(alertMsg, 'Preencha o título e a descrição da denúncia antes de enviar.', 'alert-danger');
@@ -156,7 +190,10 @@ document.getElementById('formAjuda').addEventListener('submit', async (event) =>
     submitButton.disabled = true;
     submitButton.textContent = 'Enviando…';
 
-    const payload = { titulo, corpo, tipo_denuncia: tipoDenuncia, nivel_urgencia: nivelUrgencia };
+    const payload = {
+        titulo, corpo, tipo_denuncia: tipoDenuncia,
+        nivel_urgencia: nivelUrgencia, situacao_ocorrencia: situacaoOcorrencia
+    };
     const pending = lerEnvioPendente();
     const idempotencyKey = pending?.idempotency_key || criarIdempotencyKey();
     salvarEnvioPendente({ idempotency_key: idempotencyKey, payload });
@@ -182,7 +219,9 @@ document.getElementById('formAjuda').addEventListener('submit', async (event) =>
             if (confirmacao.found) {
                 limparEnvioPendente();
                 const dadosIguais = JSON.stringify(pending?.payload || payload) === JSON.stringify(payload);
-                confirmarSucesso(alertMsg, form, nivelUrgencia, null, dadosIguais);
+                confirmarSucesso(alertMsg, form, nivelUrgencia, {
+                    canal_recomendado: confirmacao.canal_recomendado
+                }, dadosIguais);
                 if (!dadosIguais) {
                     showAlert(
                         alertMsg,
@@ -213,7 +252,9 @@ document.getElementById('formAjuda').addEventListener('submit', async (event) =>
         const confirmacao = await reconciliarEnvio(idempotencyKey);
         if (confirmacao.found) {
             limparEnvioPendente();
-            confirmarSucesso(alertMsg, form, nivelUrgencia, null);
+            confirmarSucesso(alertMsg, form, nivelUrgencia, {
+                canal_recomendado: confirmacao.canal_recomendado
+            });
         } else {
             showAlert(
                 alertMsg,

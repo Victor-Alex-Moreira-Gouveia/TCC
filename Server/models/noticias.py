@@ -14,7 +14,9 @@ class Noticia(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     titulo: Mapped[str] = mapped_column(String(255), nullable=False)
     corpo: Mapped[str] = mapped_column(Text, nullable=False)
-    imagem_blob: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    imagem_blob: Mapped[bytes | None] = mapped_column(
+        LargeBinary(length=4294967295), nullable=True
+    )
     imagem_mime: Mapped[str | None] = mapped_column(String(100), nullable=True)
     data_hora: Mapped[datetime] = mapped_column(
         DateTime,

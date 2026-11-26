@@ -15,9 +15,10 @@ Plataforma web para registro de denúncias de maus-tratos, orientação emergenc
 ## Funcionalidades Principais
 
 1. **Autenticação Obrigatória:** Apenas usuários autenticados possuem acesso ao conteúdo e às funcionalidades da plataforma. Visitantes não autenticados são redirecionados para `/login`.
-2. **Denúncia com Orientação Imediata:** Ao registrar uma denúncia, o sistema orienta imediatamente o usuário sobre ações emergenciais condizentes com a gravidade do caso.
+2. **Denúncia com Orientação de Contato:** O relato fica armazenado no sistema. Depois do envio, a tela recomenda canais oficiais conforme o tipo e a situação informados. A pessoa inicia qualquer contato; o site não aciona órgãos nem serviços, não realiza resgates e não gera protocolo oficial.
 3. **Notícias Administráveis:** Administradores (`admin`) possuem painel/modal para cadastrar, editar e excluir notícias. Usuários cadastrados (`user`) podem visualizar as notícias, curtir e comentar.
 4. **Comentários e Curtidas:** Sistema de interação em tempo real com controle de permissões (1 curtida por usuário, comentários moderáveis por autor ou admin).
+5. **Publicação moderada de animais:** Cadastros novos ficam pendentes até decisão do administrador. Os aprovados aparecem publicamente; os negados são excluídos. Anúncios existentes são preservados como aprovados na migração.
 
 ## Executando com Docker
 

@@ -26,6 +26,7 @@ CREATE TABLE ajuda (
     corpo TEXT NOT NULL,
     tipo_denuncia VARCHAR(80) NOT NULL DEFAULT 'Animal doméstico',
     nivel_urgencia VARCHAR(80) NOT NULL DEFAULT 'Não informado',
+    situacao_ocorrencia VARCHAR(40) NOT NULL DEFAULT 'relato_passado',
     autor VARCHAR(150) NOT NULL DEFAULT 'anon',
     idempotency_key VARCHAR(36) NULL UNIQUE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -43,6 +44,7 @@ CREATE TABLE animais_perdidos (
     imagem_blob LONGBLOB NULL,
     imagem_mime VARCHAR(100) NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'Perdido',
+    status_aprovacao VARCHAR(20) NOT NULL DEFAULT 'Pendente',
     autor VARCHAR(150) NOT NULL DEFAULT 'Visitante',
     usuario_id VARCHAR(64) NULL,
     criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

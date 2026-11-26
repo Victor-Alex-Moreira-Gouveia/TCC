@@ -106,8 +106,8 @@ async function loadUsuarios(options = {}) {
             <td>${escHtml(u.nome_usuario)}</td>
             <td>${escHtml(u.email)}</td>
             <td class="text-center">
-                <div class="d-flex justify-content-center gap-2">
-                    <button class="btn btn-sm btn-outline-brand" onclick="fillUpdate(${u.id}, '${escJs(u.nome_usuario)}', '${escJs(u.email)}')" title="Editar">
+                <div class="d-flex gap-1 justify-content-center flex-wrap">
+                    <button class="btn btn-sm btn-outline-primary" onclick="fillUpdate(${u.id}, '${escJs(u.nome_usuario)}', '${escJs(u.email)}')" title="Editar" aria-label="Editar usuário ${escHtml(String(u.id))}">
                         <i class="bi bi-pencil-square"></i>
                     </button>
                     <button class="btn btn-sm btn-outline-danger" onclick="deleteUsuario(${u.id})" title="Excluir">

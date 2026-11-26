@@ -14,6 +14,9 @@ class Ajuda(Base):
     corpo: Mapped[str] = mapped_column(Text, nullable=False)
     tipo_denuncia: Mapped[str] = mapped_column(String(80), nullable=False, default='Animal doméstico')
     nivel_urgencia: Mapped[str] = mapped_column(String(80), nullable=False, default='Não informado')
+    situacao_ocorrencia: Mapped[str] = mapped_column(
+        String(40), nullable=False, default='relato_passado'
+    )
     autor: Mapped[str] = mapped_column(String(150), nullable=False, default='anon')
     idempotency_key: Mapped[str | None] = mapped_column(String(36), unique=True, nullable=True)
 
@@ -35,6 +38,7 @@ def list_ajuda(limit, offset):
             'corpo': r.corpo,
             'tipo_denuncia': r.tipo_denuncia,
             'nivel_urgencia': r.nivel_urgencia,
+            'situacao_ocorrencia': r.situacao_ocorrencia,
             'autor': r.autor,
         }
         for r in rows
@@ -51,6 +55,7 @@ def get_ajuda_by_id(aid):
             'corpo': row.corpo,
             'tipo_denuncia': row.tipo_denuncia,
             'nivel_urgencia': row.nivel_urgencia,
+            'situacao_ocorrencia': row.situacao_ocorrencia,
             'autor': row.autor,
         }
     return None
@@ -63,6 +68,7 @@ def _ajuda_to_dict(row):
         'corpo': row.corpo,
         'tipo_denuncia': row.tipo_denuncia,
         'nivel_urgencia': row.nivel_urgencia,
+        'situacao_ocorrencia': row.situacao_ocorrencia,
         'autor': row.autor,
     }
 
@@ -76,7 +82,9 @@ def get_ajuda_by_idempotency_key(key):
         db.close()
 
 
-def create_ajuda_db(titulo, corpo, autor, tipo_denuncia='Animal doméstico', nivel_urgencia='Não informado', idempotency_key=None):
+def create_ajuda_db(titulo, corpo, autor, tipo_denuncia='Animal doméstico',
+                    nivel_urgencia='Não informado', situacao_ocorrencia='nao_informado',
+                    idempotency_key=None):
     db = next(get_db())
     try:
         if idempotency_key:
@@ -90,6 +98,7 @@ def create_ajuda_db(titulo, corpo, autor, tipo_denuncia='Animal doméstico', niv
             autor=autor,
             tipo_denuncia=tipo_denuncia,
             nivel_urgencia=nivel_urgencia,
+            situacao_ocorrencia=situacao_ocorrencia,
             idempotency_key=idempotency_key,
         )
         db.add(nova_ajuda)
@@ -128,6 +137,7 @@ def update_ajuda_db(aid, update_data):
             'corpo': ajuda.corpo,
             'tipo_denuncia': ajuda.tipo_denuncia,
             'nivel_urgencia': ajuda.nivel_urgencia,
+            'situacao_ocorrencia': ajuda.situacao_ocorrencia,
             'autor': ajuda.autor,
         }
     except IntegrityError:

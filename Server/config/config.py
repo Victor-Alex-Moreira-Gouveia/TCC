@@ -155,6 +155,7 @@ def ensure_ajuda_schema():
                 desired = {
                     'tipo_denuncia': "VARCHAR(80) NOT NULL DEFAULT 'Animal doméstico'",
                     'nivel_urgencia': "VARCHAR(80) NOT NULL DEFAULT 'Não informado'",
+                    'situacao_ocorrencia': "VARCHAR(40) NOT NULL DEFAULT 'relato_passado'",
                 }
                 for column, definition in desired.items():
                     if column not in existing:
@@ -173,6 +174,10 @@ def ensure_ajuda_schema():
                 # Adiciona imagem_blob se não existir
                 if 'imagem_blob' not in existing_not:
                     conn.execute(text('ALTER TABLE noticias ADD COLUMN imagem_blob LONGBLOB NULL'))
+                else:
+                    imagem_blob_column = next(row for row in cols_not if row[0] == 'imagem_blob')
+                    if str(imagem_blob_column[1]).lower() != 'longblob':
+                        conn.execute(text('ALTER TABLE noticias MODIFY COLUMN imagem_blob LONGBLOB NULL'))
                 # Adiciona imagem_mime se não existir
                 if 'imagem_mime' not in existing_not:
                     conn.execute(text('ALTER TABLE noticias ADD COLUMN imagem_mime VARCHAR(100) NULL'))
@@ -231,6 +236,11 @@ def ensure_ajuda_schema():
             try:
                 cols_animais = conn.execute(text('SHOW COLUMNS FROM animais_perdidos')).fetchall()
                 existing_animais = {row[0] for row in cols_animais}
+                if 'status_aprovacao' not in existing_animais:
+                    # Existing publications stay public after the new moderation flow is added.
+                    conn.execute(text(
+                        "ALTER TABLE animais_perdidos ADD COLUMN status_aprovacao VARCHAR(20) NOT NULL DEFAULT 'Aprovado'"
+                    ))
                 if 'usuario_id' not in existing_animais:
                     conn.execute(text(
                         'ALTER TABLE animais_perdidos ADD COLUMN usuario_id VARCHAR(64) NULL'
