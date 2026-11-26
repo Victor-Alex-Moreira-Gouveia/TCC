@@ -6,6 +6,7 @@ from pymemcache.client.base import Client
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config.config import CACHE_ENABLED, MEMCACHED_HOST, MEMCACHED_PORT, ROOT_EMAIL, ROOT_PASSWORD, ROOT_USER, detect_db_engine, get_db, init_db_schema, test_mariadb
 from config.cache import cache
@@ -20,10 +21,24 @@ logging.basicConfig(
 logger = logging.getLogger('app_main')
 
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'admin1234@')
+APP_ENV = os.getenv('APP_ENV', 'development').strip().lower()
+secret_key = os.getenv('FLASK_SECRET_KEY')
+if APP_ENV == 'production' and (not secret_key or len(secret_key) < 32):
+    raise RuntimeError('FLASK_SECRET_KEY precisa ser configurada com pelo menos 32 caracteres em produção.')
+app.secret_key = secret_key or 'chave-local-apenas-para-desenvolvimento'
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SECURE=(APP_ENV == 'production'),
+    SESSION_COOKIE_SAMESITE='Lax',
+)
 
-# Limite para upload de fotos dos animais.
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
+# O Nginx do projeto sobrescreve os cabeçalhos encaminhados; confiamos
+# somente nesse proxy interno para HTTPS e o endereço do visitante.
+if APP_ENV == 'production':
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
+# Limite total da requisição: permite imagem de até 15 MiB com o multipart.
+app.config['MAX_CONTENT_LENGTH'] = 17 * 1024 * 1024
 
 # O model AnimalPerdido é importado antes desta chamada para que
 # Base.metadata.create_all() conheça a nova tabela.
@@ -111,7 +126,7 @@ def handle_method_not_allowed(e):
 @app.errorhandler(413)
 def handle_payload_too_large(e):
     if request.path.startswith('/api/'):
-        return error_response('O arquivo enviado excede o limite máximo permitido (5 MB).', 'PAYLOAD_TOO_LARGE', status=413)
+        return error_response('O arquivo enviado excede o limite total permitido (17 MB).', 'PAYLOAD_TOO_LARGE', status=413)
     return render_template('Tcc/index.html'), 413
 
 

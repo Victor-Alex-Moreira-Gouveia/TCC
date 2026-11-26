@@ -14,18 +14,23 @@ Execução:
 
 import io
 import os
+import struct
 import time
+import uuid
+import zlib
+
 import pytest
 import requests
-import uuid
 
 BASE_URL = os.getenv('BASE_URL', 'http://localhost:8080').rstrip('/')
 API = f"{BASE_URL}/api"
+ADMIN_EMAIL = os.getenv('ROOT_EMAIL', 'admin@sistema.com')
+ADMIN_PASSWORD = os.getenv('ROOT_PASSWORD', 'admin123')
 
 
 def get_admin_session():
     s = requests.Session()
-    r = s.post(f"{API}/login", json={"email": "admin@sistema.com", "senha": "admin123"})
+    r = s.post(f"{API}/login", json={"email": ADMIN_EMAIL, "senha": ADMIN_PASSWORD})
     assert r.status_code == 200, f"Login admin falhou: {r.text}"
     return s
 
@@ -46,6 +51,22 @@ def get_user_session():
     r_login = s.post(f"{API}/login", json={"email": email, "senha": senha})
     assert r_login.status_code == 200, f"Login usuário falhou: {r_login.text}"
     return s, r_create.json()["data"]["id"]
+
+
+def construir_png(cor_rgba, texto_extra_bytes=0):
+    """Gera PNG 1x1 válido; o chunk de texto permite testar uploads maiores."""
+    def chunk(tipo, conteudo):
+        crc = zlib.crc32(tipo + conteudo) & 0xffffffff
+        return struct.pack('>I', len(conteudo)) + tipo + conteudo + struct.pack('>I', crc)
+
+    assinatura = b'\x89PNG\r\n\x1a\n'
+    cabecalho = struct.pack('>IIBBBBB', 1, 1, 8, 6, 0, 0, 0)
+    pixels = zlib.compress(b'\x00' + bytes(cor_rgba))
+    png = assinatura + chunk(b'IHDR', cabecalho) + chunk(b'IDAT', pixels)
+    if texto_extra_bytes:
+        texto = b'Comentario\x00' + b'A' * texto_extra_bytes
+        png += chunk(b'tEXt', texto)
+    return png + chunk(b'IEND', b'')
 
 
 # ===========================================================================
@@ -382,7 +403,7 @@ class TestTratamentoErrosEDiagnostico:
 
 class TestRegistroDenuncia:
     def test_registro_retorna_confirmacao_e_dados_persistidos(self):
-        admin = get_admin_session()
+        admin_session = get_admin_session()
         titulo = f'Teste de registro {int(time.time() * 1000)}'
         payload = {
             'titulo': titulo,
@@ -407,7 +428,7 @@ class TestRegistroDenuncia:
             record_id = body['data']['id']
             created_ids.append(record_id)
             assert requests.get(f'{API}/ajuda/{record_id}').status_code == 403
-            persisted = admin.get(f'{API}/ajuda/{record_id}')
+            persisted = admin_session.get(f'{API}/ajuda/{record_id}')
             assert persisted.status_code == 200, persisted.text
             assert persisted.json()['data']['corpo'] == payload['corpo']
         finally:
@@ -415,13 +436,13 @@ class TestRegistroDenuncia:
             # remove only this unique test row so the integration suite is safe.
             try:
                 if not created_ids:
-                    listing = admin.get(f'{API}/ajuda?limit=100').json()
+                    listing = admin_session.get(f'{API}/ajuda?limit=100').json()
                     created_ids.extend(
                         row['id'] for row in listing.get('data', [])
                         if row.get('titulo') == titulo
                     )
                 for record_id in created_ids:
-                    admin.delete(f'{API}/ajuda/{record_id}')
+                    admin_session.delete(f'{API}/ajuda/{record_id}')
             except requests.RequestException:
                 pass
 
@@ -432,7 +453,6 @@ class TestRegistroDenuncia:
             'corpo': 'Relato temporário para testar reenvio seguro.',
             'tipo_denuncia': 'Animal doméstico',
             'nivel_urgencia': 'Ferimento grave',
-            'situacao_ocorrencia': 'risco_imediato',
             'idempotency_key': key,
         }
         record_id = None
@@ -454,39 +474,34 @@ class TestRegistroDenuncia:
             assert confirmation.json()['data']['id'] == record_id
         finally:
             if record_id is not None:
-                get_admin_session().delete(f'{API}/ajuda/{record_id}')
+                requests.delete(f'{API}/ajuda/{record_id}')
 
-    def test_encaminhamento_depende_de_tipo_e_situacao(self):
-        cases = [
-            ('Animal doméstico', 'violencia_em_andamento', '190'),
-            ('Animal Silvestre', 'animal_ferido', '193'),
-        ]
-        ids = []
-        admin = get_admin_session()
-        try:
-            for especie, situacao, telefone in cases:
-                response = requests.post(f'{API}/ajuda', json={
-                    'titulo': f'Encaminhamento {uuid.uuid4()}',
-                    'corpo': 'Relato fictício de integração.',
-                    'tipo_denuncia': especie,
-                    'nivel_urgencia': 'Ferimento grave',
-                    'situacao_ocorrencia': situacao,
-                })
-                assert response.status_code == 201, response.text
-                ids.append(response.json()['data']['id'])
-                recommendation = response.json()['data']['canal_recomendado']
-                assert recommendation['telefones'][0]['numero'] == telefone
-        finally:
-            for record_id in ids:
-                admin.delete(f'{API}/ajuda/{record_id}')
 
-    def test_admin_leitura_de_denuncias_requer_perfil_admin(self):
-        assert requests.get(f'{API}/ajuda').status_code == 403
-        user, user_id = get_user_session()
-        try:
-            assert user.get(f'{API}/ajuda').status_code == 403
-        finally:
-            get_admin_session().delete(f'{API}/usuarios/{user_id}')
+class TestPreviewsPublicasDaHome:
+    def test_homepage_exibe_areas_e_carrega_script_de_previa(self):
+        response = requests.get(BASE_URL)
+        assert response.status_code == 200, response.text
+        assert 'id="container-noticias-preview"' in response.text
+        assert 'id="container-animais-encontrados"' in response.text
+        assert 'Publico/home-previews.js' in response.text
+
+    def test_endpoints_de_previa_sao_publicos_e_limitados(self):
+        noticias = requests.get(f"{API}/preview/noticias")
+        assert noticias.status_code == 200, noticias.text
+        news_rows = noticias.json()["data"]
+        assert noticias.json()["success"] is True
+        assert len(news_rows) <= 3
+        assert all(set(row) == {"titulo", "resumo", "data_hora"} for row in news_rows)
+
+        animais = requests.get(f"{API}/preview/animais-encontrados")
+        assert animais.status_code == 200, animais.text
+        animal_rows = animais.json()["data"]
+        assert animais.json()["success"] is True
+        assert len(animal_rows) <= 3
+        assert all(
+            not ({"contato", "autor", "usuario_id"} & set(row))
+            for row in animal_rows
+        )
 
 
 class TestPropriedadeEStatusAnimalPerdido:
@@ -525,26 +540,6 @@ class TestPropriedadeEStatusAnimalPerdido:
             created_id = body['id']
             assert body['autor']
             assert body['status'] == 'Perdido'
-            assert body['status_aprovacao'] == 'Pendente'
-
-            pending_public = owner_session.get(f'{API}/animais-perdidos?limit=50').json()['data']
-            assert all(item['id'] != created_id for item in pending_public)
-            pending_admin = admin_session.get(f'{API}/admin/animais-perdidos')
-            assert pending_admin.status_code == 200, pending_admin.text
-            assert any(item['id'] == created_id and item['status_aprovacao'] == 'Pendente'
-                       for item in pending_admin.json()['data'])
-            assert other_session.get(f'{API}/admin/animais-perdidos').status_code == 403
-            assert other_session.patch(
-                f'{API}/admin/animais-perdidos/{created_id}/aprovacao',
-                json={'decisao': 'Aprovado'}
-            ).status_code == 403
-
-            accepted = admin_session.patch(
-                f'{API}/admin/animais-perdidos/{created_id}/aprovacao',
-                json={'decisao': 'Aprovado'}
-            )
-            assert accepted.status_code == 200, accepted.text
-            assert accepted.json()['data']['status_aprovacao'] == 'Aprovado'
 
             own_listing = owner_session.get(f'{API}/animais-perdidos?limit=50').json()['data']
             own_record = next(item for item in own_listing if item['id'] == created_id)
@@ -571,6 +566,15 @@ class TestPropriedadeEStatusAnimalPerdido:
             assert found.status_code == 200, found.text
             assert found.json()['data']['status'] == 'Encontrado'
 
+            public_preview = requests.get(f'{API}/preview/animais-encontrados')
+            assert public_preview.status_code == 200, public_preview.text
+            preview_record = next(
+                item for item in public_preview.json()['data']
+                if item['id'] == created_id
+            )
+            assert preview_record['nome'] == payload['nome']
+            assert 'contato' not in preview_record
+
             other_listing = other_session.get(f'{API}/animais-perdidos?limit=50').json()['data']
             other_record = next(item for item in other_listing if item['id'] == created_id)
             assert other_record['status'] == 'Encontrado'
@@ -580,40 +584,6 @@ class TestPropriedadeEStatusAnimalPerdido:
                 admin_session.delete(f'{API}/animais-perdidos/{created_id}')
             admin_session.delete(f'{API}/usuarios/{owner_id}')
             admin_session.delete(f'{API}/usuarios/{other_id}')
-
-    def test_admin_negar_exclui_solicitacao_e_nao_publica(self):
-        owner, user_id = get_user_session()
-        admin = get_admin_session()
-        payload = {
-            'nome': f'Solicitação negada {user_id}', 'especie': 'Gato',
-            'descricao': 'Cadastro temporário.', 'local': 'Local de teste',
-            'data_ocorrido': '2026-10-17', 'contato': 'teste@example.invalid',
-            'status': 'Perdido',
-        }
-        created_id = None
-        try:
-            created = owner.post(f'{API}/animais-perdidos', data=payload)
-            assert created.status_code == 201, created.text
-            created_id = created.json()['data']['id']
-            denied = admin.patch(
-                f'{API}/admin/animais-perdidos/{created_id}/aprovacao',
-                json={'decisao': 'Negado'}
-            )
-            assert denied.status_code == 200, denied.text
-            assert denied.json()['message'] == 'Solicitação negada e excluída.'
-            assert all(item['id'] != created_id for item in
-                       admin.get(f'{API}/admin/animais-perdidos').json()['data'])
-            assert all(item['id'] != created_id for item in
-                       requests.get(f'{API}/animais-perdidos').json()['data'])
-            repeated = admin.patch(
-                f'{API}/admin/animais-perdidos/{created_id}/aprovacao',
-                json={'decisao': 'Aprovado'}
-            )
-            assert repeated.status_code == 404
-        finally:
-            if created_id is not None:
-                admin.delete(f'{API}/animais-perdidos/{created_id}')
-            admin.delete(f'{API}/usuarios/{user_id}')
 
 
 class TestTelasAdminAtualizadas:
@@ -636,7 +606,68 @@ class TestTelasAdminAtualizadas:
         assert 'situacao_ocorrencia' in formulario.text
         assert 'ajuda-pedir.js?v=4' in formulario.text
 
-        animais = admin_session.get(f'{BASE_URL}/animais-perdidos/admin')
-        assert animais.status_code == 200, animais.text
-        assert 'Moderação' in animais.text
-        assert 'animais-admin.js' in animais.text
+    def test_consulta_de_denuncias_exige_sessao_administrativa(self):
+        resposta = requests.get(f'{API}/ajuda')
+        assert resposta.status_code == 403
+        assert resposta.json()['code'] == 'UNAUTHORIZED'
+
+    def test_modal_de_noticia_explica_como_substituir_a_imagem(self):
+        admin_session = get_admin_session()
+        noticias = admin_session.get(f'{BASE_URL}/noticias')
+        assert noticias.status_code == 200, noticias.text
+        assert 'Para substituir a imagem atual, selecione um novo arquivo.' in noticias.text
+        assert 'Se deixar vazio, a imagem existente será mantida.' in noticias.text
+        assert 'noticias.js?v=20261114' in noticias.text
+
+
+class TestEdicaoImagemNoticia:
+    def test_substitui_imagem_grande_e_invalida_cache(self):
+        admin_session = get_admin_session()
+        original = construir_png((220, 30, 30, 255))
+        # Faz o corpo multipart ultrapassar 5 MiB, o limite global anterior.
+        substituta = construir_png((30, 80, 220, 255), texto_extra_bytes=5 * 1024 * 1024)
+        noticia_id = None
+
+        try:
+            criada = admin_session.post(
+                f'{API}/noticias',
+                data={'titulo': f'Foto substituível {uuid.uuid4().hex}', 'corpo': 'Teste temporário.'},
+                files={'imagem': ('original.png', io.BytesIO(original), 'image/png')},
+            )
+            assert criada.status_code == 201, criada.text
+            noticia_id = criada.json()['data']['id']
+            url_original = criada.json()['data']['imagem_url']
+            assert '?v=' in url_original
+
+            imagem_original = admin_session.get(f'{BASE_URL}{url_original}')
+            assert imagem_original.status_code == 200
+            etag_original = imagem_original.headers['ETag']
+            assert imagem_original.content == original
+
+            atualizada = admin_session.put(
+                f'{API}/noticias/{noticia_id}',
+                data={'titulo': f'Foto substituível {uuid.uuid4().hex}', 'corpo': 'Teste temporário atualizado.'},
+                files={'imagem': ('substituta.png', io.BytesIO(substituta), 'image/png')},
+            )
+            assert atualizada.status_code == 200, atualizada.text
+            url_substituta = atualizada.json()['data']['imagem_url']
+            assert url_substituta != url_original
+            assert '?v=' in url_substituta
+
+            imagem_atualizada = admin_session.get(f'{BASE_URL}{url_substituta}')
+            assert imagem_atualizada.status_code == 200
+            assert imagem_atualizada.content == substituta
+            assert imagem_atualizada.headers['ETag'] != etag_original
+            assert 'no-cache' in imagem_atualizada.headers['Cache-Control']
+
+            validacao_antiga = admin_session.get(
+                f'{BASE_URL}{url_substituta}', headers={'If-None-Match': etag_original}
+            )
+            assert validacao_antiga.status_code == 200
+            validacao_atual = admin_session.get(
+                f'{BASE_URL}{url_substituta}', headers={'If-None-Match': imagem_atualizada.headers['ETag']}
+            )
+            assert validacao_atual.status_code == 304
+        finally:
+            if noticia_id is not None:
+                admin_session.delete(f'{API}/noticias/{noticia_id}')

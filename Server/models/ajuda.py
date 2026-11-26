@@ -15,7 +15,7 @@ class Ajuda(Base):
     tipo_denuncia: Mapped[str] = mapped_column(String(80), nullable=False, default='Animal doméstico')
     nivel_urgencia: Mapped[str] = mapped_column(String(80), nullable=False, default='Não informado')
     situacao_ocorrencia: Mapped[str] = mapped_column(
-        String(40), nullable=False, default='relato_passado'
+        String(40), nullable=False, default='relato_passado', server_default='relato_passado'
     )
     autor: Mapped[str] = mapped_column(String(150), nullable=False, default='anon')
     idempotency_key: Mapped[str | None] = mapped_column(String(36), unique=True, nullable=True)
@@ -83,7 +83,7 @@ def get_ajuda_by_idempotency_key(key):
 
 
 def create_ajuda_db(titulo, corpo, autor, tipo_denuncia='Animal doméstico',
-                    nivel_urgencia='Não informado', situacao_ocorrencia='nao_informado',
+                    nivel_urgencia='Não informado', situacao_ocorrencia='relato_passado',
                     idempotency_key=None):
     db = next(get_db())
     try:

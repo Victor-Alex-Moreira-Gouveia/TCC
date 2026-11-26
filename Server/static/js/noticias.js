@@ -49,7 +49,7 @@ function exibirAlerta(mensagem, tipo = 'success') {
 }
 
 // Carrega e renderiza a lista de notícias da API
-async function carregarNoticias() {
+async function carregarNoticias(imagemAtualizada = null) {
     const container = document.getElementById('noticias-list');
     if (!container) return;
 
@@ -70,7 +70,13 @@ async function carregarNoticias() {
 
             container.innerHTML = '';
             resultado.data.forEach(noticia => {
-                const card = criarCardNoticiaHTML(noticia);
+                const imagemAtualizadaNaResposta = imagemAtualizada
+                    && Number(imagemAtualizada.id) === Number(noticia.id)
+                    && imagemAtualizada.imagem_url;
+                const noticiaRenderizada = imagemAtualizadaNaResposta
+                    ? { ...noticia, imagem_url: imagemAtualizada.imagem_url }
+                    : noticia;
+                const card = criarCardNoticiaHTML(noticiaRenderizada);
                 container.insertAdjacentHTML('beforeend', card);
             });
         } else {
@@ -239,6 +245,7 @@ async function salvarNoticia() {
     const titulo = document.getElementById('noticia-titulo').value.trim();
     const corpo = document.getElementById('noticia-corpo').value.trim();
     const imgInput = document.getElementById('noticia-imagem');
+    const imagemFoiSelecionada = Boolean(imgInput && imgInput.files && imgInput.files.length > 0);
 
     if (!titulo || !corpo) {
         alert('Preencha título e corpo da notícia.');
@@ -266,7 +273,10 @@ async function salvarNoticia() {
         if (response.ok && resultado.success) {
             if (modalNoticiaBS) modalNoticiaBS.hide();
             exibirAlerta(resultado.message || (isEdit ? 'Notícia atualizada com sucesso.' : 'Notícia cadastrada com sucesso.'), 'success');
-            carregarNoticias();
+            const imagemAtualizada = isEdit && imagemFoiSelecionada && resultado.data
+                ? { id, imagem_url: resultado.data.imagem_url }
+                : null;
+            carregarNoticias(imagemAtualizada);
         } else {
             alert(resultado.error || 'Erro ao salvar notícia.');
         }

@@ -28,9 +28,6 @@ class AnimalPerdido(Base):
     status: Mapped[str] = mapped_column(
         String(30), nullable=False, default="Perdido"
     )
-    status_aprovacao: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="Pendente", server_default="Pendente"
-    )
     autor: Mapped[str] = mapped_column(
         String(150), nullable=False, default="Visitante"
     )
@@ -52,7 +49,6 @@ def _to_dict(row, current_user_id=None):
         "contato": row.contato,
         "tem_imagem": bool(row.imagem_blob),
         "status": row.status,
-        "status_aprovacao": row.status_aprovacao,
         "autor": row.autor,
         "criado_em": row.criado_em.isoformat() if row.criado_em else "",
     }
@@ -63,15 +59,12 @@ def _to_dict(row, current_user_id=None):
     return result
 
 
-def listar_animais(limit=None, current_user_id=None, status=None,
-                   status_aprovacao="Aprovado"):
+def listar_animais(limit=None, current_user_id=None, status=None):
     db = next(get_db())
     try:
         stmt = select(AnimalPerdido)
         if status:
             stmt = stmt.where(AnimalPerdido.status == status)
-        if status_aprovacao is not None:
-            stmt = stmt.where(AnimalPerdido.status_aprovacao == status_aprovacao)
         stmt = stmt.order_by(AnimalPerdido.criado_em.desc())
         if limit:
             stmt = stmt.limit(limit)
@@ -90,12 +83,11 @@ def buscar_animal(animal_id):
         db.close()
 
 
-def obter_imagem_animal(animal_id, permitir_pendente=False):
+def obter_imagem_animal(animal_id):
     db = next(get_db())
     try:
         row = db.get(AnimalPerdido, animal_id)
-        if (not row or not row.imagem_blob
-                or (not permitir_pendente and row.status_aprovacao != "Aprovado")):
+        if not row or not row.imagem_blob:
             return None
         return row.imagem_blob, (row.imagem_mime or "image/jpeg")
     finally:
@@ -107,7 +99,6 @@ def cadastrar_animal(dados, imagem_blob=None, imagem_mime=None):
     try:
         row = AnimalPerdido(
             **dados,
-            status_aprovacao="Pendente",
             imagem_blob=imagem_blob,
             imagem_mime=imagem_mime
         )
@@ -173,7 +164,6 @@ def marcar_animal_encontrado(animal_id, usuario_id):
                 AnimalPerdido.id == animal_id,
                 AnimalPerdido.usuario_id == str(usuario_id),
                 AnimalPerdido.status == "Perdido",
-                AnimalPerdido.status_aprovacao == "Aprovado",
             )
             .values(status="Encontrado")
         )
@@ -190,33 +180,7 @@ def marcar_animal_encontrado(animal_id, usuario_id):
             return "forbidden", None
         if row.status == "Encontrado":
             return "already_found", _to_dict(row)
-        if row.status_aprovacao != "Aprovado":
-            return "not_published", None
         return "not_found", None
-    except Exception:
-        db.rollback()
-        raise
-    finally:
-        db.close()
-
-
-def decidir_aprovacao_animal(animal_id, decisao):
-    """Aprova uma solicitação ou exclui definitivamente uma solicitação negada."""
-    db = next(get_db())
-    try:
-        row = db.get(AnimalPerdido, animal_id)
-        if not row:
-            return "not_found", None
-        if row.status_aprovacao != "Pendente":
-            return "already_decided", _to_dict(row)
-        if decisao == "Aprovado":
-            row.status_aprovacao = "Aprovado"
-            db.commit()
-            db.refresh(row)
-            return "approved", _to_dict(row)
-        db.delete(row)
-        db.commit()
-        return "rejected", {"id": animal_id, "status_aprovacao": "Negado"}
     except Exception:
         db.rollback()
         raise

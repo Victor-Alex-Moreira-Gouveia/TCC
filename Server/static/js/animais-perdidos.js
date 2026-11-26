@@ -190,8 +190,9 @@
                 );
             }
 
-            mostrarAlerta(result.message || "Solicitação enviada. Ela ficará pendente até a análise do administrador.", "success");
+            mostrarAlerta(result.message || "Animal cadastrado com sucesso!", "success");
             form.reset();
+            await carregarRecentes();
         } catch (error) {
             mostrarAlerta(
                 error.message || "Erro de conexão com o servidor.",
@@ -199,7 +200,7 @@
             );
         } finally {
             submit.disabled = false;
-        submit.innerHTML = '<i class="bi bi-send-fill me-1"></i> Enviar para aprovação';
+            submit.innerHTML = '<i class="bi bi-send-fill me-1"></i> Publicar cadastro';
         }
     });
 

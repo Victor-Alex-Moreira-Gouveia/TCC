@@ -12,7 +12,6 @@ from models.animais_perdidos import (
     atualizar_animal,
     excluir_animal,
     marcar_animal_encontrado,
-    decidir_aprovacao_animal,
 )
 from utils import success_response, error_response
 
@@ -110,7 +109,7 @@ def get_animais_perdidos():
             session.get("usuario_id")
             if session.get("role") in ("admin", "user") else None
         )
-        rows = listar_animais(limite, current_user_id, status_aprovacao="Aprovado")
+        rows = listar_animais(limite, current_user_id)
         return success_response(rows)
     except SQLAlchemyError as exc:
         return error_response(
@@ -153,39 +152,6 @@ def get_animais_encontrados_preview():
         )
 
 
-@animais_perdidos_bp.route("/admin/animais-perdidos", methods=["GET"])
-def get_animais_perdidos_admin():
-    if not _admin_only():
-        return error_response("Acesso não autorizado.", "UNAUTHORIZED", status=403)
-    try:
-        rows = listar_animais(status_aprovacao=None)
-        return success_response(rows)
-    except SQLAlchemyError as exc:
-        return error_response("Não foi possível carregar os animais.", "DB_ERROR", str(exc), 500)
-
-
-@animais_perdidos_bp.route(
-    "/admin/animais-perdidos/<int:animal_id>/aprovacao", methods=["PATCH"]
-)
-def patch_aprovacao_animal(animal_id):
-    if not _admin_only():
-        return error_response("Acesso não autorizado.", "UNAUTHORIZED", status=403)
-    decisao = (request.get_json(silent=True) or {}).get("decisao")
-    if decisao not in ("Aprovado", "Negado"):
-        return error_response("Escolha aprovar ou negar a solicitação.", "VALIDATION_ERROR", status=400)
-    try:
-        resultado, animal = decidir_aprovacao_animal(animal_id, decisao)
-        if resultado == "approved":
-            return success_response(animal, "Solicitação aprovada e publicada.")
-        if resultado == "rejected":
-            return success_response(animal, "Solicitação negada e excluída.")
-        if resultado == "already_decided":
-            return error_response("Esta solicitação já foi decidida.", "ALREADY_DECIDED", status=409)
-        return error_response("Animal não encontrado.", "NOT_FOUND", status=404)
-    except SQLAlchemyError as exc:
-        return error_response("Não foi possível decidir a solicitação.", "DB_ERROR", str(exc), 500)
-
-
 @animais_perdidos_bp.route("/animais-perdidos", methods=["POST"])
 def post_animal_perdido():
     if session.get("role") not in ("admin", "user") or session.get("usuario_id") is None:
@@ -222,7 +188,7 @@ def post_animal_perdido():
         )
         return success_response(
             animal,
-            "Solicitação enviada. Ela ficará pendente até a análise do administrador.",
+            "Animal cadastrado com sucesso!",
             201
         )
     except SQLAlchemyError as exc:
@@ -265,12 +231,6 @@ def patch_status_animal_perdido(animal_id):
                 "FORBIDDEN",
                 status=403
             )
-        if outcome == "not_published":
-            return error_response(
-                "A publicação ainda aguarda aprovação administrativa.",
-                "NOT_PUBLISHED",
-                status=409
-            )
         return error_response(
             "Esta publicação já está marcada como encontrada.",
             "ALREADY_FOUND",
@@ -293,7 +253,7 @@ def patch_status_animal_perdido(animal_id):
 )
 def imagem_animal(animal_id):
     try:
-        imagem = obter_imagem_animal(animal_id, permitir_pendente=_admin_only())
+        imagem = obter_imagem_animal(animal_id)
         if not imagem:
             return error_response(
                 "Imagem não encontrada.",

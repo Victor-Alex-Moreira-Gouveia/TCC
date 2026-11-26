@@ -80,19 +80,11 @@
                 </td>
                 <td>${dataPt(animal.data_ocorrido)}</td>
                 <td>${animal.tem_imagem ? '<i class="bi bi-image-fill text-brand fs-5"></i>' : '<span class="text-muted">—</span>'}</td>
-                <td><span class="badge ${animal.status_aprovacao === "Pendente" ? "text-bg-warning" : "text-bg-success"}">${esc(animal.status_aprovacao)}</span></td>
                 <td class="text-center">
-                    <div class="d-flex gap-1 justify-content-center flex-wrap">
-                        <button class="btn btn-sm btn-outline-primary" data-editar="${animal.id}" title="Editar" aria-label="Editar ${esc(animal.nome)}">
-                            <i class="bi bi-pencil-square"></i>
+                    <div class="d-flex gap-1 justify-content-center">
+                        <button class="btn btn-sm btn-outline-primary" data-editar="${animal.id}" title="Editar">
+                            <i class="bi bi-pencil-fill"></i>
                         </button>
-                        ${animal.status_aprovacao === "Pendente" ? `
-                        <button class="btn btn-sm btn-outline-success" data-aprovar="${animal.id}" title="Aprovar e publicar" aria-label="Aprovar ${esc(animal.nome)}">
-                            <i class="bi bi-check-lg"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" data-negar="${animal.id}" title="Negar e excluir" aria-label="Negar e excluir ${esc(animal.nome)}">
-                            <i class="bi bi-x-lg"></i>
-                        </button>` : ""}
                         <button class="btn btn-sm btn-outline-danger" data-excluir="${animal.id}" title="Excluir">
                             <i class="bi bi-trash-fill"></i>
                         </button>
@@ -104,7 +96,7 @@
 
     async function carregar() {
         try {
-            const response = await fetch("/api/admin/animais-perdidos");
+            const response = await fetch("/api/animais-perdidos");
             const result = await response.json();
 
             if (!response.ok || !result.success) {
@@ -125,31 +117,6 @@
                 (item) => String(item.id) === editar.dataset.editar
             );
             if (animal) preencher(animal);
-            return;
-        }
-
-        const decisionButton = event.target.closest("[data-aprovar], [data-negar]");
-        if (decisionButton) {
-            const approve = Boolean(decisionButton.dataset.aprovar);
-            const id = decisionButton.dataset.aprovar || decisionButton.dataset.negar;
-            const animal = animais.find((item) => String(item.id) === id);
-            if (!animal) return;
-            if (!approve && !window.confirm(`Negar e excluir a solicitação de "${animal.nome}"?`)) return;
-            decisionButton.disabled = true;
-            try {
-                const response = await fetch(`/api/admin/animais-perdidos/${id}/aprovacao`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json", "Accept": "application/json" },
-                    body: JSON.stringify({ decisao: approve ? "Aprovado" : "Negado" })
-                });
-                const result = await response.json();
-                if (!response.ok || !result.success) throw new Error(result.error || "Não foi possível decidir a solicitação.");
-                mostrarAlerta(result.message || "Solicitação atualizada.", "success");
-                await carregar();
-            } catch (error) {
-                mostrarAlerta(error.message || "Não foi possível decidir a solicitação.", "danger");
-                decisionButton.disabled = false;
-            }
             return;
         }
 

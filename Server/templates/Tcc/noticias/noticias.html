@@ -80,8 +80,9 @@
                         <textarea class="form-control" id="noticia-corpo" rows="6" placeholder="Escreva o corpo da notícia..." required></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="noticia-imagem" class="form-label text-dark fw-bold">Imagem <span class="text-muted fw-normal">(Opcional)</span></label>
+                        <label for="noticia-imagem" class="form-label text-dark fw-bold">Imagem <span class="text-muted fw-normal">(opcional, até 15 MB)</span></label>
                         <input type="file" class="form-control" id="noticia-imagem" accept="image/*">
+                        <small class="form-text text-muted">Para substituir a imagem atual, selecione um novo arquivo. Se deixar vazio, a imagem existente será mantida.</small>
                         <div id="imagem-preview-wrapper" class="mt-2 d-none">
                             <img id="imagem-preview" src="" alt="Pré-visualização" class="img-fluid rounded" style="max-height:180px;">
                         </div>
@@ -130,6 +131,6 @@
         window.CURRENT_USER_ID = "{{ session.get('usuario_id', '') }}";
         window.CURRENT_USER_NAME = "{{ session.get('usuario_nome', '') }}";
     </script>
-    <script src="{{ url_for('static', filename='js/noticias.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/noticias.js', v='20261114') }}"></script>
 </body>
 </html>

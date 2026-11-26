@@ -1,3 +1,4 @@
+import hashlib
 import html
 from flask import Blueprint, Response, request, session
 from sqlalchemy.exc import SQLAlchemyError
@@ -214,8 +215,9 @@ def get_noticia_imagem_route(nid):
     if not blob:
         return error_response('Imagem não encontrada para a notícia especificada.', 'NOT_FOUND', status=404)
     response = Response(blob, mimetype=mime or 'image/jpeg')
-    response.headers['Cache-Control'] = 'public, max-age=86400'
-    return response
+    response.set_etag(hashlib.sha256(blob).hexdigest())
+    response.headers['Cache-Control'] = 'private, no-cache, must-revalidate'
+    return response.make_conditional(request)
 
 
 # ---------------------------------------------------------------------------

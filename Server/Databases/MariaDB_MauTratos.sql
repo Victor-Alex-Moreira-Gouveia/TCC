@@ -44,7 +44,6 @@ CREATE TABLE animais_perdidos (
     imagem_blob LONGBLOB NULL,
     imagem_mime VARCHAR(100) NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'Perdido',
-    status_aprovacao VARCHAR(20) NOT NULL DEFAULT 'Pendente',
     autor VARCHAR(150) NOT NULL DEFAULT 'Visitante',
     usuario_id VARCHAR(64) NULL,
     criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

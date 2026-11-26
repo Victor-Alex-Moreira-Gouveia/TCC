@@ -13,6 +13,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(PROJECT_ROOT / '.env')
 load_dotenv(PROJECT_ROOT / '.env.local', override=True)
 
+APP_ENV = os.getenv('APP_ENV', 'development').strip().lower()
+
 DB_CONFIG = {
     'host': os.getenv('DATABASE_HOST', 'localhost'),
     'port': int(os.getenv('DATABASE_PORT', 3306)),
@@ -28,6 +30,25 @@ CACHE_ENABLED = os.getenv('CACHE_ENABLED', 'true').strip().lower() in {'1', 'tru
 ROOT_USER = os.getenv('ROOT_USERNAME', 'admin')
 ROOT_EMAIL = os.getenv('ROOT_EMAIL', 'admin@sistema.com')
 ROOT_PASSWORD = os.getenv('ROOT_PASSWORD', 'admin123')
+
+if APP_ENV == 'production':
+    required_settings = (
+        'DATABASE_PASSWORD',
+        'DATABASE_NAME',
+        'FLASK_SECRET_KEY',
+        'ROOT_EMAIL',
+        'ROOT_PASSWORD',
+        'ROOT_USERNAME',
+    )
+    missing_settings = [key for key in required_settings if not os.getenv(key)]
+    if missing_settings:
+        raise RuntimeError('Variáveis obrigatórias ausentes: ' + ', '.join(missing_settings))
+    if DB_CONFIG['user'] != 'tcc_app':
+        raise RuntimeError('A aplicação implantada deve usar somente o usuário de banco tcc_app.')
+    if DB_CONFIG['database'] != 'MausTratosDB':
+        raise RuntimeError('O nome do banco da aplicação deve permanecer MausTratosDB.')
+    if ROOT_PASSWORD in {'admin123', 'password', 'changeme'}:
+        raise RuntimeError('Defina uma senha administrativa exclusiva antes de iniciar em produção.')
 
 DATABASE_URL = URL.create(
     'mysql+pymysql',
@@ -160,8 +181,7 @@ def ensure_ajuda_schema():
                 for column, definition in desired.items():
                     if column not in existing:
                         conn.execute(text(f'ALTER TABLE ajuda ADD COLUMN {column} {definition}'))
-                if 'pix_doacao' in existing:
-                    conn.execute(text('ALTER TABLE ajuda DROP COLUMN pix_doacao'))
+                # Keep unrecognized legacy columns intact; this migration is additive.
             except Exception as exc:
                 print(f'Alerta de schema Ajuda: {exc}')
 
@@ -174,16 +194,10 @@ def ensure_ajuda_schema():
                 # Adiciona imagem_blob se não existir
                 if 'imagem_blob' not in existing_not:
                     conn.execute(text('ALTER TABLE noticias ADD COLUMN imagem_blob LONGBLOB NULL'))
-                else:
-                    imagem_blob_column = next(row for row in cols_not if row[0] == 'imagem_blob')
-                    if str(imagem_blob_column[1]).lower() != 'longblob':
-                        conn.execute(text('ALTER TABLE noticias MODIFY COLUMN imagem_blob LONGBLOB NULL'))
                 # Adiciona imagem_mime se não existir
                 if 'imagem_mime' not in existing_not:
                     conn.execute(text('ALTER TABLE noticias ADD COLUMN imagem_mime VARCHAR(100) NULL'))
-                # Remove imagem_url legada se existir
-                if 'imagem_url' in existing_not:
-                    conn.execute(text('ALTER TABLE noticias DROP COLUMN imagem_url'))
+                # Keep unrecognized legacy columns intact; this migration is additive.
             except Exception as exc:
                 print(f'Alerta de schema Notícias: {exc}')
 
@@ -213,15 +227,7 @@ def ensure_ajuda_schema():
                 print(f'Alerta de seed Notícias: {exc}')
 
             # ---------------------------------------------------------------
-            # 4. Remove tabela ongs se ainda existir
-            # ---------------------------------------------------------------
-            try:
-                conn.execute(text('DROP TABLE IF EXISTS ongs'))
-            except Exception as exc:
-                print(f'Alerta remoção ongs: {exc}')
-
-            # ---------------------------------------------------------------
-            # 5. Migração de denúncias idempotentes e autoria de animais
+            # 4. Migração de denúncias idempotentes e autoria de animais
             # ---------------------------------------------------------------
             try:
                 cols_ajuda = conn.execute(text('SHOW COLUMNS FROM ajuda')).fetchall()
@@ -236,11 +242,6 @@ def ensure_ajuda_schema():
             try:
                 cols_animais = conn.execute(text('SHOW COLUMNS FROM animais_perdidos')).fetchall()
                 existing_animais = {row[0] for row in cols_animais}
-                if 'status_aprovacao' not in existing_animais:
-                    # Existing publications stay public after the new moderation flow is added.
-                    conn.execute(text(
-                        "ALTER TABLE animais_perdidos ADD COLUMN status_aprovacao VARCHAR(20) NOT NULL DEFAULT 'Aprovado'"
-                    ))
                 if 'usuario_id' not in existing_animais:
                     conn.execute(text(
                         'ALTER TABLE animais_perdidos ADD COLUMN usuario_id VARCHAR(64) NULL'

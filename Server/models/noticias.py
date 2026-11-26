@@ -1,3 +1,4 @@
+import hashlib
 from datetime import datetime
 from sqlalchemy import DateTime, LargeBinary, String, Text, ForeignKey, UniqueConstraint, func, select
 from sqlalchemy.exc import IntegrityError
@@ -14,9 +15,7 @@ class Noticia(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     titulo: Mapped[str] = mapped_column(String(255), nullable=False)
     corpo: Mapped[str] = mapped_column(Text, nullable=False)
-    imagem_blob: Mapped[bytes | None] = mapped_column(
-        LargeBinary(length=4294967295), nullable=True
-    )
+    imagem_blob: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     imagem_mime: Mapped[str | None] = mapped_column(String(100), nullable=True)
     data_hora: Mapped[datetime] = mapped_column(
         DateTime,
@@ -69,6 +68,14 @@ class CurtidaNoticia(Base):
 def _invalidate_noticias_cache():
     """Invalida com segurança o cache de notícias (com fallback gracioso em exceção)."""
     cache.flush()
+
+
+def _imagem_url(noticia):
+    """Inclui a versão do conteúdo na URL para invalidar caches após a troca."""
+    if not noticia.imagem_blob:
+        return None
+    versao = hashlib.sha256(noticia.imagem_blob).hexdigest()
+    return f'/api/noticias/{noticia.id}/imagem?v={versao}'
 
 
 # ---------------------------------------------------------------------------
@@ -124,7 +131,7 @@ def list_noticias(limit, offset, current_user_id=None):
             'id': r.id,
             'titulo': r.titulo,
             'corpo': r.corpo,
-            'imagem_url': f'/api/noticias/{r.id}/imagem' if r.imagem_blob else None,
+            'imagem_url': _imagem_url(r),
             'data_hora': r.data_hora.isoformat() if r.data_hora else None,
             'curtidas_count': curtidas,
             'comentarios_count': comentarios,
@@ -149,7 +156,7 @@ def get_noticia_by_id(nid, current_user_id=None):
             'id': row.id,
             'titulo': row.titulo,
             'corpo': row.corpo,
-            'imagem_url': f'/api/noticias/{row.id}/imagem' if row.imagem_blob else None,
+            'imagem_url': _imagem_url(row),
             'data_hora': row.data_hora.isoformat() if row.data_hora else None,
             'curtidas_count': curtidas,
             'comentarios_count': comentarios,
@@ -195,7 +202,7 @@ def update_noticia_db(nid, update_data):
             'id': noticia.id,
             'titulo': noticia.titulo,
             'corpo': noticia.corpo,
-            'imagem_url': f'/api/noticias/{noticia.id}/imagem' if noticia.imagem_blob else None,
+            'imagem_url': _imagem_url(noticia),
             'data_hora': noticia.data_hora.isoformat() if noticia.data_hora else None,
         }
     except IntegrityError:
