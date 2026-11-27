@@ -53,3 +53,29 @@ Thumbs.db
 # Others
 *.swp
 *~
+*.tmp
+*.bak
+
+# Local production state and credentials
+INITIAL_ADMIN_LOGIN.txt
+backups/
+Server.pre-*/
+.deploy/
+!deploy/production/.env.example
+
+# Local private keys and certificate bundles. Public .crt/.cer files remain trackable.
+# For a reviewed public PEM certificate, add an exact !path/to/certificate.pem exception.
+*.pem
+*.key
+*.p12
+*.pfx
+*.p8
+*.jks
+*.keystore
+*.ppk
+id_rsa
+id_ed25519
+id_ecdsa
+id_dsa
+id_ed25519_sk
+id_ecdsa_sk
