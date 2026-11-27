@@ -1,0 +1,121 @@
+# Production-only Compose file. Run through deploy/production/compose.sh from the repository root.
+name: vozes-tcc
+
+services:
+  proxy:
+    image: nginx:1.28-alpine
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:18080:80"
+    volumes:
+      - ./deploy/production/nginx.tcc.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - web
+    restart: unless-stopped
+
+  app:
+    build:
+      context: ./Server
+    init: true
+    expose:
+      - "8080"
+    environment:
+      APP_ENV: production
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:?Configure FLASK_SECRET_KEY no arquivo .env}
+      ROOT_USERNAME: ${ROOT_USERNAME:?Configure ROOT_USERNAME no arquivo .env}
+      ROOT_EMAIL: ${ROOT_EMAIL:?Configure ROOT_EMAIL no arquivo .env}
+      ROOT_PASSWORD: ${ROOT_PASSWORD:?Configure ROOT_PASSWORD no arquivo .env}
+      DATABASE_HOST: mariadb
+      DATABASE_PORT: "3306"
+      DATABASE_USER: tcc_app
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Configure DATABASE_PASSWORD no arquivo .env}
+      DATABASE_NAME: ${DATABASE_NAME:?Mantenha DATABASE_NAME=MausTratosDB no arquivo .env}
+      CACHE_ENABLED: "true"
+      MEMCACHED_HOST: memcached
+      MEMCACHED_PORT: "11211"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      memcached:
+        condition: service_started
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
+    networks:
+      - web
+      - data
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    restart: unless-stopped
+
+  mariadb:
+    image: mariadb:11.4
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Configure MARIADB_ROOT_PASSWORD no arquivo .env}
+      MARIADB_DATABASE: MausTratosDB
+      MARIADB_USER: tcc_app
+      MARIADB_PASSWORD: ${DATABASE_PASSWORD:?Configure DATABASE_PASSWORD no arquivo .env}
+      TCC_DB_ADMIN_PASSWORD: ${TCC_DB_ADMIN_PASSWORD:?Configure TCC_DB_ADMIN_PASSWORD no arquivo .env}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./Server/Databases/MariaDB_MauTratos.sql:/docker-entrypoint-initdb.d/10-maustratos.sql:ro
+      - ./deploy/production/scripts/20-create-dbadmin.sh:/docker-entrypoint-initdb.d/20-create-dbadmin.sh:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'mariadb-admin ping --host=127.0.0.1 --user=root --password="$${MARIADB_ROOT_PASSWORD}" --silent'
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - data
+    restart: unless-stopped
+
+  memcached:
+    image: memcached:1.6-alpine
+    command: ["memcached", "-m", "64", "-p", "11211", "-U", "0"]
+    networks:
+      - data
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin:5.2-apache
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: "3306"
+      PMA_ARBITRARY: "0"
+      UPLOAD_LIMIT: 6M
+      MAX_EXECUTION_TIME: "120"
+    ports:
+      - "127.0.0.1:18081:80"
+    networks:
+      - data
+      - admin_ingress
+    restart: unless-stopped
+
+volumes:
+  mariadb_data:
+
+networks:
+  web:
+  data:
+    internal: true
+  admin_ingress:

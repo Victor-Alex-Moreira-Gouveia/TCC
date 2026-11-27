@@ -18,14 +18,17 @@ Plataforma web para registro de denúncias de maus-tratos, orientação emergenc
 2. **Denúncia com Orientação de Contato:** O relato fica armazenado no sistema. Depois do envio, a tela recomenda canais oficiais conforme o tipo e a situação informados. A pessoa inicia qualquer contato; o site não aciona órgãos nem serviços, não realiza resgates e não gera protocolo oficial.
 3. **Notícias Administráveis:** Administradores (`admin`) possuem painel/modal para cadastrar, editar e excluir notícias. Usuários cadastrados (`user`) podem visualizar as notícias, curtir e comentar.
 4. **Comentários e Curtidas:** Sistema de interação em tempo real com controle de permissões (1 curtida por usuário, comentários moderáveis por autor ou admin).
-5. **Publicação moderada de animais:** Cadastros novos ficam pendentes até decisão do administrador. Os aprovados aparecem publicamente; os negados são excluídos. Anúncios existentes são preservados como aprovados na migração.
+5. **Animais perdidos e encontrados:** Usuários autenticados podem cadastrar e gerenciar publicações de animais.
 
 ## Executando com Docker
 
 Na raiz do projeto, crie o arquivo `.env` a partir do exemplo:
 
+O exemplo contém o marcador `CHANGE_ME_LOCAL_ONLY` nos campos de senha. Substitua cada ocorrência por valores próprios de desenvolvimento antes de iniciar; não reutilize credenciais de produção.
+
 ```bash
 cp .env.example .env
+# Edite .env e substitua os marcadores antes de continuar.
 docker compose up -d --build
 ```
 
@@ -46,6 +49,17 @@ docker compose down
 ```
 
 O comando `docker compose down -v` remove também o volume do MariaDB e apaga os dados locais.
+
+## Implantação de produção no Tardis
+
+A configuração de produção fica separada em `deploy/production/`; o `docker-compose.yml` da raiz continua voltado ao desenvolvimento local. Para consultar ou operar a configuração de produção, execute o wrapper a partir da raiz do projeto:
+
+```bash
+./deploy/production/compose.sh ps
+./deploy/production/compose.sh logs --tail=100 app proxy mariadb
+```
+
+O exemplo de variáveis de produção está em `deploy/production/.env.example`. Os campos secretos ficam vazios de propósito; preencha o `.env` local com valores exclusivos antes de iniciar. O guia completo está em [GUIA_DO_SERVIDOR.md](deploy/production/GUIA_DO_SERVIDOR.md). A configuração usa um volume dedicado do MariaDB; `down -v` apaga os dados persistentes.
 
 ## Executando Flask localmente com WampServer/MySQL
 
